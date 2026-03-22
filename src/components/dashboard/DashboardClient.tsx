@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useRef, useState } from 'react'
 import { useProfile } from '@/hooks/useProfile'
 import { useTasks } from '@/hooks/useTasks'
 import { ProfileStats } from './ProfileStats'
@@ -16,8 +17,72 @@ export function DashboardClient({ userId }: DashboardClientProps) {
   const doneTasks = tasks.filter(t => t.status === 'Done').length
   const progress = tasks.length > 0 ? Math.round((doneTasks / tasks.length) * 100) : 0
 
+  const [referralToast, setReferralToast] = useState<string | null>(null)
+  const fulfillAttempted = useRef(false)
+
+  useEffect(() => {
+    if (fulfillAttempted.current) return
+    fulfillAttempted.current = true
+
+    let code: string | null = null
+    try { code = localStorage.getItem('stairwayu_ref') } catch {}
+
+    // Also check if the profile was just created (within last 5 minutes)
+    const isNewUser = profile?.created_at
+      ? Date.now() - new Date(profile.created_at).getTime() < 5 * 60 * 1000
+      : false
+
+    if (!code && !isNewUser) return
+
+    fetch('/api/referral/fulfill', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: code ?? undefined }),
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.success && !data?.already_fulfilled) {
+          setReferralToast(`🎉 Welcome! You got 14 days of Pro, thanks to ${data.referrer_name}'s invite.`)
+          try { localStorage.removeItem('stairwayu_ref') } catch {}
+          setTimeout(() => setReferralToast(null), 6000)
+        } else if (data?.success) {
+          // Already fulfilled — still clear stale localStorage key
+          try { localStorage.removeItem('stairwayu_ref') } catch {}
+        }
+      })
+      .catch(() => {})
+  // Only run once on mount — intentionally omitting profile from deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   return (
     <div style={{ maxWidth: 900 }}>
+      {/* Referral welcome toast */}
+      {referralToast && (
+        <div style={{
+          background: 'rgba(99,102,241,0.15)',
+          border: '1.5px solid rgba(99,102,241,0.35)',
+          borderRadius: 12,
+          padding: '12px 16px',
+          marginBottom: 20,
+          fontSize: 14,
+          fontWeight: 600,
+          color: 'var(--color-text)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 8,
+        }}>
+          <span>{referralToast}</span>
+          <button
+            onClick={() => setReferralToast(null)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: 'var(--color-text-muted)', padding: 0, lineHeight: 1, flexShrink: 0 }}
+          >
+            ×
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div style={{ marginBottom: 28 }}>
         <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text)', margin: 0 }}>

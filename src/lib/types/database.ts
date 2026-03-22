@@ -95,6 +95,23 @@ export interface EmailPreferences {
   created_at: string
 }
 
+export interface Referral {
+  id: string
+  referrer_id: string
+  referral_code: string
+  created_at: string
+}
+
+export interface ReferralCompletion {
+  id: string
+  referral_code: string
+  referrer_id: string
+  referred_id: string
+  referrer_bonus_applied: boolean
+  referred_bonus_applied: boolean
+  created_at: string
+}
+
 // Required for Supabase typed client — minimal inline version
 export type Database = {
   public: {
@@ -105,6 +122,8 @@ export type Database = {
       scholarships: { Row: Scholarship; Insert: Partial<Scholarship>; Update: Partial<Scholarship> }
       subscriptions: { Row: Subscription; Insert: Partial<Subscription>; Update: Partial<Subscription> }
       email_preferences: { Row: EmailPreferences; Insert: Partial<EmailPreferences>; Update: Partial<EmailPreferences> }
+      referrals: { Row: Referral; Insert: Partial<Referral>; Update: Partial<Referral> }
+      referral_completions: { Row: ReferralCompletion; Insert: Partial<ReferralCompletion>; Update: Partial<ReferralCompletion> }
     }
     Views: Record<string, never>
     Functions: Record<string, never>

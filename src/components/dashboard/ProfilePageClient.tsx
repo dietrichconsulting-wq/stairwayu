@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile'
 import { useSeedTasks, useTasks } from '@/hooks/useTasks'
@@ -25,6 +25,31 @@ export function ProfilePageClient({ userId }: { userId: string }) {
   const [weeklyNudge, setWeeklyNudge] = useState(true)
   const [lastNudgeSent, setLastNudgeSent] = useState<string | null>(null)
   const [nudgeSaving, setNudgeSaving] = useState(false)
+
+  // Referral state
+  const [referralCode, setReferralCode] = useState<string | null>(null)
+  const [referralLink, setReferralLink] = useState<string | null>(null)
+  const [referralCount, setReferralCount] = useState(0)
+  const [referralLoading, setReferralLoading] = useState(true)
+  const [copied, setCopied] = useState(false)
+
+  const fetchReferralCode = useCallback(async () => {
+    setReferralLoading(true)
+    try {
+      const res = await fetch('/api/referral/code')
+      if (res.ok) {
+        const data = await res.json()
+        setReferralCode(data.code)
+        setReferralLink(data.link)
+        setReferralCount(data.completions ?? 0)
+      }
+    } catch {}
+    setReferralLoading(false)
+  }, [])
+
+  useEffect(() => {
+    fetchReferralCode()
+  }, [fetchReferralCode])
 
   useEffect(() => {
     if (profile) {
@@ -163,6 +188,78 @@ export function ProfilePageClient({ userId }: { userId: string }) {
             }} />
           </button>
         </div>
+      </div>
+
+      {/* Refer a Friend */}
+      <div id="referrals" className="card-elevated" style={{ padding: '28px 28px 32px', marginBottom: 24 }}>
+        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span>🎁</span> Invite Friends
+        </h2>
+        <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 20 }}>
+          You both get 2 weeks of free Pro.
+        </p>
+
+        {referralLoading ? (
+          <div>
+            <div className="skeleton" style={{ height: 40, borderRadius: 8, marginBottom: 12 }} />
+            <div className="skeleton" style={{ height: 16, width: '60%', borderRadius: 6 }} />
+          </div>
+        ) : referralLink ? (
+          <>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+              <input
+                readOnly
+                value={referralLink}
+                style={{ ...inputStyle, flex: 1, fontSize: 12, color: 'var(--color-text-muted)', userSelect: 'all' }}
+                onFocus={e => e.target.select()}
+              />
+              <button
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(referralLink)
+                    setCopied(true)
+                    setTimeout(() => setCopied(false), 2000)
+                  } catch {}
+                }}
+                style={{
+                  background: copied ? 'var(--color-primary)' : 'var(--color-column)',
+                  color: copied ? '#fff' : 'var(--color-text)',
+                  border: '1.5px solid var(--color-border)',
+                  borderRadius: 8, padding: '0 14px', fontWeight: 700, fontSize: 13,
+                  cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, transition: 'background 0.2s',
+                }}
+              >
+                {copied ? 'Copied!' : 'Copy'}
+              </button>
+              {typeof navigator !== 'undefined' && typeof (navigator as { share?: unknown }).share === 'function' && (
+                <button
+                  onClick={() => {
+                    navigator.share?.({
+                      title: 'Stairway U',
+                      text: `I'm using Stairway U to plan my college apps — try it free for 2 weeks with my link: ${referralLink}`,
+                      url: referralLink,
+                    }).catch(() => {})
+                  }}
+                  style={{
+                    background: 'var(--color-column)', color: 'var(--color-text)',
+                    border: '1.5px solid var(--color-border)',
+                    borderRadius: 8, padding: '0 14px', fontWeight: 700, fontSize: 13,
+                    cursor: 'pointer', flexShrink: 0,
+                  }}
+                >
+                  Share
+                </button>
+              )}
+            </div>
+            <p style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
+              {referralCount === 0
+                ? 'No referrals yet — share your link to get started!'
+                : `You've referred ${referralCount} friend${referralCount === 1 ? '' : 's'} 🎉`}
+            </p>
+          </>
+        ) : (
+          <p style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>Could not load referral link.</p>
+        )}
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

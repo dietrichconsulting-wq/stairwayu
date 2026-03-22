@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -14,8 +14,18 @@ export default function SignupPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [refCode, setRefCode] = useState<string | null>(null)
   const router = useRouter()
   const supabase = createClient()
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const ref = params.get('ref')
+    if (ref) {
+      setRefCode(ref)
+      try { localStorage.setItem('stairwayu_ref', ref) } catch {}
+    }
+  }, [])
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault()
@@ -24,7 +34,12 @@ export default function SignupPage() {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: name } },
+      options: {
+        data: {
+          full_name: name,
+          ...(refCode ? { referral_code: refCode } : {}),
+        },
+      },
     })
     if (error) {
       setError(error.message)
@@ -55,6 +70,24 @@ export default function SignupPage() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg)', padding: '24px' }}>
       <div className="card-elevated" style={{ width: '100%', maxWidth: 400, padding: '40px 36px' }}>
+        {refCode && (
+          <div style={{
+            background: 'rgba(99,102,241,0.12)',
+            border: '1.5px solid rgba(99,102,241,0.3)',
+            borderRadius: 10,
+            padding: '10px 14px',
+            marginBottom: 20,
+            fontSize: 13,
+            color: 'var(--color-text)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+          }}>
+            <span style={{ fontSize: 16 }}>🎉</span>
+            <span>You were invited! You&apos;ll get a <strong>14-day free Pro trial</strong> (instead of 7).</span>
+          </div>
+        )}
+
         <div style={{ marginBottom: 32, textAlign: 'center' }}>
           <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-primary)', marginBottom: 6 }}>Create Account</div>
           <div style={{ fontSize: 14, color: 'var(--color-text-muted)' }}>Start your college journey</div>

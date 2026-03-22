@@ -67,6 +67,27 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
 
       {/* Footer */}
       <div style={{ padding: '16px 20px', borderTop: '1px solid var(--color-border)' }}>
+        {/* Referral prompt — only shown to Pro users */}
+        {isPro && (
+          <Link
+            href="/profile#referrals"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '8px 10px', borderRadius: 8, marginBottom: 10,
+              background: 'rgba(99,102,241,0.08)',
+              border: '1px solid rgba(99,102,241,0.2)',
+              textDecoration: 'none', color: 'var(--color-text)',
+              fontSize: 12, fontWeight: 600,
+            }}
+          >
+            <span style={{ fontSize: 14 }}>🎁</span>
+            <div>
+              <div>Invite Friends</div>
+              <div style={{ fontSize: 10, fontWeight: 400, color: 'var(--color-text-muted)' }}>Share &amp; both get 2 wks free</div>
+            </div>
+          </Link>
+        )}
+
         {/* Pro badge or upgrade */}
         {isPro ? (
           <div style={{ fontSize: 11, fontWeight: 700, color: '#7c3aed', background: 'rgba(124,58,237,0.1)', borderRadius: 8, padding: '4px 10px', textAlign: 'center', marginBottom: 12 }}>
