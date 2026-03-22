@@ -6,6 +6,7 @@ import { useProfile, useUpdateProfile } from '@/hooks/useProfile'
 import { useSeedTasks, useTasks } from '@/hooks/useTasks'
 import { MajorSelect } from '@/components/MajorSelect'
 import { CollegeSelect } from '@/components/CollegeSelect'
+import { createClient } from '@/lib/supabase/client'
 
 const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY']
 
@@ -21,6 +22,10 @@ export function ProfilePageClient({ userId }: { userId: string }) {
     school1_name: '', school2_name: '', school3_name: '', school4_name: '',
   })
 
+  const [weeklyNudge, setWeeklyNudge] = useState(true)
+  const [lastNudgeSent, setLastNudgeSent] = useState<string | null>(null)
+  const [nudgeSaving, setNudgeSaving] = useState(false)
+
   useEffect(() => {
     if (profile) {
       setForm({
@@ -34,8 +39,32 @@ export function ProfilePageClient({ userId }: { userId: string }) {
         school3_name: profile.school3_name ?? '',
         school4_name: profile.school4_name ?? '',
       })
+
+      // Load email preferences
+      const supabase = createClient()
+      supabase
+        .from('email_preferences')
+        .select('weekly_nudge, last_nudge_sent')
+        .eq('user_id', userId)
+        .single()
+        .then(({ data }: { data: { weekly_nudge: boolean; last_nudge_sent: string | null } | null }) => {
+          if (data) {
+            setWeeklyNudge(data.weekly_nudge)
+            setLastNudgeSent(data.last_nudge_sent)
+          }
+        })
     }
-  }, [profile])
+  }, [profile, userId])
+
+  async function handleToggleNudge(enabled: boolean) {
+    setWeeklyNudge(enabled)
+    setNudgeSaving(true)
+    const supabase = createClient()
+    await supabase
+      .from('email_preferences')
+      .upsert({ user_id: userId, weekly_nudge: enabled }, { onConflict: 'user_id' })
+    setNudgeSaving(false)
+  }
 
   async function handleSave() {
     await updateProfile.mutateAsync({
@@ -99,6 +128,40 @@ export function ProfilePageClient({ userId }: { userId: string }) {
               <CollegeSelect value={form[key]} onChange={v => setForm(f => ({ ...f, [key]: v }))} placeholder="Search for a college…" />
             </div>
           ))}
+        </div>
+      </div>
+
+      <div className="card-elevated" style={{ padding: '24px 28px', marginBottom: 24 }}>
+        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Email Notifications</h2>
+        <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 16 }}>
+          Get a personalized weekly recap of upcoming tasks and scholarship deadlines.
+        </p>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <span style={{ fontSize: 14, fontWeight: 600 }}>Weekly email updates</span>
+            {lastNudgeSent && (
+              <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--color-text-muted)' }}>
+                Last email sent: {new Date(lastNudgeSent).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+              </p>
+            )}
+          </div>
+          <button
+            onClick={() => handleToggleNudge(!weeklyNudge)}
+            disabled={nudgeSaving}
+            aria-pressed={weeklyNudge}
+            style={{
+              width: 44, height: 24, borderRadius: 12, border: 'none', cursor: nudgeSaving ? 'default' : 'pointer',
+              background: weeklyNudge ? 'var(--color-primary)' : 'var(--color-border)',
+              position: 'relative', transition: 'background 0.2s', flexShrink: 0,
+              opacity: nudgeSaving ? 0.6 : 1,
+            }}
+          >
+            <span style={{
+              position: 'absolute', top: 3, left: weeklyNudge ? 23 : 3, width: 18, height: 18,
+              borderRadius: '50%', background: '#fff', transition: 'left 0.2s',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+            }} />
+          </button>
         </div>
       </div>
 

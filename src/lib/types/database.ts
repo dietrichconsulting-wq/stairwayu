@@ -87,6 +87,14 @@ export interface Subscription {
   updated_at: string
 }
 
+export interface EmailPreferences {
+  user_id: string
+  weekly_nudge: boolean
+  unsubscribe_token: string
+  last_nudge_sent: string | null
+  created_at: string
+}
+
 // Required for Supabase typed client — minimal inline version
 export type Database = {
   public: {
@@ -96,6 +104,7 @@ export type Database = {
       progress: { Row: Milestone; Insert: Partial<Milestone>; Update: Partial<Milestone> }
       scholarships: { Row: Scholarship; Insert: Partial<Scholarship>; Update: Partial<Scholarship> }
       subscriptions: { Row: Subscription; Insert: Partial<Subscription>; Update: Partial<Subscription> }
+      email_preferences: { Row: EmailPreferences; Insert: Partial<EmailPreferences>; Update: Partial<EmailPreferences> }
     }
     Views: Record<string, never>
     Functions: Record<string, never>
