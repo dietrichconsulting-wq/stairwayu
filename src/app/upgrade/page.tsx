@@ -16,6 +16,7 @@ const PRO_FEATURES = [
 ]
 
 export default function UpgradePage() {
+  const [plan, setPlan] = useState<'monthly' | 'annual'>('annual')
   const [loading, setLoading] = useState(false)
   const [code, setCode] = useState('')
   const [codeLoading, setCodeLoading] = useState(false)
@@ -25,7 +26,11 @@ export default function UpgradePage() {
   async function handleUpgrade() {
     setLoading(true)
     try {
-      const res = await fetch('/api/stripe/checkout', { method: 'POST' })
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan }),
+      })
       const { url } = await res.json()
       if (url) window.location.href = url
     } catch {
@@ -62,13 +67,58 @@ export default function UpgradePage() {
         <div className="card-elevated" style={{ padding: '40px 36px', textAlign: 'center' }}>
           <div style={{ fontSize: 40, marginBottom: 12 }}>✨</div>
           <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-primary)', marginBottom: 6 }}>Stairway U Pro</h1>
-          <p style={{ fontSize: 14, color: 'var(--color-text-muted)', marginBottom: 8 }}>
+          <p style={{ fontSize: 14, color: 'var(--color-text-muted)', marginBottom: 20 }}>
             Everything you need to get into your dream school
           </p>
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 4, marginBottom: 28 }}>
-            <span style={{ fontSize: 36, fontWeight: 800 }}>$9.99</span>
-            <span style={{ fontSize: 14, color: 'var(--color-text-muted)' }}>/month</span>
+
+          {/* Billing toggle */}
+          <div style={{ display: 'inline-flex', background: 'var(--color-surface, rgba(255,255,255,0.06))', borderRadius: 10, padding: 3, marginBottom: 20, border: '1px solid var(--color-border)' }}>
+            <button
+              onClick={() => setPlan('monthly')}
+              style={{
+                padding: '7px 18px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700,
+                background: plan === 'monthly' ? 'var(--color-primary)' : 'transparent',
+                color: plan === 'monthly' ? '#fff' : 'var(--color-text-muted)',
+                transition: 'all 0.15s',
+              }}
+            >
+              Monthly
+            </button>
+            <button
+              onClick={() => setPlan('annual')}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '7px 18px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700,
+                background: plan === 'annual' ? 'var(--color-primary)' : 'transparent',
+                color: plan === 'annual' ? '#fff' : 'var(--color-text-muted)',
+                transition: 'all 0.15s',
+              }}
+            >
+              Annual
+              <span style={{ fontSize: 10, fontWeight: 800, background: '#fbbf24', color: '#78350f', borderRadius: 4, padding: '1px 5px', letterSpacing: '0.04em' }}>
+                BEST VALUE
+              </span>
+            </button>
           </div>
+
+          {/* Price display */}
+          {plan === 'monthly' ? (
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 4, marginBottom: 28 }}>
+              <span style={{ fontSize: 36, fontWeight: 800 }}>$9.99</span>
+              <span style={{ fontSize: 14, color: 'var(--color-text-muted)' }}>/month</span>
+            </div>
+          ) : (
+            <div style={{ marginBottom: 28 }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 6 }}>
+                <span style={{ fontSize: 36, fontWeight: 800 }}>$79</span>
+                <span style={{ fontSize: 14, color: 'var(--color-text-muted)' }}>/year</span>
+                <span style={{ fontSize: 14, color: 'var(--color-text-muted)', textDecoration: 'line-through' }}>$119.88</span>
+              </div>
+              <div style={{ fontSize: 13, color: '#16a34a', fontWeight: 700, marginTop: 4 }}>
+                $6.58/mo · Save 34%
+              </div>
+            </div>
+          )}
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 28, textAlign: 'left' }}>
             {PRO_FEATURES.map(f => (

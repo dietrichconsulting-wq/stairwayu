@@ -22,7 +22,7 @@ const NAV_ITEMS = [
 interface SidebarProps {
   user: User
   profile: Profile | null
-  subscription: Pick<Subscription, 'tier' | 'status'> | null
+  subscription: Pick<Subscription, 'tier' | 'status' | 'billing_interval'> | null
 }
 
 export function Sidebar({ user, profile, subscription }: SidebarProps) {
@@ -91,7 +91,11 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
         {/* Pro badge or upgrade */}
         {isPro ? (
           <div style={{ fontSize: 11, fontWeight: 700, color: '#7c3aed', background: 'rgba(124,58,237,0.1)', borderRadius: 8, padding: '4px 10px', textAlign: 'center', marginBottom: 12 }}>
-            ✨ Pro Plan
+            {subscription?.billing_interval === 'year'
+              ? '✨ Pro Annual'
+              : subscription?.billing_interval === 'month'
+              ? '✨ Pro Monthly'
+              : '✨ Pro Trial'}
           </div>
         ) : (
           <Link href="/upgrade" style={{ display: 'block', textAlign: 'center', fontSize: 12, fontWeight: 700, color: '#fff', background: 'var(--color-primary)', borderRadius: 8, padding: '6px 10px', marginBottom: 12, textDecoration: 'none' }}>

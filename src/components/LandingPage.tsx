@@ -45,6 +45,74 @@ const STATS = [
   { value: '100%', label: 'Personalized to you' },
 ]
 
+function ProCard() {
+  const [plan, setPlan] = useState<'monthly' | 'annual'>('annual')
+  return (
+    <div style={{ background: 'linear-gradient(135deg, #2563EB, #7c3aed)', padding: '48px 40px', position: 'relative' }}>
+      <div style={{ position: 'absolute', top: 20, right: 20, background: '#fbbf24', color: '#78350f', fontSize: 10, fontWeight: 800, padding: '4px 10px', borderRadius: 2, letterSpacing: '0.1em' }}>
+        MOST POPULAR
+      </div>
+      <div style={{ fontSize: 11, fontWeight: 800, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 16 }}>Pro</div>
+
+      {/* Billing toggle */}
+      <div style={{ display: 'inline-flex', background: 'rgba(255,255,255,0.1)', borderRadius: 8, padding: 2, marginBottom: 16, border: '1px solid rgba(255,255,255,0.15)' }}>
+        <button
+          onClick={() => setPlan('monthly')}
+          style={{
+            padding: '5px 14px', borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700,
+            background: plan === 'monthly' ? 'rgba(255,255,255,0.25)' : 'transparent',
+            color: '#fff', transition: 'all 0.15s',
+          }}
+        >
+          Monthly
+        </button>
+        <button
+          onClick={() => setPlan('annual')}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 5,
+            padding: '5px 14px', borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700,
+            background: plan === 'annual' ? 'rgba(255,255,255,0.25)' : 'transparent',
+            color: '#fff', transition: 'all 0.15s',
+          }}
+        >
+          Annual
+          <span style={{ fontSize: 9, fontWeight: 800, background: '#fbbf24', color: '#78350f', borderRadius: 3, padding: '1px 4px' }}>✦</span>
+        </button>
+      </div>
+
+      {plan === 'monthly' ? (
+        <>
+          <div style={{ fontSize: 52, fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', marginBottom: 4 }}>$9.99</div>
+          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginBottom: 36 }}>per month</div>
+        </>
+      ) : (
+        <>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 2 }}>
+            <span style={{ fontSize: 52, fontWeight: 900, color: '#fff', letterSpacing: '-0.03em' }}>$79</span>
+            <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', textDecoration: 'line-through' }}>$119.88</span>
+          </div>
+          <div style={{ fontSize: 13, color: '#86efac', fontWeight: 700, marginBottom: 36 }}>$6.58/mo · Save 34%</div>
+        </>
+      )}
+
+      {['AI Admission Snapshot', 'Scholarship Finder', 'College Comparison', 'Financial Planner', 'Essay Studio', 'Unlimited everything'].map(f => (
+        <div key={f} style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 14 }}>
+          <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: '#fff', flexShrink: 0 }}>✓</div>
+          <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.85)' }}>{f}</span>
+        </div>
+      ))}
+      <Link href="/signup" style={{
+        display: 'block', textAlign: 'center', marginTop: 36,
+        background: '#fff', color: '#2563EB',
+        textDecoration: 'none', borderRadius: 4, padding: '14px',
+        fontWeight: 800, fontSize: 13, letterSpacing: '0.05em', textTransform: 'uppercase',
+      }}>
+        Start Pro Free →
+      </Link>
+    </div>
+  )
+}
+
 export function LandingPage() {
   const [scrolled, setScrolled] = useState(false)
 
@@ -304,28 +372,7 @@ export function LandingPage() {
               </Link>
             </div>
             {/* Pro */}
-            <div style={{ background: 'linear-gradient(135deg, #2563EB, #7c3aed)', padding: '48px 40px', position: 'relative' }}>
-              <div style={{ position: 'absolute', top: 20, right: 20, background: '#fbbf24', color: '#78350f', fontSize: 10, fontWeight: 800, padding: '4px 10px', borderRadius: 2, letterSpacing: '0.1em' }}>
-                MOST POPULAR
-              </div>
-              <div style={{ fontSize: 11, fontWeight: 800, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 20 }}>Pro</div>
-              <div style={{ fontSize: 52, fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', marginBottom: 4 }}>$9.99</div>
-              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginBottom: 36 }}>per month</div>
-              {['AI Admission Snapshot', 'Scholarship Finder', 'College Comparison', 'Financial Planner', 'Essay Studio', 'Unlimited everything'].map(f => (
-                <div key={f} style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 14 }}>
-                  <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: '#fff', flexShrink: 0 }}>✓</div>
-                  <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.85)' }}>{f}</span>
-                </div>
-              ))}
-              <Link href="/signup" style={{
-                display: 'block', textAlign: 'center', marginTop: 36,
-                background: '#fff', color: '#2563EB',
-                textDecoration: 'none', borderRadius: 4, padding: '14px',
-                fontWeight: 800, fontSize: 13, letterSpacing: '0.05em', textTransform: 'uppercase',
-              }}>
-                Start Pro Free →
-              </Link>
-            </div>
+            <ProCard />
           </div>
         </div>
       </section>

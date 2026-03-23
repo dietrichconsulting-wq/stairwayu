@@ -20,7 +20,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const { data: subscription } = await supabase
     .from('subscriptions')
-    .select('tier, status, trial_end')
+    .select('tier, status, trial_end, billing_interval')
     .eq('user_id', user.id)
     .single()
 

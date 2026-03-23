@@ -23,12 +23,14 @@ export async function POST(req: Request) {
       const session = event.data.object as Stripe.Checkout.Session
       if (session.mode === 'subscription' && session.customer) {
         const sub = await stripe.subscriptions.retrieve(session.subscription as string)
+        const interval = sub.items.data[0]?.price?.recurring?.interval
         await supabase
           .from('subscriptions')
           .update({
             stripe_subscription_id: sub.id,
             tier: 'pro',
             status: sub.status,
+            billing_interval: interval === 'year' ? 'year' : 'month',
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             current_period_end: new Date((sub as any).current_period_end * 1000).toISOString(),
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -42,11 +44,13 @@ export async function POST(req: Request) {
     case 'customer.subscription.updated': {
       const sub = event.data.object as Stripe.Subscription
       const tier = sub.status === 'active' || sub.status === 'trialing' ? 'pro' : 'free'
+      const interval = sub.items.data[0]?.price?.recurring?.interval
       await supabase
         .from('subscriptions')
         .update({
           tier,
           status: sub.status,
+          billing_interval: interval === 'year' ? 'year' : 'month',
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           current_period_end: new Date((sub as any).current_period_end * 1000).toISOString(),
           cancel_at_period_end: sub.cancel_at_period_end,

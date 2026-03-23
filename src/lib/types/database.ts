@@ -6,6 +6,7 @@ export type ScholarshipDifficulty = 'Easy' | 'Medium' | 'Hard'
 export type ScholarshipStage = 'Researching' | 'Applying' | 'Submitted' | 'Won'
 export type SubscriptionTier = 'free' | 'pro'
 export type SubscriptionStatus = 'active' | 'trialing' | 'past_due' | 'canceled' | 'paused'
+export type BillingInterval = 'month' | 'year'
 
 export interface Profile {
   id: string
@@ -83,6 +84,7 @@ export interface Subscription {
   current_period_end: string | null
   cancel_at_period_end: boolean
   trial_end: string | null
+  billing_interval: BillingInterval | null
   created_at: string
   updated_at: string
 }
