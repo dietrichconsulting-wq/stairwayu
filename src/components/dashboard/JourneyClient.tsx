@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { useMilestones, useMarkMilestone } from '@/hooks/useMilestones'
+import { useMilestones, useMarkMilestone, type MilestoneRecord } from '@/hooks/useMilestones'
 
 const MILESTONES = [
   { key: 'psat_taken',         label: 'PSAT Taken',             icon: '📝', desc: 'You took the PSAT — your College Board journey begins.',                    phase: 'Prep'     },
@@ -24,9 +24,11 @@ const PHASES = [
 ]
 
 export function JourneyClient({ userId }: { userId: string }) {
-  const { data: milestoneKeys = [] } = useMilestones(userId)
+  const milestonesQuery = useMilestones(userId)
+  const milestones: MilestoneRecord[] = milestonesQuery.data ?? []
   const markMilestone = useMarkMilestone(userId)
 
+  const milestoneKeys = milestones.map(m => m.milestone_key)
   const reached = new Set(milestoneKeys)
   const firstUnreached = MILESTONES.findIndex(m => !reached.has(m.key))
   const pct = Math.round((reached.size / MILESTONES.length) * 100)

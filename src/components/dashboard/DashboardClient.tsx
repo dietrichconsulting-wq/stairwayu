@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useProfile } from '@/hooks/useProfile'
 import { useTasks } from '@/hooks/useTasks'
+import { useReadinessScore } from '@/hooks/useReadinessScore'
 import { ProfileStats } from './ProfileStats'
 import { AdmissionSnapshot } from './AdmissionSnapshot'
 import { TaskList } from './TaskList'
@@ -14,8 +15,15 @@ interface DashboardClientProps {
 export function DashboardClient({ userId }: DashboardClientProps) {
   const { data: profile, isLoading: profileLoading } = useProfile(userId)
   const { data: tasks = [], isLoading: tasksLoading } = useTasks(userId)
-  const doneTasks = tasks.filter(t => t.status === 'Done').length
-  const progress = tasks.length > 0 ? Math.round((doneTasks / tasks.length) * 100) : 0
+  const { total: readinessTotal, isLoading: scoreLoading } = useReadinessScore(userId)
+
+  function getSubtitle(score: number) {
+    if (score <= 15) return "Let's get started — fill in your profile to begin."
+    if (score <= 35) return 'Good start! Keep completing tasks to build momentum.'
+    if (score <= 60) return "Making progress! You're on track for application season."
+    if (score <= 85) return 'Looking strong! Stay focused on your remaining milestones.'
+    return "Almost there! You're well-prepared for decision day."
+  }
 
   const [referralToast, setReferralToast] = useState<string | null>(null)
   const fulfillAttempted = useRef(false)
@@ -89,12 +97,12 @@ export function DashboardClient({ userId }: DashboardClientProps) {
           {profileLoading ? '…' : `Welcome back, ${profile?.display_name?.split(' ')[0] || 'Student'} 👋`}
         </h1>
         <p style={{ fontSize: 14, color: 'var(--color-text-muted)', marginTop: 4 }}>
-          Change your GPA, SAT, major, and schools to check your chance of getting in.
+          {scoreLoading ? 'Change your GPA, SAT, major, and schools to check your chance of getting in.' : getSubtitle(readinessTotal)}
         </p>
       </div>
 
       {/* Profile Stats */}
-      <ProfileStats profile={profile} loading={profileLoading} progress={progress} tasks={tasks} userId={userId} />
+      <ProfileStats profile={profile} loading={profileLoading} tasks={tasks} userId={userId} />
 
       {/* Admission Snapshot */}
       <AdmissionSnapshot profile={profile} loading={profileLoading} />
