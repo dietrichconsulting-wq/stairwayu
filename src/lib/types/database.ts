@@ -23,6 +23,16 @@ export interface Profile {
   school3_id: string | null
   school4_name: string | null
   school4_id: string | null
+  school5_name: string | null
+  school5_id: string | null
+  school6_name: string | null
+  school6_id: string | null
+  school7_name: string | null
+  school7_id: string | null
+  school8_name: string | null
+  school8_id: string | null
+  school9_name: string | null
+  school9_id: string | null
   home_state: string | null
   grad_year: number | null
   desired_climate: string | null

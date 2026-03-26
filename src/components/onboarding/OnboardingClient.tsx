@@ -59,6 +59,11 @@ type FormData = {
   school2_name: string
   school3_name: string
   school4_name: string
+  school5_name: string
+  school6_name: string
+  school7_name: string
+  school8_name: string
+  school9_name: string
 }
 
 export function OnboardingClient({ userId, initialName = '' }: { userId: string; initialName?: string }) {
@@ -85,6 +90,11 @@ export function OnboardingClient({ userId, initialName = '' }: { userId: string;
     school2_name: '',
     school3_name: '',
     school4_name: '',
+    school5_name: '',
+    school6_name: '',
+    school7_name: '',
+    school8_name: '',
+    school9_name: '',
   })
 
   function set(key: keyof FormData, value: string) {
@@ -121,6 +131,11 @@ export function OnboardingClient({ userId, initialName = '' }: { userId: string;
         school2_name: form.school2_name || null,
         school3_name: form.school3_name || null,
         school4_name: form.school4_name || null,
+        school5_name: form.school5_name || null,
+        school6_name: form.school6_name || null,
+        school7_name: form.school7_name || null,
+        school8_name: form.school8_name || null,
+        school9_name: form.school9_name || null,
         onboarding_complete: true,
       }).eq('id', userId)
       if (error) throw error
@@ -156,7 +171,7 @@ export function OnboardingClient({ userId, initialName = '' }: { userId: string;
           {step === 0 && 'This helps us personalize your dashboard and roadmap.'}
           {step === 1 && 'Be honest — this powers your AI strategy and school fit analysis.'}
           {step === 2 && 'These preferences help us match you to the right schools.'}
-          {step === 3 && "Add up to 4 schools. You can always change these later."}
+          {step === 3 && "Add up to 9 schools. You can always change these later."}
         </p>
       </div>
 
@@ -355,6 +370,11 @@ function StepSchools({ form, set }: { form: FormData; set: (k: keyof FormData, v
     { key: 'school2_name', label: 'School 2', hint: 'Another reach or strong target' },
     { key: 'school3_name', label: 'School 3', hint: 'A solid target school' },
     { key: 'school4_name', label: 'School 4 — Safety', hint: 'A school you\'re very confident about' },
+    { key: 'school5_name', label: 'School 5', hint: 'Optional — add more schools' },
+    { key: 'school6_name', label: 'School 6', hint: 'Optional — add more schools' },
+    { key: 'school7_name', label: 'School 7', hint: 'Optional — add more schools' },
+    { key: 'school8_name', label: 'School 8', hint: 'Optional — add more schools' },
+    { key: 'school9_name', label: 'School 9', hint: 'Optional — add more schools' },
   ]
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

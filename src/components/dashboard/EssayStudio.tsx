@@ -22,6 +22,11 @@ interface Profile {
   school2_name: string | null
   school3_name: string | null
   school4_name: string | null
+  school5_name: string | null
+  school6_name: string | null
+  school7_name: string | null
+  school8_name: string | null
+  school9_name: string | null
 }
 
 interface EssayStudioProps {
@@ -64,6 +69,11 @@ export function EssayStudio({ profile }: EssayStudioProps) {
     profile?.school2_name,
     profile?.school3_name,
     profile?.school4_name,
+    profile?.school5_name,
+    profile?.school6_name,
+    profile?.school7_name,
+    profile?.school8_name,
+    profile?.school9_name,
   ].filter(Boolean) as string[]
 
   return (

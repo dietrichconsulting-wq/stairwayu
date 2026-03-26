@@ -109,6 +109,7 @@ Respond ONLY with valid JSON, no markdown:
       avgSAT: real.avgSAT ?? null,               // [REAL]
       sat25: real.sat25 ?? null,                 // [REAL]
       sat75: real.sat75 ?? null,                 // [REAL]
+      actMidpoint: real.actMidpoint ?? null,     // [REAL]
       // ── Real cost data ──
       netCost,                                   // [REAL]
       tuitionOutOfState: real.tuitionOutOfState ?? null, // [REAL]

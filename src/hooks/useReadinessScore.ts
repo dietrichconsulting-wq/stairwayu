@@ -35,6 +35,11 @@ function computeProfileDimension(profile: Profile | null | undefined) {
     profile?.school2_name,
     profile?.school3_name,
     profile?.school4_name,
+    profile?.school5_name,
+    profile?.school6_name,
+    profile?.school7_name,
+    profile?.school8_name,
+    profile?.school9_name,
   ].filter(Boolean)
 
   const items = [
@@ -119,6 +124,11 @@ export function useReadinessScore(userId: string): ReadinessScore {
     profile?.school2_name,
     profile?.school3_name,
     profile?.school4_name,
+    profile?.school5_name,
+    profile?.school6_name,
+    profile?.school7_name,
+    profile?.school8_name,
+    profile?.school9_name,
   ].filter(Boolean).length
 
   const candidateActions: { label: string; points: number }[] = []

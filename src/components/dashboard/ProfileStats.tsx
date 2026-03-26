@@ -16,7 +16,7 @@ interface ProfileStatsProps {
   userId: string
 }
 
-const SCHOOLS_ORDER = ['school1', 'school2', 'school3', 'school4'] as const
+const SCHOOLS_ORDER = ['school1','school2','school3','school4','school5','school6','school7','school8','school9'] as const
 
 /** Shorten school name: strip "University", "of", "The", "College" to fit chips */
 function chipName(name: string): string {
@@ -319,19 +319,11 @@ export function ProfileStats({ profile, loading, tasks, userId }: ProfileStatsPr
 
         {/* School chips */}
         {!loading && (
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginLeft: 'auto', alignItems: 'center' }}>
-            {SCHOOLS_ORDER.map((k, i) => {
-              const name = profile?.[`${k}_name` as keyof Profile] as string | null
-              return (
-                <EditableSchoolChip
-                  key={k}
-                  name={name}
-                  rank={i + 1}
-                  onSave={v => updateProfile.mutate({ [`${k}_name`]: v || null })}
-                />
-              )
-            })}
-          </div>
+          <SchoolChipsRow
+            profile={profile}
+            onSave={(key, v) => updateProfile.mutate({ [`${key}_name`]: v || null })}
+            onRemove={key => updateProfile.mutate({ [`${key}_name`]: null })}
+          />
         )}
       </div>
 
@@ -469,15 +461,140 @@ function EditableMajorPill({ label, display, onSave }: {
   )
 }
 
-function EditableSchoolChip({ name, rank, onSave }: { name: string | null; rank: number; onSave: (v: string) => void }) {
+function SchoolChipsRow({ profile, onSave, onRemove }: {
+  profile: Profile | null | undefined
+  onSave: (key: string, v: string) => void
+  onRemove: (key: string) => void
+}) {
+  const [showMore, setShowMore] = useState(false)
+  const [addingSchool, setAddingSchool] = useState(false)
+  const popoverRef = useRef<HTMLDivElement>(null)
+
+  // Build filled schools list: [{key, name}]
+  const filledSchools = SCHOOLS_ORDER
+    .map(k => ({ key: k, name: profile?.[`${k}_name` as keyof Profile] as string | null }))
+    .filter((s): s is { key: typeof SCHOOLS_ORDER[number]; name: string } => !!s.name)
+
+  const filledCount = filledSchools.length
+  const visibleSchools = filledSchools.slice(0, 3)
+  const overflowSchools = filledSchools.slice(3)
+
+  // Find next empty slot for "+ Add"
+  const nextEmptySlot = SCHOOLS_ORDER.find(
+    k => !profile?.[`${k}_name` as keyof Profile]
+  )
+
+  // Close popover on click-outside or Escape
+  useEffect(() => {
+    if (!showMore) return
+    function handleClick(e: MouseEvent) {
+      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
+        setShowMore(false)
+      }
+    }
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setShowMore(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    document.addEventListener('keydown', handleKey)
+    return () => {
+      document.removeEventListener('mousedown', handleClick)
+      document.removeEventListener('keydown', handleKey)
+    }
+  }, [showMore])
+
+  return (
+    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginLeft: 'auto', alignItems: 'center', position: 'relative' }}>
+      {/* First 3 filled schools as inline editable chips */}
+      {visibleSchools.map(({ key, name }) => (
+        <EditableSchoolChip
+          key={key}
+          name={name}
+          onSave={v => onSave(key, v)}
+        />
+      ))}
+
+      {/* "+N more" chip with popover */}
+      {overflowSchools.length > 0 && (
+        <div style={{ position: 'relative' }} ref={popoverRef}>
+          <button
+            onClick={() => setShowMore(v => !v)}
+            style={{
+              background: 'rgba(255,255,255,0.07)', color: 'var(--color-text-muted)',
+              fontWeight: 600, fontSize: 11, padding: '5px 12px', borderRadius: 20,
+              border: '1px solid rgba(255,255,255,0.15)', cursor: 'pointer',
+            }}
+          >
+            +{overflowSchools.length} more
+          </button>
+
+          {/* Popover */}
+          {showMore && (
+            <div
+              className="card-elevated"
+              style={{
+                position: 'absolute', top: '100%', right: 0, marginTop: 6,
+                zIndex: 50, minWidth: 240, padding: '12px 14px',
+                display: 'flex', flexDirection: 'column', gap: 8,
+              }}
+            >
+              {overflowSchools.map(({ key, name }) => (
+                <OverflowSchoolRow
+                  key={key}
+                  name={name}
+                  onEdit={v => { onSave(key, v) }}
+                  onRemove={() => { onRemove(key); }}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* "+ Add" chip — show as long as < 9 schools */}
+      {filledCount < 9 && (
+        addingSchool && nextEmptySlot ? (
+          <div style={{ width: 220 }}>
+            <CollegeSelect
+              value=""
+              onChange={v => {
+                if (v && nextEmptySlot) onSave(nextEmptySlot, v)
+                setAddingSchool(false)
+              }}
+              placeholder="Search for a college…"
+              inputStyle={{ padding: '5px 10px', fontSize: 12, borderRadius: 20 }}
+            />
+          </div>
+        ) : (
+          <button
+            onClick={() => setAddingSchool(true)}
+            style={{
+              background: 'var(--color-column)', color: 'var(--color-text-muted)',
+              fontWeight: 600, fontSize: 12, padding: '5px 12px', borderRadius: 20,
+              border: '1.5px dashed var(--color-border)', cursor: 'pointer',
+            }}
+          >
+            + Add
+          </button>
+        )
+      )}
+    </div>
+  )
+}
+
+function OverflowSchoolRow({ name, onEdit, onRemove }: {
+  name: string
+  onEdit: (v: string) => void
+  onRemove: () => void
+}) {
   const [editing, setEditing] = useState(false)
 
   if (editing) {
     return (
-      <div style={{ width: 220 }}>
+      <div style={{ width: '100%' }}>
         <CollegeSelect
-          value={name ?? ''}
-          onChange={v => { onSave(v); setEditing(false) }}
+          value={name}
+          onChange={v => { onEdit(v); setEditing(false) }}
           placeholder="Search for a college…"
           inputStyle={{ padding: '5px 10px', fontSize: 12, borderRadius: 20 }}
         />
@@ -485,18 +602,42 @@ function EditableSchoolChip({ name, rank, onSave }: { name: string | null; rank:
     )
   }
 
-  if (!name) {
-    return (
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <span style={{ flex: 1, fontSize: 12, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        {chipName(name)}
+      </span>
       <button
         onClick={() => setEditing(true)}
-        style={{
-          background: 'var(--color-column)', color: 'var(--color-text-muted)',
-          fontWeight: 600, fontSize: 12, padding: '5px 12px', borderRadius: 20,
-          border: '1.5px dashed var(--color-border)', cursor: 'pointer',
-        }}
+        title="Edit school"
+        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: 'var(--color-text-muted)', padding: '2px 4px', flexShrink: 0 }}
       >
-        + School {rank}
+        ✎
       </button>
+      <button
+        onClick={onRemove}
+        title="Remove school"
+        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--color-text-muted)', padding: '2px 4px', flexShrink: 0, lineHeight: 1 }}
+      >
+        ✕
+      </button>
+    </div>
+  )
+}
+
+function EditableSchoolChip({ name, onSave }: { name: string; onSave: (v: string) => void }) {
+  const [editing, setEditing] = useState(false)
+
+  if (editing) {
+    return (
+      <div style={{ width: 220 }}>
+        <CollegeSelect
+          value={name}
+          onChange={v => { onSave(v); setEditing(false) }}
+          placeholder="Search for a college…"
+          inputStyle={{ padding: '5px 10px', fontSize: 12, borderRadius: 20 }}
+        />
+      </div>
     )
   }
 

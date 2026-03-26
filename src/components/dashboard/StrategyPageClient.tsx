@@ -31,6 +31,7 @@ interface School {
   yourChance: number | null
   sat25: number | null
   sat75: number | null
+  actMidpoint: number | null
   netCost: number | null
   gradRate: number | null
   medianEarnings10yr: number | null
@@ -56,6 +57,11 @@ interface StrategyPageClientProps {
     school2_name: string | null
     school3_name: string | null
     school4_name: string | null
+    school5_name: string | null
+    school6_name: string | null
+    school7_name: string | null
+    school8_name: string | null
+    school9_name: string | null
     strategy_result?: StrategyResult | null
     strategy_generated_at?: string | null
   } | null
@@ -68,6 +74,11 @@ export function StrategyPageClient({ profile, userId }: StrategyPageClientProps)
     profile?.school2_name ?? null,
     profile?.school3_name ?? null,
     profile?.school4_name ?? null,
+    profile?.school5_name ?? null,
+    profile?.school6_name ?? null,
+    profile?.school7_name ?? null,
+    profile?.school8_name ?? null,
+    profile?.school9_name ?? null,
   ])
   const [form, setForm] = useState({
     gpa: profile?.gpa?.toString() ?? '',
@@ -283,10 +294,20 @@ function SchoolCard({ school, tier, index, slots, onSave }: {
         {school.usNewsRankDisplay && <Stat label="US News" value={school.usNewsRankDisplay} real />}
         {school.medianEarnings10yr != null && <Stat label="Earnings 10yr" value={`$${(school.medianEarnings10yr / 1000).toFixed(0)}k`} real />}
       </div>
-      {school.sat25 && school.sat75 && (
-        <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 4 }}>
-          <span style={{ fontWeight: 600 }}>SAT range:</span> {school.sat25}–{school.sat75}
-          <span className="strat-real-badge">live</span>
+      {(school.sat25 && school.sat75 || school.actMidpoint) && (
+        <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 4, display: 'flex', gap: 12 }}>
+          {school.sat25 && school.sat75 && (
+            <span>
+              <span style={{ fontWeight: 600 }}>SAT range:</span> {school.sat25}–{school.sat75}
+              <span className="strat-real-badge">live</span>
+            </span>
+          )}
+          {school.actMidpoint != null && (
+            <span>
+              <span style={{ fontWeight: 600 }}>ACT midpoint:</span> {school.actMidpoint}
+              <span className="strat-real-badge">live</span>
+            </span>
+          )}
         </div>
       )}
       {school.whyFit && (

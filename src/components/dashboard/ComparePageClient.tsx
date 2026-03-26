@@ -42,6 +42,11 @@ export function ComparePageClient({ profile }: ComparePageClientProps) {
     profile?.school2_name,
     profile?.school3_name,
     profile?.school4_name,
+    profile?.school5_name,
+    profile?.school6_name,
+    profile?.school7_name,
+    profile?.school8_name,
+    profile?.school9_name,
   ].filter(Boolean) as string[]
 
   const [schools, setSchools] = useState<string[]>(() => {

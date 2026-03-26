@@ -36,6 +36,11 @@ export function AdmissionSnapshot({ profile, loading }: AdmissionSnapshotProps) 
         { name: profile.school2_name, id: profile.school2_id },
         { name: profile.school3_name, id: profile.school3_id },
         { name: profile.school4_name, id: profile.school4_id },
+        { name: profile.school5_name, id: profile.school5_id },
+        { name: profile.school6_name, id: profile.school6_id },
+        { name: profile.school7_name, id: profile.school7_id },
+        { name: profile.school8_name, id: profile.school8_id },
+        { name: profile.school9_name, id: profile.school9_id },
       ].filter(s => s.name)
     : []
 

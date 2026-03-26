@@ -20,6 +20,7 @@ export function ProfilePageClient({ userId }: { userId: string }) {
   const [form, setForm] = useState({
     display_name: '', gpa: '', sat: '', act_score: '', proposed_major: '', home_state: '',
     school1_name: '', school2_name: '', school3_name: '', school4_name: '',
+    school5_name: '', school6_name: '', school7_name: '', school8_name: '', school9_name: '',
   })
 
   const [weeklyNudge, setWeeklyNudge] = useState(true)
@@ -64,6 +65,11 @@ export function ProfilePageClient({ userId }: { userId: string }) {
         school2_name: profile.school2_name ?? '',
         school3_name: profile.school3_name ?? '',
         school4_name: profile.school4_name ?? '',
+        school5_name: profile.school5_name ?? '',
+        school6_name: profile.school6_name ?? '',
+        school7_name: profile.school7_name ?? '',
+        school8_name: profile.school8_name ?? '',
+        school9_name: profile.school9_name ?? '',
       })
 
       // Load email preferences
@@ -104,6 +110,11 @@ export function ProfilePageClient({ userId }: { userId: string }) {
       school2_name: form.school2_name || null,
       school3_name: form.school3_name || null,
       school4_name: form.school4_name || null,
+      school5_name: form.school5_name || null,
+      school6_name: form.school6_name || null,
+      school7_name: form.school7_name || null,
+      school8_name: form.school8_name || null,
+      school9_name: form.school9_name || null,
     })
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
@@ -150,7 +161,7 @@ export function ProfilePageClient({ userId }: { userId: string }) {
       <div className="card-elevated" style={{ padding: '28px 28px 32px', marginBottom: 24 }}>
         <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20 }}>Target Schools</h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {(['school1_name', 'school2_name', 'school3_name', 'school4_name'] as const).map((key, i) => (
+          {(['school1_name', 'school2_name', 'school3_name', 'school4_name', 'school5_name', 'school6_name', 'school7_name', 'school8_name', 'school9_name'] as const).map((key, i) => (
             <div key={key} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <label style={labelStyle}>School {i + 1}{i === 0 ? ' (Top choice)' : ''}</label>
               <CollegeSelect value={form[key]} onChange={v => setForm(f => ({ ...f, [key]: v }))} placeholder="Search for a college…" />
