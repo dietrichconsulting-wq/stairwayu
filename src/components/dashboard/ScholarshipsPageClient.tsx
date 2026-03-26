@@ -18,7 +18,7 @@ const getStageColors = (): Record<ScholarshipStage, { bg: string; color: string;
   Won:         { bg: 'rgba(134,239,172,0.08)', color: '#86EFAC', border: 'rgba(134,239,172,0.18)' },
 } : {
   Researching: { bg: 'rgba(100,116,139,0.08)', color: '#64748b', border: 'rgba(100,116,139,0.2)' },
-  Applying:    { bg: 'rgba(37,99,235,0.08)',   color: '#2563EB', border: 'rgba(37,99,235,0.2)'  },
+  Applying:    { bg: 'rgba(8,145,178,0.08)',   color: '#0891b2', border: 'rgba(8,145,178,0.2)'  },
   Submitted:   { bg: 'rgba(245,158,11,0.08)',  color: '#d97706', border: 'rgba(245,158,11,0.2)' },
   Won:         { bg: 'rgba(34,197,94,0.08)',   color: '#16a34a', border: 'rgba(34,197,94,0.2)'  },
 }
@@ -199,8 +199,8 @@ export function ScholarshipsPageClient({ userId, profile }: Props) {
           {/* AI header banner */}
           <div className="card-elevated" style={{
             padding: '20px 24px', marginBottom: 20,
-            background: 'linear-gradient(135deg, rgba(37,99,235,0.08) 0%, rgba(124,58,237,0.08) 100%)',
-            border: '1.5px solid rgba(37,99,235,0.2)',
+            background: 'linear-gradient(135deg, rgba(94,234,212,0.08) 0%, rgba(252,211,77,0.06) 100%)',
+            border: '1.5px solid rgba(94,234,212,0.18)',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <div style={{ fontSize: 32 }}>🤖</div>
@@ -282,7 +282,7 @@ export function ScholarshipsPageClient({ userId, profile }: Props) {
                 border: 'none', borderRadius: 10, padding: '12px 32px',
                 fontWeight: 700, fontSize: 14, cursor: searching ? 'not-allowed' : 'pointer',
                 display: 'flex', alignItems: 'center', gap: 10,
-                boxShadow: searching ? 'none' : '0 2px 10px rgba(37,99,235,0.3)',
+                boxShadow: searching ? 'none' : '0 2px 10px color-mix(in srgb, var(--color-primary) 30%, transparent)',
                 transition: 'all 0.2s',
               }}>
               {searching ? (
@@ -343,7 +343,7 @@ export function ScholarshipsPageClient({ userId, profile }: Props) {
                         </div>
 
                         {/* Why match */}
-                        <div style={{ background: 'rgba(37,99,235,0.06)', border: '1px solid rgba(37,99,235,0.15)', borderRadius: 8, padding: '8px 10px' }}>
+                        <div style={{ background: 'color-mix(in srgb, var(--color-primary) 6%, transparent)', border: '1px solid color-mix(in srgb, var(--color-primary) 15%, transparent)', borderRadius: 8, padding: '8px 10px' }}>
                           <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 3 }}>✨ Why you match</div>
                           <div style={{ fontSize: 12, color: 'var(--color-text)', lineHeight: 1.5 }}>{s.whyMatch}</div>
                         </div>

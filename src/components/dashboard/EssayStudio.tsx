@@ -455,8 +455,8 @@ function CritiqueTab({ schools, profile }: { schools: string[]; profile: Profile
 
             {/* Opening / Closing */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
-              <FeedbackBlock label="Opening" text={critique.openingFeedback} color="#7c3aed" />
-              <FeedbackBlock label="Closing" text={critique.closingFeedback} color="#7c3aed" />
+              <FeedbackBlock label="Opening" text={critique.openingFeedback} color="#0891b2" />
+              <FeedbackBlock label="Closing" text={critique.closingFeedback} color="#0891b2" />
             </div>
 
             {/* Areas to improve */}

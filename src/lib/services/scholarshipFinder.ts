@@ -1,8 +1,7 @@
-// @ts-nocheck
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai'
 
-let model: unknown = null
-function getModel() {
+let model: GenerativeModel | null = null
+function getModel(): GenerativeModel | null {
   if (!model && process.env.GEMINI_API_KEY) {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
     model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })

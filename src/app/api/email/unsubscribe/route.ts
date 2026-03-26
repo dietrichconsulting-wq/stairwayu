@@ -47,11 +47,11 @@ function successPage(): string {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Unsubscribed — Stairway U</title>
 <style>
-  body { margin: 0; padding: 0; background: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-  .card { background: #1e293b; border-radius: 16px; padding: 48px 40px; max-width: 480px; width: 100%; text-align: center; }
-  h1 { color: #f1f5f9; font-size: 22px; font-weight: 800; margin: 0 0 12px; }
-  p { color: #94a3b8; font-size: 14px; line-height: 1.6; margin: 0 0 24px; }
-  a { color: #2563EB; text-decoration: none; font-weight: 600; }
+  body { margin: 0; padding: 0; background: #121318; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+  .card { background: #1C1D24; border-radius: 16px; padding: 48px 40px; max-width: 480px; width: 100%; text-align: center; }
+  h1 { color: #E8E6E3; font-size: 22px; font-weight: 800; margin: 0 0 12px; }
+  p { color: #A8A29E; font-size: 14px; line-height: 1.6; margin: 0 0 24px; }
+  a { color: #5EEAD4; text-decoration: none; font-weight: 600; }
 </style>
 </head>
 <body>
@@ -73,11 +73,11 @@ function errorPage(message: string): string {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Error — Stairway U</title>
 <style>
-  body { margin: 0; padding: 0; background: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-  .card { background: #1e293b; border-radius: 16px; padding: 48px 40px; max-width: 480px; width: 100%; text-align: center; }
-  h1 { color: #f1f5f9; font-size: 22px; font-weight: 800; margin: 0 0 12px; }
-  p { color: #94a3b8; font-size: 14px; line-height: 1.6; margin: 0 0 24px; }
-  a { color: #2563EB; text-decoration: none; font-weight: 600; }
+  body { margin: 0; padding: 0; background: #121318; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+  .card { background: #1C1D24; border-radius: 16px; padding: 48px 40px; max-width: 480px; width: 100%; text-align: center; }
+  h1 { color: #E8E6E3; font-size: 22px; font-weight: 800; margin: 0 0 12px; }
+  p { color: #A8A29E; font-size: 14px; line-height: 1.6; margin: 0 0 24px; }
+  a { color: #5EEAD4; text-decoration: none; font-weight: 600; }
 </style>
 </head>
 <body>

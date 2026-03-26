@@ -24,7 +24,7 @@ export function DeadlineRadar({ tasks, loading }: DeadlineRadarProps) {
   function urgencyColor(days: number) {
     if (days < 0) return '#EF4444'
     if (days <= 7) return '#F59E0B'
-    if (days <= 14) return '#3B82F6'
+    if (days <= 14) return '#5EEAD4'
     return '#22C55E'
   }
 

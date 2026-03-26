@@ -18,13 +18,13 @@ const MILESTONES = [
 
 const isDark = () => document.documentElement.getAttribute('data-theme') === 'dark'
 const getPhases = () => isDark() ? [
-  { label: 'Prep',     color: '#C4B5FD', bg: 'rgba(196,181,253,0.10)' },
+  { label: 'Prep',     color: '#FCD34D', bg: 'rgba(252,211,77,0.10)' },
   { label: 'Research', color: '#7DD3FC', bg: 'rgba(125,211,252,0.10)' },
   { label: 'Apply',    color: '#FDE68A', bg: 'rgba(253,230,138,0.10)' },
   { label: 'Final',    color: '#86EFAC', bg: 'rgba(134,239,172,0.10)' },
 ] : [
-  { label: 'Prep',     color: '#7c3aed', bg: 'rgba(124,58,237,0.12)' },
-  { label: 'Research', color: '#2563eb', bg: 'rgba(37,99,235,0.12)'  },
+  { label: 'Prep',     color: '#d97706', bg: 'rgba(217,119,6,0.12)' },
+  { label: 'Research', color: '#0891b2', bg: 'rgba(8,145,178,0.12)'  },
   { label: 'Apply',    color: '#d97706', bg: 'rgba(245,158,11,0.12)' },
   { label: 'Final',    color: '#059669', bg: 'rgba(5,150,105,0.12)'  },
 ]
@@ -83,7 +83,7 @@ export function JourneyClient({ userId }: { userId: string }) {
                     fontSize: 18, flexShrink: 0, cursor: 'pointer',
                     background: isReached ? phase.color : isCurrent ? 'var(--color-primary)' : 'var(--color-column)',
                     border: `2px solid ${isReached ? phase.color : isCurrent ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                    boxShadow: isCurrent ? '0 0 0 4px rgba(37,99,235,0.15)' : 'none',
+                    boxShadow: isCurrent ? '0 0 0 4px color-mix(in srgb, var(--color-primary) 15%, transparent)' : 'none',
                     color: isReached ? '#fff' : isCurrent ? '#fff' : 'inherit',
                     transition: 'all 0.25s',
                   }}

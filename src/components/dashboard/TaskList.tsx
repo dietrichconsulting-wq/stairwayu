@@ -14,24 +14,24 @@ const CATEGORIES: TaskCategory[] = [
 const isDark = () => document.documentElement.getAttribute('data-theme') === 'dark'
 
 const CATEGORY_COLORS_LIGHT: Record<TaskCategory, string> = {
-  Testing: '#7c3aed',
-  Applications: '#2563EB',
+  Testing: '#d97706',
+  Applications: '#0891b2',
   Essays: '#059669',
   'Financial Aid': '#d97706',
   Recommendations: '#dc2626',
   Visits: '#0891b2',
-  Scholarships: '#7c3aed',
+  Scholarships: '#d97706',
   Research: '#64748b',
   Other: '#94a3b8',
 }
 const CATEGORY_COLORS_DARK: Record<TaskCategory, string> = {
-  Testing: '#C4B5FD',
+  Testing: '#FDE68A',
   Applications: '#7DD3FC',
   Essays: '#86EFAC',
   'Financial Aid': '#FDE68A',
   Recommendations: '#FCA5A5',
   Visits: '#67E8F9',
-  Scholarships: '#C4B5FD',
+  Scholarships: '#FCD34D',
   Research: '#A8A29E',
   Other: '#D6D3D1',
 }
@@ -69,7 +69,7 @@ export function TaskList({ tasks, loading, userId }: TaskListProps) {
       await updateStatus.mutateAsync({ taskId: task.id, status: 'To Do' })
     } else {
       await updateStatus.mutateAsync({ taskId: task.id, status: 'Done' })
-      confetti({ particleCount: 60, spread: 55, origin: { y: 0.7 }, colors: ['#2563EB', '#7c3aed', '#22C55E'] })
+      confetti({ particleCount: 60, spread: 55, origin: { y: 0.7 }, colors: ['#5EEAD4', '#FCD34D', '#86EFAC'] })
     }
   }
 
@@ -227,7 +227,7 @@ export function TaskList({ tasks, loading, userId }: TaskListProps) {
                       </button>
                     )}
                     {task.status === 'In Progress' && (
-                      <span style={{ fontSize: 10, fontWeight: 700, color: '#2563EB', background: 'rgba(37,99,235,0.1)', padding: '2px 8px', borderRadius: 10 }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-primary)', background: 'color-mix(in srgb, var(--color-primary) 10%, transparent)', padding: '2px 8px', borderRadius: 10 }}>
                         In Progress
                       </span>
                     )}

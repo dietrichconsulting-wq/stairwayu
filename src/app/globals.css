@@ -40,6 +40,14 @@
   --color-warning: #FDE68A;
   --color-danger: #FCA5A5;
 
+  /* ── Primary / accent overrides for dark ── */
+  --color-primary: #5EEAD4;
+  --color-primary-light: #67E8F9;
+  --color-secondary: #FCD34D;
+  --color-accent: #5EEAD4;
+  --color-navy: #5EEAD4;
+  --color-gold: #FCD34D;
+
   /* ── Per-stat accent colors ── */
   --color-stat-gpa: #5EEAD4;
   --color-stat-sat: #FCD34D;

@@ -48,7 +48,7 @@ const STATS = [
 function ProCard() {
   const [plan, setPlan] = useState<'monthly' | 'annual'>('annual')
   return (
-    <div style={{ background: 'linear-gradient(135deg, #2563EB, #7c3aed)', padding: '48px 40px', position: 'relative' }}>
+    <div style={{ background: 'linear-gradient(135deg, #1C1D24, #252730)', padding: '48px 40px', position: 'relative' }}>
       <div style={{ position: 'absolute', top: 20, right: 20, background: '#fbbf24', color: '#78350f', fontSize: 10, fontWeight: 800, padding: '4px 10px', borderRadius: 2, letterSpacing: '0.1em' }}>
         MOST POPULAR
       </div>
@@ -103,7 +103,7 @@ function ProCard() {
       ))}
       <Link href="/signup" style={{
         display: 'block', textAlign: 'center', marginTop: 36,
-        background: '#fff', color: '#2563EB',
+        background: '#fff', color: '#0f172a',
         textDecoration: 'none', borderRadius: 4, padding: '14px',
         fontWeight: 800, fontSize: 13, letterSpacing: '0.05em', textTransform: 'uppercase',
       }}>
@@ -169,7 +169,7 @@ export function LandingPage() {
         {/* Gradient overlay */}
         <div style={{
           position: 'absolute', inset: 0,
-          background: 'linear-gradient(to right, rgba(15,23,42,0.85) 0%, rgba(37,99,235,0.5) 50%, rgba(124,58,237,0.3) 100%)',
+          background: 'linear-gradient(to right, rgba(18,19,24,0.92) 0%, rgba(28,29,36,0.8) 50%, rgba(37,39,48,0.6) 100%)',
         }} />
 
         {/* Hero content — bottom-left, Nike style */}
@@ -255,7 +255,7 @@ export function LandingPage() {
                 position: 'absolute', inset: 0,
                 background: f.light
                   ? 'linear-gradient(to top, rgba(15,23,42,0.9) 0%, transparent 60%)'
-                  : 'linear-gradient(to top, rgba(37,99,235,0.85) 0%, transparent 60%)',
+                  : 'linear-gradient(to top, rgba(18,19,24,0.9) 0%, transparent 60%)',
               }} />
               {/* Text content */}
               <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '32px 36px' }}>
@@ -287,7 +287,7 @@ export function LandingPage() {
           alt="Graduation ceremony"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 40%' }}
         />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(15,23,42,0.8) 0%, rgba(124,58,237,0.6) 100%)' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(18,19,24,0.88) 0%, rgba(37,39,48,0.7) 100%)' }} />
         <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '0 24px' }}>
           <div style={{ fontSize: 11, fontWeight: 800, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 16 }}>
             Journey Tracker
@@ -299,7 +299,7 @@ export function LandingPage() {
             A visual roadmap of every milestone — with a progress ring that shows exactly where you stand.
           </p>
           <Link href="/signup" style={{
-            background: '#2563EB', color: '#fff',
+            background: '#5EEAD4', color: '#0f172a',
             textDecoration: 'none', borderRadius: 6, padding: '16px 44px',
             fontWeight: 800, fontSize: 14, letterSpacing: '0.05em', textTransform: 'uppercase',
           }}>
@@ -312,7 +312,7 @@ export function LandingPage() {
       <section style={{ background: '#fff', padding: '96px 6%' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div style={{ marginBottom: 56 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, color: '#2563EB', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 12 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: '#5EEAD4', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 12 }}>
               Student Stories
             </div>
             <h2 style={{ fontSize: 'clamp(28px, 4vw, 52px)', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em', lineHeight: 1.05 }}>
@@ -321,8 +321,8 @@ export function LandingPage() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2 }}>
             {[
-              { name: 'Sophia R.', school: 'Admitted to UT Austin', quote: "Stairway U showed me I had a 74% chance at UT Austin. That gave me the confidence to apply early. I got in.", color: '#2563EB' },
-              { name: 'Marcus T.', school: '$28,000 in scholarships', quote: "The scholarship finder surfaced 3 I never would have found on my own. Two were easy-apply — no essay required.", color: '#7c3aed' },
+              { name: 'Sophia R.', school: 'Admitted to UT Austin', quote: "Stairway U showed me I had a 74% chance at UT Austin. That gave me the confidence to apply early. I got in.", color: '#5EEAD4' },
+              { name: 'Marcus T.', school: '$28,000 in scholarships', quote: "The scholarship finder surfaced 3 I never would have found on my own. Two were easy-apply — no essay required.", color: '#FCD34D' },
               { name: 'Linda C.', school: 'Parent of 2026 applicant', quote: "The Financial Planner finally helped me understand what college will actually cost us. Eye-opening.", color: '#0891b2' },
             ].map((t, i) => (
               <div key={i} style={{ background: '#f8fafc', padding: '40px 32px' }}>
@@ -384,7 +384,7 @@ export function LandingPage() {
           alt="College campus"
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 60%' }}
         />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(15,23,42,0.92) 0%, rgba(37,99,235,0.7) 100%)' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(18,19,24,0.94) 0%, rgba(37,39,48,0.75) 100%)' }} />
         <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '0 24px' }}>
           <h2 style={{ fontSize: 'clamp(28px, 4vw, 56px)', fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1.05, marginBottom: 32, maxWidth: 600 }}>
             Your dream school is waiting.

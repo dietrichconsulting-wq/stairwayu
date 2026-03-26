@@ -14,7 +14,7 @@ const getStageColors = (): Record<ScholarshipStage, { bg: string; color: string 
   Won:         { bg: 'rgba(134,239,172,0.10)', color: '#86EFAC' },
 } : {
   Researching: { bg: 'rgba(100,116,139,0.1)', color: '#64748b' },
-  Applying:    { bg: 'rgba(37,99,235,0.1)',   color: '#2563EB' },
+  Applying:    { bg: 'rgba(8,145,178,0.1)',   color: '#0891b2' },
   Submitted:   { bg: 'rgba(245,158,11,0.1)',  color: '#d97706' },
   Won:         { bg: 'rgba(34,197,94,0.1)',   color: '#16a34a' },
 }

@@ -90,7 +90,7 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
 
         {/* Pro badge or upgrade */}
         {isPro ? (
-          <div style={{ fontSize: 11, fontWeight: 700, color: typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'dark' ? '#C4B5FD' : '#7c3aed', background: typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'dark' ? 'rgba(196,181,253,0.10)' : 'rgba(124,58,237,0.1)', borderRadius: 8, padding: '4px 10px', textAlign: 'center', marginBottom: 12 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'dark' ? '#FCD34D' : '#d97706', background: typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'dark' ? 'rgba(252,211,77,0.10)' : 'rgba(217,119,6,0.1)', borderRadius: 8, padding: '4px 10px', textAlign: 'center', marginBottom: 12 }}>
             {subscription?.billing_interval === 'year'
               ? '✨ Pro Annual'
               : subscription?.billing_interval === 'month'
