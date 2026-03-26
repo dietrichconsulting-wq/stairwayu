@@ -11,6 +11,7 @@
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { batchCollegeProfiles } from './collegeDataAggregator';
+import { computeChances } from './admissionChance';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let model: any = null;
@@ -40,13 +41,43 @@ export async function generateStrategy({ gpa, sat, major, budget, climate, schoo
 
   const userSchoolsList = (userSchools || []).filter(Boolean);
   const minPerTier = 3;
-  const totalMin = Math.max(10, userSchoolsList.length + minPerTier);
-  const schoolsNote = userSchoolsList.length
-    ? `The student is already interested in these schools — you MUST include all of them in the appropriate tier (reach/target/safety based on their stats): ${userSchoolsList.join(', ')}. Fill the remaining slots with additional recommendations.`
+
+  // ── Step 0: Pre-compute tiers for user's schools using the same logistic ─
+  //    model the dashboard uses. This guarantees alignment.
+  let preAssigned = []; // { name, tier, yourChance, admitRate }
+  if (userSchoolsList.length && (sat || gpa)) {
+    const chanceResults = await computeChances({
+      gpa: parseFloat(gpa) || null,
+      sat: parseInt(sat) || null,
+      act: null,
+      schools: userSchoolsList.map(name => ({ name, id: '' })),
+    });
+    preAssigned = chanceResults.map(r => ({
+      name: r.schoolName,
+      tier: r.chance >= 65 ? 'safety' : r.chance >= 35 ? 'target' : 'reach',
+      yourChance: r.chance,
+      admitRate: r.admissionRate,
+    }));
+  }
+
+  // Count how many MORE schools each tier needs from AI
+  const preReach = preAssigned.filter(s => s.tier === 'reach').length;
+  const preTarget = preAssigned.filter(s => s.tier === 'target').length;
+  const preSafety = preAssigned.filter(s => s.tier === 'safety').length;
+  const needReach = Math.max(0, minPerTier - preReach);
+  const needTarget = Math.max(0, minPerTier - preTarget);
+  const needSafety = Math.max(0, minPerTier - preSafety);
+  const totalNeed = needReach + needTarget + needSafety;
+
+  // Build the prompt telling Gemini which schools are already placed
+  const preAssignedNote = preAssigned.length
+    ? `\nThe student already has these schools assigned to tiers (DO NOT include them in your response — they are handled separately):\n${preAssigned.map(s => `- ${s.name} → ${s.tier} (${s.yourChance}% chance)`).join('\n')}\n`
     : '';
 
+  const totalMin = Math.max(totalNeed, 3); // at least 3 new recommendations
+
   // ── Step 1: Get school recommendations from Gemini ─────────────────────
-  const recommendPrompt = `You are a college admissions strategist. Generate a balanced college list for this US high school student.
+  const recommendPrompt = `You are a college admissions strategist. Recommend ADDITIONAL schools for this US high school student.
 
 STUDENT PROFILE:
 - GPA: ${gpa}
@@ -54,16 +85,14 @@ STUDENT PROFILE:
 - Intended Major: ${major}
 - ${budgetNote}
 - ${climateNote}
-${schoolsNote ? `\n${schoolsNote}\n` : ''}
-Return a balanced college list with these HARD RULES:
-- EVERY tier (reach, target, safety) MUST have AT LEAST ${minPerTier} schools
-- Total schools: at least ${totalMin}
-- REACH schools: <30% admission chance for this student but great fit
-- TARGET schools: 40-65% admission chance
-- SAFETY schools: high confidence admission
-- Fill remaining slots with additional recommendations the student hasn't considered
+${preAssignedNote}
+Return at least ${totalMin} NEW schools (not listed above) with these HARD RULES:
+- Include at least ${needReach} REACH schools (<30% admission chance for this student)
+- Include at least ${needTarget} TARGET schools (40-65% admission chance)
+- Include at least ${needSafety} SAFETY schools (high confidence admission)
 - Diversify by geography, school size, and ranking within each tier
 - Prefer well-known programs for the student's intended major
+- DO NOT repeat any school already listed above
 
 For each school provide ONLY:
 - name: full official school name
@@ -73,7 +102,7 @@ For each school provide ONLY:
 - programStrength: 1-2 words for the ${major} program (e.g. "Top 10", "Strong", "Solid", "Emerging")
 - whyFit: one sentence ≤15 words explaining fit
 
-Also include top-level "rationale": 2-3 sentences on the overall strategy.
+Also include top-level "rationale": 2-3 sentences on the overall strategy (covering both the student's existing schools and your new recommendations).
 
 Respond ONLY with valid JSON, no markdown:
 {
@@ -100,16 +129,21 @@ Respond ONLY with valid JSON, no markdown:
   }
 
   const { rationale } = aiResult;
-  let { schools: aiSchools = [] } = aiResult;
+  let { schools: aiNewSchools = [] } = aiResult;
 
-  // ── Validate tier counts, retry once if any tier < 3 ────────────────
+  // Remove any duplicates of user's schools that AI included anyway
+  const preNames = new Set(preAssigned.map(s => s.name.toLowerCase()));
+  aiNewSchools = aiNewSchools.filter(s => !preNames.has(s.name.toLowerCase()));
+
+  // ── Validate tier counts (pre-assigned + AI combined), retry if short ──
   const countByTier = (arr, t) => arr.filter(s => s.tier === t).length;
-  let reachCount = countByTier(aiSchools, 'reach');
-  let targetCount = countByTier(aiSchools, 'target');
-  let safetyCount = countByTier(aiSchools, 'safety');
+  const allSchools = [...preAssigned, ...aiNewSchools];
+  let reachCount = countByTier(allSchools, 'reach');
+  let targetCount = countByTier(allSchools, 'target');
+  let safetyCount = countByTier(allSchools, 'safety');
 
   if (reachCount < 3 || targetCount < 3 || safetyCount < 3) {
-    const fixPrompt = `Your previous response had ${reachCount} reach, ${targetCount} target, ${safetyCount} safety schools. Each tier MUST have at least 3. Add more schools to any tier below 3. Keep all existing schools and add new ones. Return the complete updated list in the same JSON format.\n\nRespond ONLY with valid JSON, no markdown.`;
+    const fixPrompt = `The current college list has ${reachCount} reach, ${targetCount} target, ${safetyCount} safety schools. Each tier MUST have at least 3. Suggest MORE new schools for any tier below 3. Do not include these schools (already in list): ${allSchools.map(s => s.name).join(', ')}. Return ONLY the new additions in the same JSON format.\n\nRespond ONLY with valid JSON, no markdown:\n{"schools": [{ "name": "...", "tier": "reach|target|safety", "yourChance": 0, "admitRate": 0, "programStrength": "...", "whyFit": "..." }]}`;
     const fixResult = await gemini.generateContent(fixPrompt);
     let fixText = fixResult.response.text().trim();
     fixText = fixText.replace(/^```(?:json)?\s*/m, '').replace(/\s*```\s*$/m, '');
@@ -119,29 +153,18 @@ Respond ONLY with valid JSON, no markdown:
       try {
         const fixParsed = JSON.parse(fixText.slice(fStart, fEnd + 1));
         if (fixParsed.schools?.length) {
-          aiSchools = fixParsed.schools;
+          aiNewSchools = [...aiNewSchools, ...fixParsed.schools];
         }
       } catch { /* use original if retry fails */ }
     }
   }
 
-  // ── Ensure user's schools are never dropped ─────────────────────────
-  for (const userSchool of userSchoolsList) {
-    const found = aiSchools.some(s =>
-      s.name.toLowerCase().includes(userSchool.toLowerCase()) ||
-      userSchool.toLowerCase().includes(s.name.toLowerCase())
-    );
-    if (!found) {
-      aiSchools.push({
-        name: userSchool,
-        tier: 'target',
-        yourChance: null,
-        admitRate: null,
-        programStrength: null,
-        whyFit: 'Selected by student',
-      });
-    }
-  }
+  // Combine: user's pre-assigned schools first, then AI recommendations
+  const aiSchools = [...preAssigned.map(s => ({
+    ...s,
+    programStrength: null,
+    whyFit: 'On your dashboard',
+  })), ...aiNewSchools];
 
   if (!aiSchools.length) return { rationale, reach: [], target: [], safety: [] };
 
