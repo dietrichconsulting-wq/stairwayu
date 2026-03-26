@@ -10,14 +10,22 @@ import { MajorSelect } from '@/components/MajorSelect'
 const STAGES: ScholarshipStage[] = ['Researching', 'Applying', 'Submitted', 'Won']
 const DIFFICULTIES: ScholarshipDifficulty[] = ['Easy', 'Medium', 'Hard']
 
-const STAGE_COLORS: Record<ScholarshipStage, { bg: string; color: string; border: string }> = {
+const isDark = () => document.documentElement.getAttribute('data-theme') === 'dark'
+const getStageColors = (): Record<ScholarshipStage, { bg: string; color: string; border: string }> => isDark() ? {
+  Researching: { bg: 'rgba(168,162,158,0.08)', color: '#A8A29E', border: 'rgba(168,162,158,0.18)' },
+  Applying:    { bg: 'rgba(125,211,252,0.08)', color: '#7DD3FC', border: 'rgba(125,211,252,0.18)' },
+  Submitted:   { bg: 'rgba(253,230,138,0.08)', color: '#FDE68A', border: 'rgba(253,230,138,0.18)' },
+  Won:         { bg: 'rgba(134,239,172,0.08)', color: '#86EFAC', border: 'rgba(134,239,172,0.18)' },
+} : {
   Researching: { bg: 'rgba(100,116,139,0.08)', color: '#64748b', border: 'rgba(100,116,139,0.2)' },
   Applying:    { bg: 'rgba(37,99,235,0.08)',   color: '#2563EB', border: 'rgba(37,99,235,0.2)'  },
   Submitted:   { bg: 'rgba(245,158,11,0.08)',  color: '#d97706', border: 'rgba(245,158,11,0.2)' },
   Won:         { bg: 'rgba(34,197,94,0.08)',   color: '#16a34a', border: 'rgba(34,197,94,0.2)'  },
 }
 
-const DIFF_COLORS: Record<ScholarshipDifficulty, string> = { Easy: '#16a34a', Medium: '#d97706', Hard: '#dc2626' }
+const getDiffColors = (): Record<ScholarshipDifficulty, string> => isDark()
+  ? { Easy: '#86EFAC', Medium: '#FDE68A', Hard: '#FCA5A5' }
+  : { Easy: '#16a34a', Medium: '#d97706', Hard: '#dc2626' }
 
 const emptyForm = {
   name: '', amount: '', deadline: '', stage: 'Researching' as ScholarshipStage,
@@ -314,7 +322,7 @@ export function ScholarshipsPageClient({ userId, profile }: Props) {
 
                         {/* Badges row */}
                         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-                          <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 20, background: `${DIFF_COLORS[s.difficulty]}22`, color: DIFF_COLORS[s.difficulty] }}>
+                          <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 20, background: `${getDiffColors()[s.difficulty]}22`, color: getDiffColors()[s.difficulty] }}>
                             {s.difficulty}
                           </span>
                           {s.essayRequired && (
@@ -433,7 +441,7 @@ export function ScholarshipsPageClient({ userId, profile }: Props) {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
             {STAGES.map(stage => {
               const items = scholarships.filter(s => s.stage === stage)
-              const c = STAGE_COLORS[stage]
+              const c = getStageColors()[stage]
               const stageTotal = items.reduce((sum, s) => sum + (s.amount ?? 0), 0)
               return (
                 <div key={stage} style={{ background: c.bg, border: `1px solid ${c.border}`, borderRadius: 14, padding: '14px 14px 16px' }}>
@@ -452,7 +460,7 @@ export function ScholarshipsPageClient({ userId, profile }: Props) {
                         <div style={{ fontWeight: 600, fontSize: 12, marginBottom: 4 }}>{s.name}</div>
                         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
                           {s.amount && <span style={{ fontSize: 11, fontWeight: 700, color: '#16a34a' }}>${(s.amount / 1000).toFixed(0)}k</span>}
-                          <span style={{ fontSize: 10, fontWeight: 600, color: DIFF_COLORS[s.difficulty] }}>{s.difficulty}</span>
+                          <span style={{ fontSize: 10, fontWeight: 600, color: getDiffColors()[s.difficulty] }}>{s.difficulty}</span>
                           {s.deadline && <span style={{ fontSize: 10, color: 'var(--color-text-muted)' }}>{new Date(s.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>}
                           {s.essay_required && <span style={{ fontSize: 10, color: 'var(--color-text-muted)' }}>Essay</span>}
                           {s.url && (

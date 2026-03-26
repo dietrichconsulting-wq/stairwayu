@@ -24,14 +24,30 @@
 }
 
 [data-theme="dark"] {
-  --color-bg: #0D1117;
-  --color-card: #1A2133;
-  --color-column: #212D40;
-  --color-text: #F0F4F8;
-  --color-text-muted: #A8B5C4;
-  --color-border: rgba(255,255,255,0.11);
-  --shadow-card: 0 4px 16px rgba(0,0,0,0.45);
-  --border-card: 1px solid rgba(255,255,255,0.10);
+  /* ── Surfaces: warm dark grays, not cold blue-blacks ── */
+  --color-bg: #121318;
+  --color-card: #1C1D24;
+  --color-column: #252730;
+  --color-text: #E8E6E3;
+  --color-text-muted: #A8A29E;
+  --color-border: rgba(255,255,255,0.08);
+  --shadow-card: 0 4px 16px rgba(0,0,0,0.50), 0 1px 3px rgba(0,0,0,0.35);
+  --shadow-card-hover: 0 8px 28px rgba(0,0,0,0.60);
+  --border-card: 1px solid rgba(255,255,255,0.08);
+
+  /* ── Desaturated semantic colors (soft on dark bg) ── */
+  --color-success: #86EFAC;
+  --color-warning: #FDE68A;
+  --color-danger: #FCA5A5;
+
+  /* ── Per-stat accent colors ── */
+  --color-stat-gpa: #5EEAD4;
+  --color-stat-sat: #FCD34D;
+  --color-stat-act: #7DD3FC;
+  --color-stat-major: #86EFAC;
+
+  /* ── Interactive accent (softer than primary for text/links) ── */
+  --color-accent-text: #5EEAD4;
 }
 
 /* ── Base ────────────────────────────────────────────────────────────────── */
@@ -81,6 +97,7 @@ body {
   border-bottom: 1px solid var(--color-border);
   margin-bottom: 12px;
 }
+[data-theme="dark"] .sidebar__brand { color: var(--color-text); }
 .sidebar__nav {
   display: flex;
   flex-direction: column;
@@ -108,11 +125,15 @@ body {
 }
 .sidebar__nav-item:hover { color: var(--color-text); }
 .sidebar__nav-item--active { color: var(--color-primary); font-weight: 600; }
+[data-theme="dark"] .sidebar__nav-item--active { color: var(--color-accent-text); }
 .sidebar__nav-item-bg {
   position: absolute;
   inset: 0;
   border-radius: 10px;
   background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
+[data-theme="dark"] .sidebar__nav-item-bg {
+  background: rgba(94, 234, 212, 0.08);
 }
 .sidebar-layout__content {
   margin-left: 220px;
@@ -151,6 +172,10 @@ body {
   text-transform: uppercase;
   vertical-align: middle;
   margin-left: 3px;
+}
+[data-theme="dark"] .strat-real-badge {
+  background: rgba(134, 239, 172, 0.12);
+  color: #86EFAC;
 }
 
 @keyframes spin {

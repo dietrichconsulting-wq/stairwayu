@@ -11,7 +11,9 @@ const CATEGORIES: TaskCategory[] = [
   'Recommendations', 'Visits', 'Scholarships', 'Research', 'Other',
 ]
 
-const CATEGORY_COLORS: Record<TaskCategory, string> = {
+const isDark = () => document.documentElement.getAttribute('data-theme') === 'dark'
+
+const CATEGORY_COLORS_LIGHT: Record<TaskCategory, string> = {
   Testing: '#7c3aed',
   Applications: '#2563EB',
   Essays: '#059669',
@@ -22,6 +24,18 @@ const CATEGORY_COLORS: Record<TaskCategory, string> = {
   Research: '#64748b',
   Other: '#94a3b8',
 }
+const CATEGORY_COLORS_DARK: Record<TaskCategory, string> = {
+  Testing: '#C4B5FD',
+  Applications: '#7DD3FC',
+  Essays: '#86EFAC',
+  'Financial Aid': '#FDE68A',
+  Recommendations: '#FCA5A5',
+  Visits: '#67E8F9',
+  Scholarships: '#C4B5FD',
+  Research: '#A8A29E',
+  Other: '#D6D3D1',
+}
+const getCategoryColor = (cat: TaskCategory) => isDark() ? CATEGORY_COLORS_DARK[cat] : CATEGORY_COLORS_LIGHT[cat]
 
 interface TaskListProps {
   tasks: Task[]
@@ -45,8 +59,8 @@ export function TaskList({ tasks, loading, userId }: TaskListProps) {
     const d = new Date(dateStr)
     const now = new Date()
     const diff = (d.getTime() - now.getTime()) / 86400000
-    if (diff < 0) return { label: 'Overdue', color: '#EF4444' }
-    if (diff <= 7) return { label: `${Math.ceil(diff)}d`, color: '#F59E0B' }
+    if (diff < 0) return { label: 'Overdue', color: isDark() ? '#FCA5A5' : '#EF4444' }
+    if (diff <= 7) return { label: `${Math.ceil(diff)}d`, color: isDark() ? '#FDE68A' : '#F59E0B' }
     return { label: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), color: 'var(--color-text-muted)' }
   }
 
@@ -169,7 +183,7 @@ export function TaskList({ tasks, loading, userId }: TaskListProps) {
                   </div>
                   {!isDone && (
                     <div style={{ display: 'flex', gap: 6, marginTop: 2, alignItems: 'center', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: 10, fontWeight: 600, color: CATEGORY_COLORS[task.category], background: `${CATEGORY_COLORS[task.category]}18`, padding: '1px 6px', borderRadius: 10 }}>
+                      <span style={{ fontSize: 10, fontWeight: 600, color: getCategoryColor(task.category), background: `${getCategoryColor(task.category)}18`, padding: '1px 6px', borderRadius: 10 }}>
                         {task.category}
                       </span>
                       {task.description && !dateInfo && (

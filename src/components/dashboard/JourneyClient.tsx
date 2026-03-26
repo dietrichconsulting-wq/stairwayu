@@ -16,7 +16,13 @@ const MILESTONES = [
   { key: 'decision_made',      label: 'Decision Made',          icon: '🎓', desc: 'You committed to your school — the journey ends here and a new one begins!', phase: 'Final'    },
 ]
 
-const PHASES = [
+const isDark = () => document.documentElement.getAttribute('data-theme') === 'dark'
+const getPhases = () => isDark() ? [
+  { label: 'Prep',     color: '#C4B5FD', bg: 'rgba(196,181,253,0.10)' },
+  { label: 'Research', color: '#7DD3FC', bg: 'rgba(125,211,252,0.10)' },
+  { label: 'Apply',    color: '#FDE68A', bg: 'rgba(253,230,138,0.10)' },
+  { label: 'Final',    color: '#86EFAC', bg: 'rgba(134,239,172,0.10)' },
+] : [
   { label: 'Prep',     color: '#7c3aed', bg: 'rgba(124,58,237,0.12)' },
   { label: 'Research', color: '#2563eb', bg: 'rgba(37,99,235,0.12)'  },
   { label: 'Apply',    color: '#d97706', bg: 'rgba(245,158,11,0.12)' },
@@ -33,6 +39,7 @@ export function JourneyClient({ userId }: { userId: string }) {
   const firstUnreached = MILESTONES.findIndex(m => !reached.has(m.key))
   const pct = Math.round((reached.size / MILESTONES.length) * 100)
 
+  const PHASES = getPhases()
   const phaseStats = PHASES.map(phase => {
     const items = MILESTONES.filter(m => m.phase === phase.label)
     return { ...phase, total: items.length, done: items.filter(m => reached.has(m.key)).length }

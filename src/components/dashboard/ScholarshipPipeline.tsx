@@ -6,7 +6,13 @@ import { useCreateScholarship, useUpdateScholarship, useDeleteScholarship } from
 import type { Scholarship, ScholarshipStage } from '@/lib/types/database'
 
 const STAGES: ScholarshipStage[] = ['Researching', 'Applying', 'Submitted', 'Won']
-const STAGE_COLORS: Record<ScholarshipStage, { bg: string; color: string }> = {
+const isDark = () => document.documentElement.getAttribute('data-theme') === 'dark'
+const getStageColors = (): Record<ScholarshipStage, { bg: string; color: string }> => isDark() ? {
+  Researching: { bg: 'rgba(168,162,158,0.10)', color: '#A8A29E' },
+  Applying:    { bg: 'rgba(125,211,252,0.10)', color: '#7DD3FC' },
+  Submitted:   { bg: 'rgba(253,230,138,0.10)', color: '#FDE68A' },
+  Won:         { bg: 'rgba(134,239,172,0.10)', color: '#86EFAC' },
+} : {
   Researching: { bg: 'rgba(100,116,139,0.1)', color: '#64748b' },
   Applying:    { bg: 'rgba(37,99,235,0.1)',   color: '#2563EB' },
   Submitted:   { bg: 'rgba(245,158,11,0.1)',  color: '#d97706' },
@@ -101,7 +107,7 @@ export function ScholarshipPipeline({ scholarships, loading, userId }: Scholarsh
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
         {STAGES.map(stage => {
           const items = scholarships.filter(s => s.stage === stage)
-          const c = STAGE_COLORS[stage]
+          const c = getStageColors()[stage]
           return (
             <div key={stage} style={{ background: c.bg, border: `1px solid ${c.color}30`, borderRadius: 10, padding: '10px 12px', minHeight: 60 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: c.color, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>

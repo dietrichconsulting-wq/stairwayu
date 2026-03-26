@@ -30,11 +30,14 @@ function chipName(name: string): string {
     .trim()
 }
 
+const isDark = () => typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'dark'
+
 function ringColor(total: number): string {
-  if (total <= 30) return '#EF4444'
-  if (total <= 60) return '#F59E0B'
-  if (total <= 85) return '#2563EB'
-  return '#22C55E'
+  const dark = isDark()
+  if (total <= 30) return dark ? '#FCA5A5' : '#EF4444'
+  if (total <= 60) return dark ? '#FDE68A' : '#F59E0B'
+  if (total <= 85) return dark ? '#5EEAD4' : '#2563EB'
+  return dark ? '#86EFAC' : '#22C55E'
 }
 
 function actionRoute(action: string): string {
@@ -158,7 +161,9 @@ function ReadinessDetailPanel({ score, onClose }: { score: ReadinessScore; onClo
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           {dimensions.map(({ icon, label, dim, detail }) => {
             const pct = Math.round((dim.score / dim.max) * 100)
-            const dimColor = pct >= 80 ? '#22C55E' : pct >= 50 ? '#2563EB' : pct >= 30 ? '#F59E0B' : '#EF4444'
+            const dimColor = isDark()
+              ? (pct >= 80 ? '#86EFAC' : pct >= 50 ? '#5EEAD4' : pct >= 30 ? '#FDE68A' : '#FCA5A5')
+              : (pct >= 80 ? '#22C55E' : pct >= 50 ? '#2563EB' : pct >= 30 ? '#F59E0B' : '#EF4444')
             return (
               <div key={label}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
@@ -195,7 +200,7 @@ function ReadinessDetailPanel({ score, onClose }: { score: ReadinessScore; onClo
                 <a
                   key={i}
                   href={actionRoute(action)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--color-primary)', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--color-accent-text, var(--color-primary))', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}
                 >
                   <span style={{ color: 'var(--color-text-muted)', fontWeight: 400 }}>→</span>
                   {action}
@@ -237,7 +242,7 @@ export function ProfileStats({ profile, loading, tasks, userId }: ProfileStatsPr
       <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
         {/* GPA */}
         <EditableStatPill
-          label="GPA" color="var(--color-primary)"
+          label="GPA" color={isDark() ? 'var(--color-stat-gpa, #5EEAD4)' : 'var(--color-primary)'}
           value={loading ? null : profile?.gpa ?? null}
           display={loading ? '—' : profile?.gpa?.toString() ?? '—'}
           type="gpa"
@@ -245,7 +250,7 @@ export function ProfileStats({ profile, loading, tasks, userId }: ProfileStatsPr
         />
         {/* SAT */}
         <EditableStatPill
-          label="SAT" color="#7c3aed"
+          label="SAT" color={isDark() ? 'var(--color-stat-sat, #FCD34D)' : '#7c3aed'}
           value={loading ? null : profile?.sat ?? null}
           display={loading ? '—' : profile?.sat?.toString() ?? '—'}
           type="sat"

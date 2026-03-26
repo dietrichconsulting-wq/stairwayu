@@ -10,13 +10,18 @@ const CLIMATE_OPTIONS = [
   'Midwest', 'Pacific Northwest', 'Northeast', 'Southeast', 'No Preference',
 ]
 
-const TIER_CONFIG = {
-  reach:  { label: 'Reach',  emoji: '🚀', color: '#EF4444', bg: 'rgba(239,68,68,0.07)',  border: 'rgba(239,68,68,0.2)'  },
-  target: { label: 'Target', emoji: '🎯', color: '#F59E0B', bg: 'rgba(245,158,11,0.07)', border: 'rgba(245,158,11,0.2)' },
-  safety: { label: 'Safety', emoji: '✅', color: '#22C55E', bg: 'rgba(34,197,94,0.07)',  border: 'rgba(34,197,94,0.2)'  },
-} as const
+const isDark = () => document.documentElement.getAttribute('data-theme') === 'dark'
+const getTierConfig = () => isDark() ? {
+  reach:  { label: 'Reach'  as const, emoji: '🚀', color: '#FCA5A5', bg: 'rgba(252,165,165,0.08)', border: 'rgba(252,165,165,0.18)' },
+  target: { label: 'Target' as const, emoji: '🎯', color: '#FDE68A', bg: 'rgba(253,230,138,0.08)', border: 'rgba(253,230,138,0.18)' },
+  safety: { label: 'Safety' as const, emoji: '✅', color: '#86EFAC', bg: 'rgba(134,239,172,0.08)', border: 'rgba(134,239,172,0.18)' },
+} : {
+  reach:  { label: 'Reach'  as const, emoji: '🚀', color: '#EF4444', bg: 'rgba(239,68,68,0.07)',  border: 'rgba(239,68,68,0.2)'  },
+  target: { label: 'Target' as const, emoji: '🎯', color: '#F59E0B', bg: 'rgba(245,158,11,0.07)', border: 'rgba(245,158,11,0.2)' },
+  safety: { label: 'Safety' as const, emoji: '✅', color: '#22C55E', bg: 'rgba(34,197,94,0.07)',  border: 'rgba(34,197,94,0.2)'  },
+}
 
-type Tier = keyof typeof TIER_CONFIG
+type Tier = 'reach' | 'target' | 'safety'
 
 interface School {
   name: string
@@ -159,7 +164,7 @@ function TierSection({ tier, schools, slots, onSave }: {
   slots: (string | null)[]
   onSave: (name: string, slot: number) => Promise<void>
 }) {
-  const cfg = TIER_CONFIG[tier]
+  const cfg = getTierConfig()[tier]
   if (!schools?.length) return null
   return (
     <div style={{ marginBottom: 24 }}>
@@ -184,7 +189,7 @@ function SchoolCard({ school, tier, index, slots, onSave }: {
   slots: (string | null)[]
   onSave: (name: string, slot: number) => Promise<void>
 }) {
-  const cfg = TIER_CONFIG[tier]
+  const cfg = getTierConfig()[tier]
   const [picking, setPicking] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
