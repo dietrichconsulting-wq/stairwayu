@@ -39,6 +39,8 @@ export async function generateStrategy({ gpa, sat, major, budget, climate, schoo
     : 'No climate preference.';
 
   const userSchoolsList = (userSchools || []).filter(Boolean);
+  const minPerTier = 3;
+  const totalMin = Math.max(10, userSchoolsList.length + minPerTier);
   const schoolsNote = userSchoolsList.length
     ? `The student is already interested in these schools — you MUST include all of them in the appropriate tier (reach/target/safety based on their stats): ${userSchoolsList.join(', ')}. Fill the remaining slots with additional recommendations.`
     : '';
@@ -53,10 +55,15 @@ STUDENT PROFILE:
 - ${budgetNote}
 - ${climateNote}
 ${schoolsNote ? `\n${schoolsNote}\n` : ''}
-Return exactly:
-- 3 REACH schools (<30% admission chance for this student but great fit)
-- 4 TARGET schools (40-65% admission chance)
-- 3 SAFETY schools (high confidence admission)
+Return a balanced college list with these HARD RULES:
+- EVERY tier (reach, target, safety) MUST have AT LEAST ${minPerTier} schools
+- Total schools: at least ${totalMin}
+- REACH schools: <30% admission chance for this student but great fit
+- TARGET schools: 40-65% admission chance
+- SAFETY schools: high confidence admission
+- Fill remaining slots with additional recommendations the student hasn't considered
+- Diversify by geography, school size, and ranking within each tier
+- Prefer well-known programs for the student's intended major
 
 For each school provide ONLY:
 - name: full official school name
@@ -76,12 +83,65 @@ Respond ONLY with valid JSON, no markdown:
 
   const result = await gemini.generateContent(recommendPrompt);
   let text = result.response.text().trim();
-  if (text.startsWith('```')) {
-    text = text.replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '');
+  // Strip markdown code fences (various formats Gemini might use)
+  text = text.replace(/^```(?:json)?\s*/m, '').replace(/\s*```\s*$/m, '');
+  // Find the JSON object boundaries in case there's extra text
+  const jsonStart = text.indexOf('{');
+  const jsonEnd = text.lastIndexOf('}');
+  if (jsonStart === -1 || jsonEnd === -1) {
+    throw new Error('AI did not return valid JSON. Please try again.');
+  }
+  text = text.slice(jsonStart, jsonEnd + 1);
+  let aiResult;
+  try {
+    aiResult = JSON.parse(text);
+  } catch (parseErr) {
+    throw new Error('AI returned malformed JSON. Please try again.');
   }
 
-  const aiResult = JSON.parse(text);
-  const { rationale, schools: aiSchools = [] } = aiResult;
+  const { rationale } = aiResult;
+  let { schools: aiSchools = [] } = aiResult;
+
+  // ── Validate tier counts, retry once if any tier < 3 ────────────────
+  const countByTier = (arr, t) => arr.filter(s => s.tier === t).length;
+  let reachCount = countByTier(aiSchools, 'reach');
+  let targetCount = countByTier(aiSchools, 'target');
+  let safetyCount = countByTier(aiSchools, 'safety');
+
+  if (reachCount < 3 || targetCount < 3 || safetyCount < 3) {
+    const fixPrompt = `Your previous response had ${reachCount} reach, ${targetCount} target, ${safetyCount} safety schools. Each tier MUST have at least 3. Add more schools to any tier below 3. Keep all existing schools and add new ones. Return the complete updated list in the same JSON format.\n\nRespond ONLY with valid JSON, no markdown.`;
+    const fixResult = await gemini.generateContent(fixPrompt);
+    let fixText = fixResult.response.text().trim();
+    fixText = fixText.replace(/^```(?:json)?\s*/m, '').replace(/\s*```\s*$/m, '');
+    const fStart = fixText.indexOf('{');
+    const fEnd = fixText.lastIndexOf('}');
+    if (fStart !== -1 && fEnd !== -1) {
+      try {
+        const fixParsed = JSON.parse(fixText.slice(fStart, fEnd + 1));
+        if (fixParsed.schools?.length) {
+          aiSchools = fixParsed.schools;
+        }
+      } catch { /* use original if retry fails */ }
+    }
+  }
+
+  // ── Ensure user's schools are never dropped ─────────────────────────
+  for (const userSchool of userSchoolsList) {
+    const found = aiSchools.some(s =>
+      s.name.toLowerCase().includes(userSchool.toLowerCase()) ||
+      userSchool.toLowerCase().includes(s.name.toLowerCase())
+    );
+    if (!found) {
+      aiSchools.push({
+        name: userSchool,
+        tier: 'target',
+        yourChance: null,
+        admitRate: null,
+        programStrength: null,
+        whyFit: 'Selected by student',
+      });
+    }
+  }
 
   if (!aiSchools.length) return { rationale, reach: [], target: [], safety: [] };
 

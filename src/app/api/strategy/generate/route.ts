@@ -30,6 +30,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(result)
   } catch (err: unknown) {
+    console.error('[strategy/generate]', err)
     const message = err instanceof Error ? err.message : 'Unknown error'
     return NextResponse.json({ error: message }, { status: 500 })
   }

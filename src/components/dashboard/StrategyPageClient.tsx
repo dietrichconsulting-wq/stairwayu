@@ -105,11 +105,24 @@ export function StrategyPageClient({ profile, userId }: StrategyPageClientProps)
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...form, schools: slots.filter(Boolean) }),
       })
-      if (!res.ok) throw new Error(await res.text())
+      if (!res.ok) {
+        const errText = await res.text()
+        throw new Error(errText)
+      }
       const data = await res.json()
       setResult(data)
     } catch (err) {
-      setError('Failed to generate strategy. Try again.')
+      let msg = 'Failed to generate strategy.'
+      try {
+        const body = err instanceof Error ? err.message : String(err)
+        const parsed = JSON.parse(body)
+        if (parsed.error === 'Pro subscription required') {
+          msg = 'Strategy is a Pro feature. Upgrade to generate your list.'
+        } else if (parsed.error) {
+          msg = parsed.error
+        }
+      } catch { /* not JSON, use generic */ }
+      setError(msg)
     } finally {
       setLoading(false)
     }
@@ -261,7 +274,7 @@ function SchoolCard({ school, tier, index, slots, onSave }: {
                     <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6, paddingLeft: 4 }}>
                       Replace which slot?
                     </div>
-                    {([1, 2, 3, 4] as const).map(slot => (
+                    {([1, 2, 3, 4, 5, 6, 7, 8, 9] as const).map(slot => (
                       <button
                         key={slot}
                         disabled={saving}
