@@ -363,16 +363,18 @@ function EditableStatPill({ label, color, display, onSave, type }: {
   function commit() {
     setEditing(false)
     const val = draft.trim()
+    // Allow clearing the value
+    if (!val) { onSave(''); setSaved(true); setTimeout(() => setSaved(false), 1800); return }
     // Basic validation
     if (type === 'gpa') {
       const n = parseFloat(val)
-      if (!val || isNaN(n) || n < 0 || n > 5.0) { setSaved(false); return }
+      if (isNaN(n) || n < 0 || n > 5.0) { setSaved(false); return }
     } else if (type === 'act') {
       const n = parseInt(val)
-      if (!val || isNaN(n) || n < 1 || n > 36) { setSaved(false); return }
+      if (isNaN(n) || n < 1 || n > 36) { setSaved(false); return }
     } else {
       const n = parseInt(val)
-      if (!val || isNaN(n) || n < 400 || n > 1600) { setSaved(false); return }
+      if (isNaN(n) || n < 400 || n > 1600) { setSaved(false); return }
     }
     onSave(val)
     setSaved(true)
