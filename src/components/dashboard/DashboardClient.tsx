@@ -7,6 +7,8 @@ import { useReadinessScore } from '@/hooks/useReadinessScore'
 import { ProfileStats } from './ProfileStats'
 import { AdmissionSnapshot } from './AdmissionSnapshot'
 import { TaskList } from './TaskList'
+import { MajorExplorer } from './MajorExplorer'
+import { useUpdateProfile } from '@/hooks/useProfile'
 
 interface DashboardClientProps {
   userId: string
@@ -14,6 +16,7 @@ interface DashboardClientProps {
 
 export function DashboardClient({ userId }: DashboardClientProps) {
   const { data: profile, isLoading: profileLoading } = useProfile(userId)
+  const updateProfile = useUpdateProfile(userId)
   const { data: tasks = [], isLoading: tasksLoading } = useTasks(userId)
   const { total: readinessTotal, isLoading: scoreLoading } = useReadinessScore(userId)
 
@@ -103,6 +106,36 @@ export function DashboardClient({ userId }: DashboardClientProps) {
 
       {/* Profile Stats */}
       <ProfileStats profile={profile} loading={profileLoading} tasks={tasks} userId={userId} />
+
+      {/* Major Explorer */}
+      {(!profile?.proposed_major || profile?.proposed_major === 'Undecided') ? (
+        <MajorExplorer
+          currentMajor={profile?.proposed_major}
+          onSelectMajor={(major) => {
+            updateProfile.mutate({ proposed_major: major })
+            setReferralToast(`✓ Major set to ${major}`)
+            setTimeout(() => setReferralToast(null), 3000)
+          }}
+        />
+      ) : (
+        <div style={{ marginBottom: 20 }}>
+          <details key={profile.proposed_major} style={{ background: 'var(--color-card)', border: '1px solid var(--color-border)', borderRadius: 12, padding: '12px 16px' }}>
+            <summary style={{ cursor: 'pointer', color: 'var(--color-text-muted)', fontSize: 13, fontWeight: 500, userSelect: 'none' }}>
+              🧭 Explore other majors
+            </summary>
+            <div style={{ marginTop: 16 }}>
+              <MajorExplorer
+                currentMajor={profile.proposed_major}
+                onSelectMajor={(major) => {
+                  updateProfile.mutate({ proposed_major: major })
+                  setReferralToast(`✓ Major set to ${major}`)
+                  setTimeout(() => setReferralToast(null), 3000)
+                }}
+              />
+            </div>
+          </details>
+        </div>
+      )}
 
       {/* Admission Snapshot */}
       <AdmissionSnapshot profile={profile} loading={profileLoading} />
