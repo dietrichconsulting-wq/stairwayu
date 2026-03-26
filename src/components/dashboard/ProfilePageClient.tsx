@@ -18,7 +18,7 @@ export function ProfilePageClient({ userId }: { userId: string }) {
   const [saved, setSaved] = useState(false)
 
   const [form, setForm] = useState({
-    display_name: '', gpa: '', sat: '', proposed_major: '', home_state: '',
+    display_name: '', gpa: '', sat: '', act_score: '', proposed_major: '', home_state: '',
     school1_name: '', school2_name: '', school3_name: '', school4_name: '',
   })
 
@@ -57,6 +57,7 @@ export function ProfilePageClient({ userId }: { userId: string }) {
         display_name: profile.display_name ?? '',
         gpa: profile.gpa?.toString() ?? '',
         sat: profile.sat?.toString() ?? '',
+        act_score: profile.act_score?.toString() ?? '',
         proposed_major: profile.proposed_major ?? '',
         home_state: profile.home_state ?? '',
         school1_name: profile.school1_name ?? '',
@@ -96,6 +97,7 @@ export function ProfilePageClient({ userId }: { userId: string }) {
       display_name: form.display_name || null,
       gpa: form.gpa ? parseFloat(form.gpa) : null,
       sat: form.sat ? parseInt(form.sat) : null,
+      act_score: form.act_score ? parseInt(form.act_score) : null,
       proposed_major: form.proposed_major || null,
       home_state: form.home_state || null,
       school1_name: form.school1_name || null,
@@ -137,6 +139,7 @@ export function ProfilePageClient({ userId }: { userId: string }) {
           </div>
           <Field label="GPA" type="number" step="0.01" min="0" max="5.0" value={form.gpa} onChange={v => setForm(f => ({ ...f, gpa: v }))} placeholder="3.9" />
           <Field label="SAT Score" type="number" min="400" max="1600" value={form.sat} onChange={v => setForm(f => ({ ...f, sat: v }))} placeholder="1400" />
+          <Field label="ACT Score" type="number" min="1" max="36" step="1" value={form.act_score} onChange={v => setForm(f => ({ ...f, act_score: v }))} placeholder="30" />
           <div style={{ gridColumn: 'span 2', display: 'flex', flexDirection: 'column', gap: 6 }}>
             <label style={labelStyle}>Intended Major</label>
             <MajorSelect value={form.proposed_major} onChange={v => setForm(f => ({ ...f, proposed_major: v }))} />

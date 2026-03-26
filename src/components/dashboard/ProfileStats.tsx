@@ -256,6 +256,14 @@ export function ProfileStats({ profile, loading, tasks, userId }: ProfileStatsPr
           type="sat"
           onSave={v => updateProfile.mutate({ sat: v ? parseInt(v) : null })}
         />
+        {/* ACT */}
+        <EditableStatPill
+          label="ACT" color={isDark() ? 'var(--color-stat-act, #7DD3FC)' : '#0891b2'}
+          value={loading ? null : profile?.act_score ?? null}
+          display={loading ? '—' : profile?.act_score?.toString() ?? '—'}
+          type="act"
+          onSave={v => updateProfile.mutate({ act_score: v ? parseInt(v) : null })}
+        />
         {/* Major */}
         <EditableMajorPill
           label="Major"
@@ -338,7 +346,7 @@ export function ProfileStats({ profile, loading, tasks, userId }: ProfileStatsPr
 
 function EditableStatPill({ label, color, display, onSave, type }: {
   label: string; color: string; value: number | null
-  display: string; type: 'gpa' | 'sat'
+  display: string; type: 'gpa' | 'sat' | 'act'
   onSave: (v: string) => void
 }) {
   const [editing, setEditing] = useState(false)
@@ -359,6 +367,9 @@ function EditableStatPill({ label, color, display, onSave, type }: {
     if (type === 'gpa') {
       const n = parseFloat(val)
       if (!val || isNaN(n) || n < 0 || n > 5.0) { setSaved(false); return }
+    } else if (type === 'act') {
+      const n = parseInt(val)
+      if (!val || isNaN(n) || n < 1 || n > 36) { setSaved(false); return }
     } else {
       const n = parseInt(val)
       if (!val || isNaN(n) || n < 400 || n > 1600) { setSaved(false); return }
@@ -381,12 +392,12 @@ function EditableStatPill({ label, color, display, onSave, type }: {
           onBlur={commit}
           onKeyDown={e => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') setEditing(false) }}
           type="number"
-          step={type === 'gpa' ? '0.01' : '10'}
-          min={type === 'gpa' ? '0' : '400'}
-          max={type === 'gpa' ? '5.0' : '1600'}
+          step={type === 'gpa' ? '0.01' : type === 'act' ? '1' : '10'}
+          min={type === 'gpa' ? '0' : type === 'act' ? '1' : '400'}
+          max={type === 'gpa' ? '5.0' : type === 'act' ? '36' : '1600'}
           style={{
             fontSize: 20, fontWeight: 800, color, lineHeight: 1,
-            width: type === 'gpa' ? 56 : 72, border: 'none', borderBottom: `2px solid ${color}`,
+            width: type === 'gpa' ? 56 : type === 'act' ? 48 : 72, border: 'none', borderBottom: `2px solid ${color}`,
             background: 'transparent', outline: 'none', padding: '0 0 2px',
           }}
         />

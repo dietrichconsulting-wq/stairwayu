@@ -13,33 +13,67 @@ function clamp(val, min, max) {
   return Math.max(min, Math.min(max, val));
 }
 
+// Official ACT-to-SAT concordance (College Board/ACT)
+const ACT_TO_SAT = {
+  36: 1590, 35: 1540, 34: 1500, 33: 1460, 32: 1430, 31: 1400, 30: 1370,
+  29: 1340, 28: 1310, 27: 1280, 26: 1240, 25: 1210, 24: 1180, 23: 1140,
+  22: 1110, 21: 1080, 20: 1050,
+};
+
+function actToSAT(act) {
+  if (!act || act < 20 || act > 36) return null;
+  return ACT_TO_SAT[act] || null;
+}
+
 /**
  * Core probability calculation for a single school.
  * Returns 0-100 integer.
  */
-function calculateChance(studentSAT, studentGPA, school) {
-  const { admissionRate, avgSAT, sat25, sat75 } = school;
+function calculateChance(studentSAT, studentGPA, school, studentACT) {
+  const { admissionRate, avgSAT, sat25, sat75, actMidpoint } = school;
 
   // If no admission data at all, return null
   if (admissionRate == null) return null;
 
   const baseRate = admissionRate; // Already a percentage (0–100) from collegeScorecard
 
+  // ── Effective SAT (best of SAT or converted ACT) ──
+  const convertedACT = actToSAT(studentACT);
+  const effectiveSAT = (studentSAT && convertedACT)
+    ? Math.max(studentSAT, convertedACT)
+    : studentSAT || convertedACT;
+
   // ── SAT Factor ──
   // Position student within 25th-75th range
   // Below 25th → penalty, above 75th → bonus
   let satFactor = 0;
-  if (studentSAT && (sat25 || avgSAT)) {
+  if (effectiveSAT && (sat25 || avgSAT)) {
     const low = sat25 || (avgSAT - 80);   // Estimate 25th if missing
     const high = sat75 || (avgSAT + 80);   // Estimate 75th if missing
     const mid = (low + high) / 2;
     const range = (high - low) || 1;
 
     // z-score style: how many half-ranges above/below midpoint
-    const z = (studentSAT - mid) / (range / 2);
+    const z = (effectiveSAT - mid) / (range / 2);
 
     // Map to factor: -30 to +25 percentage points
     satFactor = clamp(z * 18, -30, 25);
+  }
+
+  // ── ACT Factor ──
+  // If school has actMidpoint and student has ACT, compute additional factor
+  let actFactor = null;
+  if (studentACT && actMidpoint) {
+    // ACT midpoint typically ±3 covers 25th-75th
+    const actZ = (studentACT - actMidpoint) / 3;
+    actFactor = clamp(actZ * 18, -30, 25);
+  }
+
+  // Average SAT and ACT factors if both available
+  if (actFactor != null && effectiveSAT && (sat25 || avgSAT)) {
+    satFactor = (satFactor + actFactor) / 2;
+  } else if (actFactor != null && !effectiveSAT) {
+    satFactor = actFactor;
   }
 
   // ── GPA Factor ──
@@ -90,7 +124,7 @@ export async function computeChances(profile) {
         }
         if (!college) return null;
 
-        const chance = calculateChance(profile.sat, profile.gpa, college);
+        const chance = calculateChance(profile.sat, profile.gpa, college, profile.act);
         if (chance == null) return null;
 
         return {
@@ -101,6 +135,7 @@ export async function computeChances(profile) {
           avgSAT: college.avgSAT,
           sat25: college.sat25,
           sat75: college.sat75,
+          actMidpoint: college.actMidpoint || null,
         };
       } catch {
         return null;

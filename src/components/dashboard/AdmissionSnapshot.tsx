@@ -12,6 +12,7 @@ interface SchoolResult {
   avgSAT: number | null
   sat25: number | null
   sat75: number | null
+  actMidpoint: number | null
 }
 
 interface AdmissionSnapshotProps {
@@ -40,7 +41,7 @@ export function AdmissionSnapshot({ profile, loading }: AdmissionSnapshotProps) 
 
   // Re-fetch whenever GPA, SAT, major, or schools change
   const fetchKey = profile
-    ? `${profile.gpa}|${profile.sat}|${profile.proposed_major}|${schools.map(s => s.name).join(',')}`
+    ? `${profile.gpa}|${profile.sat}|${profile.act_score}|${profile.proposed_major}|${schools.map(s => s.name).join(',')}`
     : null
 
   // Restore cached results from sessionStorage on mount
@@ -76,6 +77,7 @@ export function AdmissionSnapshot({ profile, loading }: AdmissionSnapshotProps) 
       body: JSON.stringify({
         gpa: profile.gpa,
         sat: profile.sat,
+        act: profile.act_score,
         proposed_major: profile.proposed_major,
         schools,
       }),
@@ -105,7 +107,7 @@ export function AdmissionSnapshot({ profile, loading }: AdmissionSnapshotProps) 
         <div>
           <h2 style={{ fontSize: 15, fontWeight: 800, margin: 0 }}>Admission Snapshot</h2>
           <p style={{ fontSize: 12, color: 'var(--color-text-muted)', margin: '2px 0 0' }}>
-            AI-generated estimates based on your GPA{profile?.sat ? ', SAT' : ''} & school admit rates
+            AI-generated estimates based on your GPA{profile?.sat ? ', SAT' : ''}{profile?.act_score ? ', ACT' : ''} & school admit rates
           </p>
         </div>
         <Link href="/strategy" style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-primary)', textDecoration: 'none' }}>
@@ -183,15 +185,29 @@ export function AdmissionSnapshot({ profile, loading }: AdmissionSnapshotProps) 
                   )}
                 </div>
 
-                {/* SAT range from real data */}
-                {(r.sat25 || r.sat75 || r.avgSAT) && (
-                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 8 }}>
-                    <div style={{ fontSize: 10, fontWeight: 800, color: 'rgba(255,255,255,0.40)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>
-                      SAT Range
-                    </div>
-                    <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.70)', fontWeight: 600 }}>
-                      {r.sat25 && r.sat75 ? `${r.sat25} – ${r.sat75}` : r.avgSAT ? `Avg ${r.avgSAT}` : '—'}
-                    </div>
+                {/* SAT range + ACT midpoint from real data */}
+                {(r.sat25 || r.sat75 || r.avgSAT || r.actMidpoint) && (
+                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 8, display: 'flex', gap: 16 }}>
+                    {(r.sat25 || r.sat75 || r.avgSAT) && (
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 10, fontWeight: 800, color: 'rgba(255,255,255,0.40)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>
+                          SAT Range
+                        </div>
+                        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.70)', fontWeight: 600 }}>
+                          {r.sat25 && r.sat75 ? `${r.sat25} – ${r.sat75}` : r.avgSAT ? `Avg ${r.avgSAT}` : '—'}
+                        </div>
+                      </div>
+                    )}
+                    {r.actMidpoint != null && (
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 10, fontWeight: 800, color: 'rgba(255,255,255,0.40)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>
+                          ACT Midpoint
+                        </div>
+                        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.70)', fontWeight: 600 }}>
+                          {r.actMidpoint}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 
