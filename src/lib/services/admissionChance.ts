@@ -29,7 +29,7 @@ function actToSAT(act) {
  * Core probability calculation for a single school.
  * Returns 0-100 integer.
  */
-function calculateChance(studentSAT, studentGPA, school, studentACT) {
+export function calculateChance(studentSAT, studentGPA, school, studentACT) {
   const { admissionRate, avgSAT, sat25, sat75, actMidpoint } = school;
 
   // If no admission data at all, return null

@@ -11,7 +11,7 @@
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { batchCollegeProfiles } from './collegeDataAggregator';
-import { computeChances } from './admissionChance';
+import { computeChances, calculateChance } from './admissionChance';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let model: any = null;
@@ -95,19 +95,19 @@ Return at least ${totalMin} NEW schools (not listed above) with these HARD RULES
 - DO NOT repeat any school already listed above
 
 For each school provide ONLY:
-- name: full official school name
-- tier: "reach" | "target" | "safety"
-- yourChance: estimated admission probability 0-100 integer for THIS student specifically
-- admitRate: the school's real overall admission rate 0-100 integer (must be internally consistent with yourChance — an above-average student like this one should have yourChance >= admitRate for target/safety schools)
+- name: full official school name (must match College Scorecard naming)
+- tier: "reach" | "target" | "safety" (your best guess — we will recalculate from real data)
 - programStrength: 1-2 words for the ${major} program (e.g. "Top 10", "Strong", "Solid", "Emerging")
 - whyFit: one sentence ≤15 words explaining fit
+
+DO NOT include yourChance or admitRate — we compute those from real data.
 
 Also include top-level "rationale": 2-3 sentences on the overall strategy (covering both the student's existing schools and your new recommendations).
 
 Respond ONLY with valid JSON, no markdown:
 {
   "rationale": "...",
-  "schools": [{ "name": "...", "tier": "reach|target|safety", "yourChance": 0, "admitRate": 0, "programStrength": "...", "whyFit": "..." }]
+  "schools": [{ "name": "...", "tier": "reach|target|safety", "programStrength": "...", "whyFit": "..." }]
 }`;
 
   const result = await gemini.generateContent(recommendPrompt);
@@ -143,7 +143,7 @@ Respond ONLY with valid JSON, no markdown:
   let safetyCount = countByTier(allSchools, 'safety');
 
   if (reachCount < 3 || targetCount < 3 || safetyCount < 3) {
-    const fixPrompt = `The current college list has ${reachCount} reach, ${targetCount} target, ${safetyCount} safety schools. Each tier MUST have at least 3. Suggest MORE new schools for any tier below 3. Do not include these schools (already in list): ${allSchools.map(s => s.name).join(', ')}. Return ONLY the new additions in the same JSON format.\n\nRespond ONLY with valid JSON, no markdown:\n{"schools": [{ "name": "...", "tier": "reach|target|safety", "yourChance": 0, "admitRate": 0, "programStrength": "...", "whyFit": "..." }]}`;
+    const fixPrompt = `The current college list has ${reachCount} reach, ${targetCount} target, ${safetyCount} safety schools. Each tier MUST have at least 3. Suggest MORE new schools for any tier below 3. Do not include these schools (already in list): ${allSchools.map(s => s.name).join(', ')}. Return ONLY the new additions.\n\nRespond ONLY with valid JSON, no markdown:\n{"schools": [{ "name": "...", "tier": "reach|target|safety", "programStrength": "...", "whyFit": "..." }]}`;
     const fixResult = await gemini.generateContent(fixPrompt);
     let fixText = fixResult.response.text().trim();
     fixText = fixText.replace(/^```(?:json)?\s*/m, '').replace(/\s*```\s*$/m, '');
@@ -173,37 +173,60 @@ Respond ONLY with valid JSON, no markdown:
   const realProfiles = await batchCollegeProfiles(schoolNames);
 
   // ── Step 3: Merge AI recommendations with real data ─────────────────────
+  //    For EVERY school, compute yourChance via the logistic model using real
+  //    Scorecard data. Gemini NEVER determines chances — only the deterministic
+  //    model does, guaranteeing alignment with the dashboard Admission Snapshot.
+  const studentSAT = parseInt(sat) || null;
+  const studentGPA = parseFloat(gpa) || null;
+
   const enriched = aiSchools.map((ai, i) => {
     const real = realProfiles[i] || {};
-
-    // Net cost: use real data, adjusted for budget context
-    // If no real data available, leave null (AI didn't provide it — better than hallucinating)
     const netCost = real.netCostForResident ?? real.avgNetPrice ?? null;
+
+    // Compute chance using logistic model (same as dashboard)
+    // For pre-assigned user schools, ai.yourChance is already from the model.
+    // For AI-recommended schools, recalculate using real Scorecard data.
+    const isPreAssigned = i < preAssigned.length;
+    let modelChance = isPreAssigned ? ai.yourChance : null;
+    if (!isPreAssigned && real.admitRate != null) {
+      modelChance = calculateChance(studentSAT, studentGPA, {
+        admissionRate: real.admitRate,
+        avgSAT: real.avgSAT ?? null,
+        sat25: real.sat25 ?? null,
+        sat75: real.sat75 ?? null,
+        actMidpoint: real.actMidpoint ?? null,
+      }, null);
+    }
+    // Derive tier from model chance (same thresholds as dashboard)
+    const computedTier = modelChance != null
+      ? (modelChance >= 65 ? 'safety' : modelChance >= 35 ? 'target' : 'reach')
+      : ai.tier; // fallback to AI tier if no real data available
+
+    // Override the tier on the aiSchools entry so byTier() uses the model tier
+    aiSchools[i] = { ...aiSchools[i], tier: computedTier };
 
     return {
       name: ai.name,
       city: real.city ?? null,
       state: real.state ?? null,
       // ── Admissions data ──
-      // Prefer AI admit rate: Scorecard name matching can find wrong campuses,
-      // producing rates inconsistent with yourChance. AI uses known school selectivity.
-      admitRate: ai.admitRate ?? real.admitRate ?? null,
-      yourChance: ai.yourChance ?? null,          // [AI] personalized
-      avgSAT: real.avgSAT ?? null,               // [REAL]
-      sat25: real.sat25 ?? null,                 // [REAL]
-      sat75: real.sat75 ?? null,                 // [REAL]
-      actMidpoint: real.actMidpoint ?? null,     // [REAL]
+      admitRate: real.admitRate ?? ai.admitRate ?? null,
+      yourChance: modelChance ?? ai.yourChance ?? null,
+      avgSAT: real.avgSAT ?? null,
+      sat25: real.sat25 ?? null,
+      sat75: real.sat75 ?? null,
+      actMidpoint: real.actMidpoint ?? null,
       // ── Real cost data ──
-      netCost,                                   // [REAL]
-      tuitionOutOfState: real.tuitionOutOfState ?? null, // [REAL]
-      tuitionInState: real.tuitionInState ?? null,       // [REAL]
-      netPriceByIncome: real.netPriceByIncome ?? null,   // [REAL]
+      netCost,
+      tuitionOutOfState: real.tuitionOutOfState ?? null,
+      tuitionInState: real.tuitionInState ?? null,
+      netPriceByIncome: real.netPriceByIncome ?? null,
       // ── Real outcomes ──
-      gradRate: real.gradRate ?? null,           // [REAL]
-      enrollment: real.enrollment ?? null,       // [REAL]
-      medianEarnings10yr: real.medianEarnings10yr ?? null, // [REAL]
+      gradRate: real.gradRate ?? null,
+      enrollment: real.enrollment ?? null,
+      medianEarnings10yr: real.medianEarnings10yr ?? null,
       // ── Rankings ──
-      usNewsRank: real.usNewsRank ?? null,       // [STATIC]
+      usNewsRank: real.usNewsRank ?? null,
       usNewsRankDisplay: real.usNewsRankDisplay ?? null,
       // ── Institution info ──
       control: real.control ?? null,
@@ -217,7 +240,7 @@ Respond ONLY with valid JSON, no markdown:
     };
   });
 
-  // Split back into tiers (preserve tier from AI)
+  // Split into tiers using the model-computed tier
   const byTier = (tier) => enriched.filter((_, i) => aiSchools[i]?.tier === tier);
 
   return {
