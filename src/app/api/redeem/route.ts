@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 
 const VALID_CODES: Record<string, { days: number; repeatable?: boolean }> = {
@@ -55,6 +56,10 @@ export async function POST(req: Request) {
         cancel_at_period_end: false,
       })
   }
+
+  // Bust the Next.js cache so the dashboard layout sees the updated subscription
+  revalidatePath('/dashboard')
+  revalidatePath('/(dashboard)', 'layout')
 
   return NextResponse.json({ success: true, trial_end: trialEnd.toISOString() })
 }
