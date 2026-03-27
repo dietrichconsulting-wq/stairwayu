@@ -48,65 +48,55 @@ const STATS = [
 function ProCard() {
   const [plan, setPlan] = useState<'monthly' | 'annual'>('annual')
   return (
-    <div style={{ background: 'linear-gradient(135deg, #1C1D24, #252730)', padding: '48px 40px', position: 'relative' }}>
-      <div style={{ position: 'absolute', top: 20, right: 20, background: '#fbbf24', color: '#78350f', fontSize: 10, fontWeight: 800, padding: '4px 10px', borderRadius: 2, letterSpacing: '0.1em' }}>
+    <div className="landing-pro-bg relative px-10 py-12">
+      <div className="absolute top-5 right-5 rounded-sm bg-amber-400 px-2.5 py-1 text-[10px] font-extrabold tracking-[0.1em] text-amber-900">
         MOST POPULAR
       </div>
-      <div style={{ fontSize: 11, fontWeight: 800, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 16 }}>Full Access</div>
+      <div className="mb-4 text-[11px] font-extrabold uppercase tracking-[0.15em] text-white/60">Full Access</div>
 
       {/* Billing toggle */}
-      <div style={{ display: 'inline-flex', background: 'rgba(255,255,255,0.1)', borderRadius: 8, padding: 2, marginBottom: 16, border: '1px solid rgba(255,255,255,0.15)' }}>
+      <div className="mb-4 inline-flex rounded-lg border border-white/15 bg-white/10 p-0.5">
         <button
           onClick={() => setPlan('monthly')}
-          style={{
-            padding: '5px 14px', borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700,
-            background: plan === 'monthly' ? 'rgba(255,255,255,0.25)' : 'transparent',
-            color: '#fff', transition: 'all 0.15s',
-          }}
+          className={`cursor-pointer rounded-md border-none px-3.5 py-1.5 text-xs font-bold text-white transition-all duration-150 ${
+            plan === 'monthly' ? 'bg-white/25' : 'bg-transparent'
+          }`}
         >
           Monthly
         </button>
         <button
           onClick={() => setPlan('annual')}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 5,
-            padding: '5px 14px', borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700,
-            background: plan === 'annual' ? 'rgba(255,255,255,0.25)' : 'transparent',
-            color: '#fff', transition: 'all 0.15s',
-          }}
+          className={`flex cursor-pointer items-center gap-1.5 rounded-md border-none px-3.5 py-1.5 text-xs font-bold text-white transition-all duration-150 ${
+            plan === 'annual' ? 'bg-white/25' : 'bg-transparent'
+          }`}
         >
           Annual
-          <span style={{ fontSize: 9, fontWeight: 800, background: '#fbbf24', color: '#78350f', borderRadius: 3, padding: '1px 4px' }}>✦</span>
+          <span className="rounded-sm bg-amber-400 px-1 py-px text-[9px] font-extrabold text-amber-900">✦</span>
         </button>
       </div>
 
       {plan === 'monthly' ? (
         <>
-          <div style={{ fontSize: 52, fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', marginBottom: 4 }}>$9.99</div>
-          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginBottom: 36 }}>per month</div>
+          <div className="mb-1 text-[52px] font-black tracking-tight text-white">$9.99</div>
+          <div className="mb-9 text-[13px] text-white/50">per month</div>
         </>
       ) : (
         <>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 2 }}>
-            <span style={{ fontSize: 52, fontWeight: 900, color: '#fff', letterSpacing: '-0.03em' }}>$79</span>
-            <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', textDecoration: 'line-through' }}>$119.88</span>
+          <div className="mb-0.5 flex items-baseline gap-2">
+            <span className="text-[52px] font-black tracking-tight text-white">$79</span>
+            <span className="text-[13px] text-white/50 line-through">$119.88</span>
           </div>
-          <div style={{ fontSize: 13, color: '#86efac', fontWeight: 700, marginBottom: 36 }}>$6.58/mo · Save 34%</div>
+          <div className="mb-9 text-[13px] font-bold text-green-300">$6.58/mo · Save 34%</div>
         </>
       )}
 
       {['AI Admission Snapshot', 'Scholarship Finder', 'College Comparison', 'Financial Planner', 'Essay Studio', 'Unlimited everything'].map(f => (
-        <div key={f} style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 14 }}>
-          <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: '#fff', flexShrink: 0 }}>✓</div>
-          <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.85)' }}>{f}</span>
+        <div key={f} className="mb-3.5 flex items-center gap-3">
+          <div className="flex size-[18px] shrink-0 items-center justify-center rounded-full bg-white/20 text-[10px] text-white">✓</div>
+          <span className="text-sm text-white/85">{f}</span>
         </div>
       ))}
-      <Link href="/signup" style={{
-        display: 'block', textAlign: 'center', marginTop: 36,
-        background: '#fff', color: '#0f172a',
-        textDecoration: 'none', borderRadius: 4, padding: '14px',
-        fontWeight: 800, fontSize: 13, letterSpacing: '0.05em', textTransform: 'uppercase',
-      }}>
+      <Link href="/signup" className="mt-9 block rounded bg-white px-3.5 py-3.5 text-center text-[13px] font-extrabold uppercase tracking-[0.05em] text-slate-900 no-underline">
         Start Free Trial →
       </Link>
     </div>
@@ -123,155 +113,92 @@ export function LandingPage() {
   }, [])
 
   return (
-    <div style={{ fontFamily: 'Inter, -apple-system, sans-serif', color: '#0f172a', background: '#fff', overflowX: 'hidden' }}>
+    <div className="overflow-x-hidden bg-white font-[Inter,-apple-system,sans-serif] text-slate-900">
 
       {/* ── NAV ── */}
-      <nav style={{
-        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
-        padding: '0 clamp(16px, 4vw, 40px)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 60,
-        background: scrolled ? 'rgba(15,23,42,0.96)' : 'transparent',
-        backdropFilter: scrolled ? 'blur(16px)' : 'none',
-        transition: 'background 0.3s',
-      }}>
-        <div style={{ fontSize: 18, fontWeight: 900, color: '#fff', letterSpacing: '-0.02em' }}>
+      <nav
+        className={`fixed inset-x-0 top-0 z-[100] flex h-[60px] items-center justify-between px-[clamp(16px,4vw,40px)] transition-[background] duration-300 ${
+          scrolled ? 'bg-slate-900/95 backdrop-blur-xl' : 'bg-transparent backdrop-blur-none'
+        }`}
+      >
+        <div className="text-lg font-black tracking-tight text-white">
           Stairway U
         </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <Link href="/login" style={{
-            fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.8)',
-            textDecoration: 'none', padding: '8px 16px', borderRadius: 6,
-          }}>
+        <div className="flex items-center gap-2">
+          <Link href="/login" className="rounded-md px-4 py-2 text-[13px] font-semibold text-white/80 no-underline">
             Sign In
           </Link>
-          <Link href="/signup" style={{
-            fontSize: 13, fontWeight: 700,
-            background: '#fff', color: '#0f172a',
-            textDecoration: 'none', padding: '9px 20px', borderRadius: 6,
-          }}>
+          <Link href="/signup" className="rounded-md bg-white px-5 py-2.5 text-[13px] font-bold text-slate-900 no-underline">
             Get Started
           </Link>
         </div>
       </nav>
 
       {/* ── HERO ── */}
-      <section style={{ position: 'relative', height: '100vh', minHeight: 600, overflow: 'hidden' }}>
-        {/* Background image */}
+      <section className="relative h-screen min-h-[600px] overflow-hidden">
         <img
           src="https://images.unsplash.com/photo-1523580846011-d3a5bc25702b?w=1920&q=85"
           alt="High school seniors at college campus"
-          style={{
-            position: 'absolute', inset: 0,
-            width: '100%', height: '100%',
-            objectFit: 'cover', objectPosition: 'center 30%',
-          }}
+          className="absolute inset-0 size-full object-cover object-[center_30%]"
         />
-        {/* Gradient overlay */}
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: 'linear-gradient(to right, rgba(18,19,24,0.92) 0%, rgba(28,29,36,0.8) 50%, rgba(37,39,48,0.6) 100%)',
-        }} />
+        <div className="landing-hero-overlay absolute inset-0" />
 
-        {/* Hero content — bottom-left, Nike style */}
-        <div style={{
-          position: 'absolute', bottom: '12%', left: '6%', maxWidth: 680,
-        }}>
-          <div style={{ fontSize: 12, fontWeight: 800, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 16 }}>
+        <div className="absolute bottom-[12%] left-[6%] max-w-[680px]">
+          <div className="mb-4 text-xs font-extrabold uppercase tracking-[0.2em] text-white/60">
             AI-Powered College Planning
           </div>
-          <h1 style={{
-            fontSize: 'clamp(48px, 7vw, 88px)',
-            fontWeight: 900, color: '#fff',
-            lineHeight: 1.0, margin: '0 0 24px',
-            letterSpacing: '-0.03em',
-          }}>
+          <h1 className="mb-6 text-[clamp(48px,7vw,88px)] font-black leading-none tracking-tight text-white">
             Your Stairway<br />to College.
           </h1>
-          <p style={{ fontSize: 'clamp(16px, 2vw, 20px)', color: 'rgba(255,255,255,0.75)', marginBottom: 36, lineHeight: 1.5, maxWidth: 480 }}>
+          <p className="mb-9 max-w-[480px] text-[clamp(16px,2vw,20px)] leading-relaxed text-white/75">
             Know your real odds. Find your scholarships.<br />Get in.
           </p>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            <Link href="/signup" style={{
-              background: '#fff', color: '#0f172a',
-              textDecoration: 'none', borderRadius: 6, padding: '16px 40px',
-              fontWeight: 800, fontSize: 15, letterSpacing: '-0.01em',
-            }}>
+          <div className="flex flex-wrap gap-3">
+            <Link href="/signup" className="rounded-md bg-white px-10 py-4 text-[15px] font-extrabold text-slate-900 no-underline">
               Start for Free
             </Link>
-            <Link href="/login" style={{
-              background: 'transparent', color: '#fff',
-              border: '2px solid rgba(255,255,255,0.5)',
-              textDecoration: 'none', borderRadius: 6, padding: '16px 40px',
-              fontWeight: 700, fontSize: 15,
-            }}>
+            <Link href="/login" className="rounded-md border-2 border-white/50 bg-transparent px-10 py-4 text-[15px] font-bold text-white no-underline">
               Sign In
             </Link>
           </div>
         </div>
 
-        {/* Scroll indicator */}
-        <div style={{ position: 'absolute', bottom: 32, right: 48, color: 'rgba(255,255,255,0.4)', fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+        <div className="absolute right-12 bottom-8 text-xs uppercase tracking-[0.1em] text-white/40">
           Scroll ↓
         </div>
       </section>
 
       {/* ── STATS BAR ── */}
-      <section style={{ background: '#0f172a', padding: '28px 6%' }}>
-        <div style={{ maxWidth: 1000, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 24, textAlign: 'center' }}>
+      <section className="bg-slate-900 px-[6%] py-7">
+        <div className="mx-auto grid max-w-[1000px] auto-cols-fr grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-6 text-center">
           {STATS.map(s => (
             <div key={s.label}>
-              <div style={{ fontSize: 28, fontWeight: 900, color: '#fff', letterSpacing: '-0.02em' }}>{s.value}</div>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', marginTop: 4, letterSpacing: '0.05em' }}>{s.label}</div>
+              <div className="text-[28px] font-black tracking-tight text-white">{s.value}</div>
+              <div className="mt-1 text-xs tracking-[0.05em] text-white/45">{s.label}</div>
             </div>
           ))}
         </div>
       </section>
 
       {/* ── FEATURE GRID — Nike product tiles ── */}
-      <section style={{ background: '#f1f5f9', padding: '4px 4px 4px 4px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 4 }}>
+      <section className="bg-slate-100 p-1">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-1">
           {FEATURES.map(f => (
-            <div key={f.label} style={{ position: 'relative', aspectRatio: '4/3', overflow: 'hidden', background: '#0f172a', cursor: 'pointer' }}
-              onMouseEnter={e => {
-                const img = e.currentTarget.querySelector('img') as HTMLImageElement
-                if (img) img.style.transform = 'scale(1.04)'
-              }}
-              onMouseLeave={e => {
-                const img = e.currentTarget.querySelector('img') as HTMLImageElement
-                if (img) img.style.transform = 'scale(1)'
-              }}
-            >
+            <div key={f.label} className="group relative aspect-[4/3] cursor-pointer overflow-hidden bg-slate-900">
               <img
                 src={f.img}
                 alt={f.label}
-                style={{
-                  width: '100%', height: '100%', objectFit: 'cover',
-                  transition: 'transform 0.6s ease',
-                  opacity: 0.75,
-                }}
+                className="size-full object-cover opacity-75 transition-transform duration-[600ms] ease-out group-hover:scale-[1.04]"
               />
-              {/* gradient */}
-              <div style={{
-                position: 'absolute', inset: 0,
-                background: f.light
-                  ? 'linear-gradient(to top, rgba(15,23,42,0.9) 0%, transparent 60%)'
-                  : 'linear-gradient(to top, rgba(18,19,24,0.9) 0%, transparent 60%)',
-              }} />
-              {/* Text content */}
-              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: 'clamp(16px, 3vw, 32px) clamp(16px, 3vw, 36px)' }}>
-                <div style={{ fontSize: 'clamp(20px, 2.5vw, 28px)', fontWeight: 900, color: '#fff', marginBottom: 8, letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+              <div className={`absolute inset-0 ${f.light ? 'landing-feature-gradient-light' : 'landing-feature-gradient-dark'}`} />
+              <div className="absolute inset-x-0 bottom-0 p-[clamp(16px,3vw,32px)] px-[clamp(16px,3vw,36px)]">
+                <div className="mb-2 text-[clamp(20px,2.5vw,28px)] font-black leading-tight tracking-tight text-white">
                   {f.label}
                 </div>
-                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', marginBottom: 20, lineHeight: 1.5 }}>
+                <div className="mb-5 text-[13px] leading-relaxed text-white/70">
                   {f.desc}
                 </div>
-                <Link href={f.href} style={{
-                  display: 'inline-block',
-                  background: '#fff', color: '#0f172a',
-                  textDecoration: 'none', borderRadius: 4, padding: '10px 22px',
-                  fontWeight: 800, fontSize: 12, letterSpacing: '0.03em',
-                  textTransform: 'uppercase',
-                }}>
+                <Link href={f.href} className="inline-block rounded bg-white px-5.5 py-2.5 text-xs font-extrabold uppercase tracking-[0.03em] text-slate-900 no-underline">
                   {f.cta}
                 </Link>
               </div>
@@ -281,57 +208,53 @@ export function LandingPage() {
       </section>
 
       {/* ── FULL-BLEED SECOND HERO — Journey Tracker ── */}
-      <section style={{ position: 'relative', height: '70vh', minHeight: 480, overflow: 'hidden' }}>
+      <section className="relative h-[70vh] min-h-[480px] overflow-hidden">
         <img
           src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=1920&q=85"
           alt="Graduation ceremony"
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 40%' }}
+          className="absolute inset-0 size-full object-cover object-[center_40%]"
         />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(18,19,24,0.88) 0%, rgba(37,39,48,0.7) 100%)' }} />
-        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '0 24px' }}>
-          <div style={{ fontSize: 11, fontWeight: 800, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 16 }}>
+        <div className="landing-journey-overlay absolute inset-0" />
+        <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
+          <div className="mb-4 text-[11px] font-extrabold uppercase tracking-[0.2em] text-white/50">
             Journey Tracker
           </div>
-          <h2 style={{ fontSize: 'clamp(32px, 5vw, 64px)', fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1.05, marginBottom: 20, maxWidth: 700 }}>
+          <h2 className="mb-5 max-w-[700px] text-[clamp(32px,5vw,64px)] font-black leading-[1.05] tracking-tight text-white">
             From sophomore year<br />to decision day.
           </h2>
-          <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.65)', maxWidth: 440, lineHeight: 1.6, marginBottom: 36 }}>
+          <p className="mb-9 max-w-[440px] text-base leading-relaxed text-white/65">
             A visual roadmap of every milestone — with a progress ring that shows exactly where you stand.
           </p>
-          <Link href="/signup" style={{
-            background: '#5EEAD4', color: '#0f172a',
-            textDecoration: 'none', borderRadius: 6, padding: '16px 44px',
-            fontWeight: 800, fontSize: 14, letterSpacing: '0.05em', textTransform: 'uppercase',
-          }}>
+          <Link href="/signup" className="rounded-md bg-teal-300 px-11 py-4 text-sm font-extrabold uppercase tracking-[0.05em] text-slate-900 no-underline">
             Start Your Journey
           </Link>
         </div>
       </section>
 
       {/* ── TESTIMONIALS ── */}
-      <section style={{ background: '#fff', padding: '96px 6%' }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-          <div style={{ marginBottom: 56 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, color: '#5EEAD4', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 12 }}>
+      <section className="bg-white px-[6%] py-24">
+        <div className="mx-auto max-w-[1100px]">
+          <div className="mb-14">
+            <div className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.15em] text-teal-300">
               Student Stories
             </div>
-            <h2 style={{ fontSize: 'clamp(28px, 4vw, 52px)', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em', lineHeight: 1.05 }}>
+            <h2 className="text-[clamp(28px,4vw,52px)] font-black leading-[1.05] tracking-tight text-slate-900">
               Real students.<br />Real results.
             </h2>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2 }}>
+          <div className="grid grid-cols-1 gap-0.5 md:grid-cols-3">
             {[
-              { name: 'Sophia R.', school: 'Admitted to UT Austin', quote: "Stairway U showed me I had a 74% chance at UT Austin. That gave me the confidence to apply early. I got in.", color: '#5EEAD4' },
-              { name: 'Marcus T.', school: '$28,000 in scholarships', quote: "The scholarship finder surfaced 3 I never would have found on my own. Two were easy-apply — no essay required.", color: '#FCD34D' },
-              { name: 'Linda C.', school: 'Parent of 2026 applicant', quote: "The Financial Planner finally helped me understand what college will actually cost us. Eye-opening.", color: '#0891b2' },
+              { name: 'Sophia R.', school: 'Admitted to UT Austin', quote: "Stairway U showed me I had a 74% chance at UT Austin. That gave me the confidence to apply early. I got in.", color: 'bg-teal-300', textColor: 'text-teal-300' },
+              { name: 'Marcus T.', school: '$28,000 in scholarships', quote: "The scholarship finder surfaced 3 I never would have found on my own. Two were easy-apply — no essay required.", color: 'bg-amber-300', textColor: 'text-amber-300' },
+              { name: 'Linda C.', school: 'Parent of 2026 applicant', quote: "The Financial Planner finally helped me understand what college will actually cost us. Eye-opening.", color: 'bg-cyan-600', textColor: 'text-cyan-600' },
             ].map((t, i) => (
-              <div key={i} style={{ background: '#f8fafc', padding: '40px 32px' }}>
-                <div style={{ width: 4, height: 32, background: t.color, marginBottom: 24, borderRadius: 2 }} />
-                <p style={{ fontSize: 15, color: '#334155', lineHeight: 1.75, marginBottom: 28, fontStyle: 'italic' }}>
+              <div key={i} className="bg-slate-50 px-8 py-10">
+                <div className={`mb-6 h-8 w-1 rounded-sm ${t.color}`} />
+                <p className="mb-7 text-[15px] italic leading-[1.75] text-slate-700">
                   &ldquo;{t.quote}&rdquo;
                 </p>
-                <div style={{ fontSize: 13, fontWeight: 800, color: '#0f172a' }}>{t.name}</div>
-                <div style={{ fontSize: 12, color: t.color, fontWeight: 600, marginTop: 2 }}>{t.school}</div>
+                <div className="text-[13px] font-extrabold text-slate-900">{t.name}</div>
+                <div className={`mt-0.5 text-xs font-semibold ${t.textColor}`}>{t.school}</div>
               </div>
             ))}
           </div>
@@ -339,35 +262,29 @@ export function LandingPage() {
       </section>
 
       {/* ── PRICING ── */}
-      <section style={{ background: '#0f172a', padding: '96px 6%' }}>
-        <div style={{ maxWidth: 900, margin: '0 auto' }}>
-          <div style={{ marginBottom: 56 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, color: 'rgba(255,255,255,0.4)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 12 }}>
+      <section className="bg-slate-900 px-[6%] py-24">
+        <div className="mx-auto max-w-[900px]">
+          <div className="mb-14">
+            <div className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.15em] text-white/40">
               Pricing
             </div>
-            <h2 style={{ fontSize: 'clamp(28px, 4vw, 52px)', fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1.05 }}>
+            <h2 className="text-[clamp(28px,4vw,52px)] font-black leading-[1.05] tracking-tight text-white">
               Simple pricing.<br />No surprises.
             </h2>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+          <div className="grid grid-cols-1 gap-0.5 md:grid-cols-2">
             {/* Free */}
-            <div style={{ background: '#1e293b', padding: '48px 40px' }}>
-              <div style={{ fontSize: 11, fontWeight: 800, color: 'rgba(255,255,255,0.4)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 20 }}>Free</div>
-              <div style={{ fontSize: 52, fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', marginBottom: 4 }}>$0</div>
-              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', marginBottom: 36 }}>Forever</div>
+            <div className="bg-slate-800 px-10 py-12">
+              <div className="mb-5 text-[11px] font-extrabold uppercase tracking-[0.15em] text-white/40">Free</div>
+              <div className="mb-1 text-[52px] font-black tracking-tight text-white">$0</div>
+              <div className="mb-9 text-[13px] text-white/40">Forever</div>
               {['Journey roadmap', 'Task tracker', 'College search', 'Basic profile'].map(f => (
-                <div key={f} style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 14 }}>
-                  <div style={{ width: 18, height: 18, borderRadius: '50%', background: '#334155', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: '#94a3b8', flexShrink: 0 }}>✓</div>
-                  <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)' }}>{f}</span>
+                <div key={f} className="mb-3.5 flex items-center gap-3">
+                  <div className="flex size-[18px] shrink-0 items-center justify-center rounded-full bg-slate-700 text-[10px] text-slate-400">✓</div>
+                  <span className="text-sm text-white/65">{f}</span>
                 </div>
               ))}
-              <Link href="/signup" style={{
-                display: 'block', textAlign: 'center', marginTop: 36,
-                background: 'transparent', color: '#fff',
-                border: '1.5px solid rgba(255,255,255,0.2)',
-                textDecoration: 'none', borderRadius: 4, padding: '14px',
-                fontWeight: 700, fontSize: 13, letterSpacing: '0.05em', textTransform: 'uppercase',
-              }}>
+              <Link href="/signup" className="mt-9 block rounded border-[1.5px] border-white/20 bg-transparent px-3.5 py-3.5 text-center text-[13px] font-bold uppercase tracking-[0.05em] text-white no-underline">
                 Get Started
               </Link>
             </div>
@@ -378,42 +295,38 @@ export function LandingPage() {
       </section>
 
       {/* ── FINAL CTA ── */}
-      <section style={{ position: 'relative', height: '50vh', minHeight: 360, overflow: 'hidden' }}>
+      <section className="relative h-[50vh] min-h-[360px] overflow-hidden">
         <img
           src="https://images.unsplash.com/photo-1592280771190-3e2e4d571952?w=1920&q=85"
           alt="College campus"
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 60%' }}
+          className="absolute inset-0 size-full object-cover object-[center_60%]"
         />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(18,19,24,0.94) 0%, rgba(37,39,48,0.75) 100%)' }} />
-        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '0 24px' }}>
-          <h2 style={{ fontSize: 'clamp(28px, 4vw, 56px)', fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1.05, marginBottom: 32, maxWidth: 600 }}>
+        <div className="landing-cta-overlay absolute inset-0" />
+        <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
+          <h2 className="mb-8 max-w-[600px] text-[clamp(28px,4vw,56px)] font-black leading-[1.05] tracking-tight text-white">
             Your dream school is waiting.
           </h2>
-          <Link href="/signup" style={{
-            background: '#fff', color: '#0f172a',
-            textDecoration: 'none', borderRadius: 6, padding: '18px 52px',
-            fontWeight: 900, fontSize: 15, letterSpacing: '0.03em', textTransform: 'uppercase',
-          }}>
+          <Link href="/signup" className="rounded-md bg-white px-13 py-4.5 text-[15px] font-black uppercase tracking-[0.03em] text-slate-900 no-underline">
             Get Started Free
           </Link>
-          <div style={{ marginTop: 16, fontSize: 12, color: 'rgba(255,255,255,0.4)', letterSpacing: '0.05em' }}>
+          <div className="mt-4 text-xs tracking-[0.05em] text-white/40">
             No credit card required
           </div>
         </div>
       </section>
 
       {/* ── FOOTER ── */}
-      <footer style={{ background: '#020617', padding: '40px 6%' }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
-          <div style={{ fontSize: 16, fontWeight: 900, color: '#fff', letterSpacing: '-0.02em' }}>Stairway U</div>
-          <div style={{ display: 'flex', gap: 28 }}>
+      <footer className="bg-slate-950 px-[6%] py-10">
+        <div className="mx-auto flex max-w-[1100px] flex-wrap items-center justify-between gap-4">
+          <div className="text-base font-black tracking-tight text-white">Stairway U</div>
+          <div className="flex gap-7">
             {[{ label: 'Sign In', href: '/login' }, { label: 'Sign Up', href: '/signup' }, { label: 'Pricing', href: '/upgrade' }].map(l => (
-              <Link key={l.href} href={l.href} style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', textDecoration: 'none', fontWeight: 500, letterSpacing: '0.03em' }}>
+              <Link key={l.href} href={l.href} className="text-[13px] font-medium tracking-[0.03em] text-white/35 no-underline">
                 {l.label}
               </Link>
             ))}
           </div>
-          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)' }}>© 2025 Stairway U</div>
+          <div className="text-xs text-white/20">© 2025 Stairway U</div>
         </div>
       </footer>
 
