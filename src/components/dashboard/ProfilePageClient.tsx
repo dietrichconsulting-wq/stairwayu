@@ -38,6 +38,11 @@ export function ProfilePageClient({ userId }: { userId: string }) {
   const [referralLoading, setReferralLoading] = useState(true)
   const [copied, setCopied] = useState(false)
 
+  // Delete account state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleteConfirmText, setDeleteConfirmText] = useState('')
+  const [deleting, setDeleting] = useState(false)
+
   const fetchReferralCode = useCallback(async () => {
     setReferralLoading(true)
     try {
@@ -305,7 +310,7 @@ export function ProfilePageClient({ userId }: { userId: string }) {
         )}
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
         <button onClick={handleSave} disabled={updateProfile.isPending} style={{ background: 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: 10, padding: '12px 28px', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
           {updateProfile.isPending ? 'Saving…' : saved ? '✓ Saved!' : 'Save Profile'}
         </button>
@@ -318,6 +323,78 @@ export function ProfilePageClient({ userId }: { userId: string }) {
           >
             {seedTasks.isPending ? 'Seeding…' : '+ Seed Default Tasks (29)'}
           </button>
+        )}
+      </div>
+
+      {/* Delete Account */}
+      <div className="card-elevated" style={{ padding: '28px 28px 32px', borderColor: 'var(--color-danger, #ef4444)' }}>
+        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4, color: 'var(--color-danger, #ef4444)' }}>Delete Account</h2>
+        <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 16 }}>
+          Permanently delete your account and all data (profile, tasks, scholarships, schools). This cannot be undone.
+        </p>
+
+        {!showDeleteConfirm ? (
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            style={{
+              background: 'none', color: 'var(--color-danger, #ef4444)',
+              border: '1.5px solid var(--color-danger, #ef4444)',
+              borderRadius: 10, padding: '10px 24px', fontWeight: 700, fontSize: 13, cursor: 'pointer',
+            }}
+          >
+            Delete My Account
+          </button>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <p style={{ fontSize: 13, fontWeight: 600 }}>
+              Type <strong>delete my account</strong> to confirm:
+            </p>
+            <input
+              value={deleteConfirmText}
+              onChange={e => setDeleteConfirmText(e.target.value)}
+              placeholder="delete my account"
+              style={inputStyle}
+              autoFocus
+            />
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                onClick={async () => {
+                  setDeleting(true)
+                  try {
+                    const res = await fetch('/api/account/delete', { method: 'POST' })
+                    if (res.ok) {
+                      window.location.href = '/login'
+                    } else {
+                      alert('Failed to delete account. Please try again.')
+                    }
+                  } catch {
+                    alert('Failed to delete account. Please try again.')
+                  }
+                  setDeleting(false)
+                }}
+                disabled={deleteConfirmText !== 'delete my account' || deleting}
+                style={{
+                  background: deleteConfirmText === 'delete my account' ? 'var(--color-danger, #ef4444)' : 'var(--color-border)',
+                  color: '#fff', border: 'none',
+                  borderRadius: 10, padding: '10px 24px', fontWeight: 700, fontSize: 13,
+                  cursor: deleteConfirmText === 'delete my account' && !deleting ? 'pointer' : 'not-allowed',
+                  opacity: deleteConfirmText === 'delete my account' ? 1 : 0.5,
+                }}
+              >
+                {deleting ? 'Deleting…' : 'Permanently Delete'}
+              </button>
+              <button
+                onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText('') }}
+                style={{
+                  background: 'var(--color-column)', color: 'var(--color-text)',
+                  border: '1.5px solid var(--color-border)',
+                  borderRadius: 10, padding: '10px 24px', fontWeight: 600, fontSize: 13, cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
         )}
       </div>
     </motion.div>
