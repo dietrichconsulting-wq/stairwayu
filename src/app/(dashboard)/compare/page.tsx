@@ -11,5 +11,13 @@ export default async function ComparePage() {
 
   const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
 
-  return <ComparePageClient profile={profile} />
+  const { data: colleges } = await supabase
+    .from('user_colleges')
+    .select('college_name')
+    .eq('user_id', user.id)
+    .order('sort_order')
+
+  const collegeNames = (colleges ?? []).map((c: { college_name: string }) => c.college_name)
+
+  return <ComparePageClient profile={profile} colleges={collegeNames} />
 }

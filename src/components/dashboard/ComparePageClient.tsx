@@ -10,6 +10,7 @@ const SESSION_SCHOOLS_KEY = 'compare_schools_v1'
 
 interface ComparePageClientProps {
   profile: Profile | null
+  colleges: string[]
 }
 
 interface ComparedSchool {
@@ -36,18 +37,8 @@ function shortName(name: string): string {
   return words.slice(0, 2).join(' ') || base.split(' ')[0]
 }
 
-export function ComparePageClient({ profile }: ComparePageClientProps) {
-  const defaultSchools = [
-    profile?.school1_name,
-    profile?.school2_name,
-    profile?.school3_name,
-    profile?.school4_name,
-    profile?.school5_name,
-    profile?.school6_name,
-    profile?.school7_name,
-    profile?.school8_name,
-    profile?.school9_name,
-  ].filter(Boolean) as string[]
+export function ComparePageClient({ profile, colleges }: ComparePageClientProps) {
+  const defaultSchools = colleges
 
   const [schools, setSchools] = useState<string[]>(() => {
     try {

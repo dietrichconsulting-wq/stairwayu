@@ -1,4 +1,5 @@
 import { useProfile } from './useProfile'
+import { useUserColleges } from './useUserColleges'
 import { useTasks } from './useTasks'
 import { useMilestones, type MilestoneRecord } from './useMilestones'
 import { useScholarships } from './useScholarships'
@@ -29,18 +30,7 @@ export interface ReadinessScore {
   topActions: string[]
 }
 
-function computeProfileDimension(profile: Profile | null | undefined) {
-  const schools = [
-    profile?.school1_name,
-    profile?.school2_name,
-    profile?.school3_name,
-    profile?.school4_name,
-    profile?.school5_name,
-    profile?.school6_name,
-    profile?.school7_name,
-    profile?.school8_name,
-    profile?.school9_name,
-  ].filter(Boolean)
+function computeProfileDimension(profile: Profile | null | undefined, schoolCount: number) {
 
   const items = [
     { label: 'Name', earned: !!(profile?.display_name?.trim()), points: 1 },
@@ -49,8 +39,8 @@ function computeProfileDimension(profile: Profile | null | undefined) {
     { label: 'Major', earned: !!(profile?.proposed_major?.trim()), points: 2 },
     { label: 'Home state', earned: !!(profile?.home_state?.trim()), points: 1 },
     { label: 'Grad year', earned: profile?.grad_year != null, points: 1 },
-    { label: '1+ school added', earned: schools.length >= 1, points: 2 },
-    { label: '3+ schools added', earned: schools.length >= 3, points: 2 },
+    { label: '1+ school added', earned: schoolCount >= 1, points: 2 },
+    { label: '3+ schools added', earned: schoolCount >= 3, points: 2 },
     { label: 'Preferences filled', earned: !!(profile?.desired_climate && profile?.school_size_pref && profile?.school_type_pref), points: 2 },
   ]
 
@@ -60,16 +50,17 @@ function computeProfileDimension(profile: Profile | null | undefined) {
 
 export function useReadinessScore(userId: string): ReadinessScore {
   const { data: profile, isLoading: profileLoading } = useProfile(userId)
+  const { data: colleges = [], isLoading: collegesLoading } = useUserColleges(userId)
   const { data: tasks = [], isLoading: tasksLoading } = useTasks(userId)
   const milestonesQuery = useMilestones(userId)
   const milestones: MilestoneRecord[] = milestonesQuery.data ?? []
   const milestonesLoading = milestonesQuery.isLoading
   const { data: scholarships = [], isLoading: scholarshipsLoading } = useScholarships(userId)
 
-  const isLoading = profileLoading || tasksLoading || milestonesLoading || scholarshipsLoading
+  const isLoading = profileLoading || collegesLoading || tasksLoading || milestonesLoading || scholarshipsLoading
 
   // 1. Profile (15 pts)
-  const profileDim = computeProfileDimension(profile)
+  const profileDim = computeProfileDimension(profile, colleges.length)
 
   // 2. Tasks (35 pts)
   const weightedDone = tasks
@@ -119,17 +110,7 @@ export function useReadinessScore(userId: string): ReadinessScore {
   )
 
   // Top actions (highest point potential first, max 3)
-  const schoolCount = [
-    profile?.school1_name,
-    profile?.school2_name,
-    profile?.school3_name,
-    profile?.school4_name,
-    profile?.school5_name,
-    profile?.school6_name,
-    profile?.school7_name,
-    profile?.school8_name,
-    profile?.school9_name,
-  ].filter(Boolean).length
+  const schoolCount = colleges.length
 
   const candidateActions: { label: string; points: number }[] = []
 

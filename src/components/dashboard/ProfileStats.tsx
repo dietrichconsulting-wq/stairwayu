@@ -2,8 +2,9 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useRef, useEffect } from 'react'
-import type { Profile, Task } from '@/lib/types/database'
+import type { Profile, Task, UserCollege } from '@/lib/types/database'
 import { useUpdateProfile } from '@/hooks/useProfile'
+import { useUserColleges, useAddCollege, useRemoveCollege, useUpdateCollege } from '@/hooks/useUserColleges'
 import { MajorSelect } from '@/components/MajorSelect'
 import { CollegeSelect } from '@/components/CollegeSelect'
 import { useReadinessScore } from '@/hooks/useReadinessScore'
@@ -15,8 +16,6 @@ interface ProfileStatsProps {
   tasks: Task[]
   userId: string
 }
-
-const SCHOOLS_ORDER = ['school1','school2','school3','school4','school5','school6','school7','school8','school9'] as const
 
 /** Shorten school name: strip "University", "of", "The", "College" to fit chips */
 function chipName(name: string): string {
@@ -216,6 +215,10 @@ function ReadinessDetailPanel({ score, onClose }: { score: ReadinessScore; onClo
 
 export function ProfileStats({ profile, loading, tasks, userId }: ProfileStatsProps) {
   const updateProfile = useUpdateProfile(userId)
+  const { data: colleges = [] } = useUserColleges(userId)
+  const addCollege = useAddCollege(userId)
+  const removeCollege = useRemoveCollege(userId)
+  const updateCollegeMut = useUpdateCollege(userId)
   const readiness = useReadinessScore(userId)
   const [showDetail, setShowDetail] = useState(false)
 
@@ -320,9 +323,10 @@ export function ProfileStats({ profile, loading, tasks, userId }: ProfileStatsPr
         {/* School chips */}
         {!loading && (
           <SchoolChipsRow
-            profile={profile}
-            onSave={(key, v) => updateProfile.mutate({ [`${key}_name`]: v || null })}
-            onRemove={key => updateProfile.mutate({ [`${key}_name`]: null })}
+            colleges={colleges}
+            onAdd={name => addCollege.mutate({ name })}
+            onUpdate={(id, name) => updateCollegeMut.mutate({ id, name })}
+            onRemove={id => removeCollege.mutate(id)}
           />
         )}
       </div>
@@ -461,28 +465,18 @@ function EditableMajorPill({ label, display, onSave }: {
   )
 }
 
-function SchoolChipsRow({ profile, onSave, onRemove }: {
-  profile: Profile | null | undefined
-  onSave: (key: string, v: string) => void
-  onRemove: (key: string) => void
+function SchoolChipsRow({ colleges, onAdd, onUpdate, onRemove }: {
+  colleges: UserCollege[]
+  onAdd: (name: string) => void
+  onUpdate: (id: string, name: string) => void
+  onRemove: (id: string) => void
 }) {
   const [showMore, setShowMore] = useState(false)
   const [addingSchool, setAddingSchool] = useState(false)
   const popoverRef = useRef<HTMLDivElement>(null)
 
-  // Build filled schools list: [{key, name}]
-  const filledSchools = SCHOOLS_ORDER
-    .map(k => ({ key: k, name: profile?.[`${k}_name` as keyof Profile] as string | null }))
-    .filter((s): s is { key: typeof SCHOOLS_ORDER[number]; name: string } => !!s.name)
-
-  const filledCount = filledSchools.length
-  const visibleSchools = filledSchools.slice(0, 3)
-  const overflowSchools = filledSchools.slice(3)
-
-  // Find next empty slot for "+ Add"
-  const nextEmptySlot = SCHOOLS_ORDER.find(
-    k => !profile?.[`${k}_name` as keyof Profile]
-  )
+  const visibleSchools = colleges.slice(0, 3)
+  const overflowSchools = colleges.slice(3)
 
   // Close popover on click-outside or Escape
   useEffect(() => {
@@ -505,12 +499,12 @@ function SchoolChipsRow({ profile, onSave, onRemove }: {
 
   return (
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginLeft: 'auto', alignItems: 'center', position: 'relative' }}>
-      {/* First 3 filled schools as inline editable chips */}
-      {visibleSchools.map(({ key, name }) => (
+      {/* First 3 colleges as inline editable chips */}
+      {visibleSchools.map(c => (
         <EditableSchoolChip
-          key={key}
-          name={name}
-          onSave={v => onSave(key, v)}
+          key={c.id}
+          name={c.college_name}
+          onSave={v => onUpdate(c.id, v)}
         />
       ))}
 
@@ -538,12 +532,12 @@ function SchoolChipsRow({ profile, onSave, onRemove }: {
                 display: 'flex', flexDirection: 'column', gap: 8,
               }}
             >
-              {overflowSchools.map(({ key, name }) => (
+              {overflowSchools.map(c => (
                 <OverflowSchoolRow
-                  key={key}
-                  name={name}
-                  onEdit={v => { onSave(key, v) }}
-                  onRemove={() => { onRemove(key); }}
+                  key={c.id}
+                  name={c.college_name}
+                  onEdit={v => onUpdate(c.id, v)}
+                  onRemove={() => onRemove(c.id)}
                 />
               ))}
             </div>
@@ -551,32 +545,30 @@ function SchoolChipsRow({ profile, onSave, onRemove }: {
         </div>
       )}
 
-      {/* "+ Add" chip — show as long as < 9 schools */}
-      {filledCount < 9 && (
-        addingSchool && nextEmptySlot ? (
-          <div style={{ width: 220 }}>
-            <CollegeSelect
-              value=""
-              onChange={v => {
-                if (v && nextEmptySlot) onSave(nextEmptySlot, v)
-                setAddingSchool(false)
-              }}
-              placeholder="Search for a college…"
-              inputStyle={{ padding: '5px 10px', fontSize: 12, borderRadius: 20 }}
-            />
-          </div>
-        ) : (
-          <button
-            onClick={() => setAddingSchool(true)}
-            style={{
-              background: 'var(--color-column)', color: 'var(--color-text-muted)',
-              fontWeight: 600, fontSize: 12, padding: '5px 12px', borderRadius: 20,
-              border: '1.5px dashed var(--color-border)', cursor: 'pointer',
+      {/* "+ Add" chip */}
+      {addingSchool ? (
+        <div style={{ width: 220 }}>
+          <CollegeSelect
+            value=""
+            onChange={v => {
+              if (v) onAdd(v)
+              setAddingSchool(false)
             }}
-          >
-            + Add
-          </button>
-        )
+            placeholder="Search for a college…"
+            inputStyle={{ padding: '5px 10px', fontSize: 12, borderRadius: 20 }}
+          />
+        </div>
+      ) : (
+        <button
+          onClick={() => setAddingSchool(true)}
+          style={{
+            background: 'var(--color-column)', color: 'var(--color-text-muted)',
+            fontWeight: 600, fontSize: 12, padding: '5px 12px', borderRadius: 20,
+            border: '1.5px dashed var(--color-border)', cursor: 'pointer',
+          }}
+        >
+          + Add
+        </button>
       )}
     </div>
   )

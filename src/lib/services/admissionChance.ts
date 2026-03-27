@@ -7,7 +7,23 @@ import { getCollege, lookupByName } from './collegeScorecard';
  * 3. School's overall admission rate as a baseline
  *
  * This is an ESTIMATE for guidance — not a guarantee.
+ *
+ * Each factor also produces human-readable "insights" explaining
+ * what helped or hurt the student's chances.
  */
+
+export interface Insight {
+  factor: 'sat' | 'act' | 'gpa' | 'selectivity' | 'test_optional';
+  sentiment: 'positive' | 'neutral' | 'negative';
+  message: string;
+  /** How many percentage points this factor contributed (signed) */
+  impact: number;
+}
+
+export interface ChanceResult {
+  chance: number;
+  insights: Insight[];
+}
 
 function clamp(val, min, max) {
   return Math.max(min, Math.min(max, val));
@@ -26,16 +42,45 @@ function actToSAT(act) {
 }
 
 /**
- * Core probability calculation for a single school.
- * Returns 0-100 integer.
+ * Describe where a score falls relative to a percentile range.
  */
-export function calculateChance(studentSAT, studentGPA, school, studentACT) {
+function satPositionLabel(score: number, low: number, high: number): string {
+  if (score >= high + 40) return 'well above their 75th percentile';
+  if (score >= high) return 'above their 75th percentile';
+  if (score >= (low + high) / 2) return 'in the upper half of their range';
+  if (score >= low) return 'in the lower half of their range';
+  if (score >= low - 40) return 'just below their 25th percentile';
+  return 'below their 25th percentile';
+}
+
+function gpaLabel(gpa: number): string {
+  if (gpa >= 3.9) return 'near-perfect';
+  if (gpa >= 3.7) return 'very strong';
+  if (gpa >= 3.5) return 'strong';
+  if (gpa >= 3.2) return 'solid';
+  if (gpa >= 3.0) return 'average';
+  if (gpa >= 2.7) return 'below average';
+  return 'low';
+}
+
+function sentimentFromImpact(impact: number): 'positive' | 'neutral' | 'negative' {
+  if (impact >= 3) return 'positive';
+  if (impact <= -3) return 'negative';
+  return 'neutral';
+}
+
+/**
+ * Core probability calculation for a single school.
+ * Returns { chance: 0-100, insights: Insight[] }.
+ */
+export function calculateChance(studentSAT, studentGPA, school, studentACT): ChanceResult | null {
   const { admissionRate, avgSAT, sat25, sat75, actMidpoint } = school;
 
   // If no admission data at all, return null
   if (admissionRate == null) return null;
 
   const baseRate = admissionRate; // Already a percentage (0–100) from collegeScorecard
+  const insights: Insight[] = [];
 
   // ── Effective SAT (best of SAT or converted ACT) ──
   const convertedACT = actToSAT(studentACT);
@@ -44,29 +89,62 @@ export function calculateChance(studentSAT, studentGPA, school, studentACT) {
     : studentSAT || convertedACT;
 
   // ── SAT Factor ──
-  // Position student within 25th-75th range
-  // Below 25th → penalty, above 75th → bonus
   let satFactor = 0;
   if (effectiveSAT && (sat25 || avgSAT)) {
-    const low = sat25 || (avgSAT - 80);   // Estimate 25th if missing
-    const high = sat75 || (avgSAT + 80);   // Estimate 75th if missing
+    const low = sat25 || (avgSAT - 80);
+    const high = sat75 || (avgSAT + 80);
     const mid = (low + high) / 2;
     const range = (high - low) || 1;
 
-    // z-score style: how many half-ranges above/below midpoint
     const z = (effectiveSAT - mid) / (range / 2);
-
-    // Map to factor: -30 to +25 percentage points
     satFactor = clamp(z * 18, -30, 25);
+
+    // Build SAT insight
+    const position = satPositionLabel(effectiveSAT, low, high);
+    const satLabel = (studentSAT && convertedACT && convertedACT > studentSAT)
+      ? `Your ACT (${studentACT}) converts to ${convertedACT} SAT`
+      : `Your SAT (${effectiveSAT})`;
+
+    if (sat25 && sat75) {
+      insights.push({
+        factor: 'sat',
+        sentiment: sentimentFromImpact(satFactor),
+        message: `${satLabel} is ${position} (${sat25}–${sat75})`,
+        impact: Math.round(satFactor),
+      });
+    } else {
+      insights.push({
+        factor: 'sat',
+        sentiment: sentimentFromImpact(satFactor),
+        message: `${satLabel} is ${effectiveSAT > mid ? 'above' : 'below'} their average of ${avgSAT}`,
+        impact: Math.round(satFactor),
+      });
+    }
+  } else if (!effectiveSAT && (sat25 || avgSAT)) {
+    insights.push({
+      factor: 'test_optional',
+      sentiment: 'neutral',
+      message: 'No test scores provided — consider adding SAT/ACT for a more accurate estimate',
+      impact: 0,
+    });
   }
 
   // ── ACT Factor ──
-  // If school has actMidpoint and student has ACT, compute additional factor
   let actFactor = null;
   if (studentACT && actMidpoint) {
-    // ACT midpoint typically ±3 covers 25th-75th
     const actZ = (studentACT - actMidpoint) / 3;
     actFactor = clamp(actZ * 18, -30, 25);
+
+    // Only add a separate ACT insight if different from SAT story
+    if (!effectiveSAT) {
+      const diff = studentACT - actMidpoint;
+      insights.push({
+        factor: 'act',
+        sentiment: sentimentFromImpact(actFactor),
+        message: `Your ACT (${studentACT}) is ${diff > 0 ? '+' : ''}${diff} from their midpoint of ${actMidpoint}`,
+        impact: Math.round(actFactor),
+      });
+    }
   }
 
   // Average SAT and ACT factors if both available
@@ -77,7 +155,6 @@ export function calculateChance(studentSAT, studentGPA, school, studentACT) {
   }
 
   // ── GPA Factor ──
-  // Above 3.7 = bonus, below 3.0 = penalty
   let gpaFactor = 0;
   if (studentGPA) {
     if (studentGPA >= 3.9) gpaFactor = 12;
@@ -87,23 +164,58 @@ export function calculateChance(studentSAT, studentGPA, school, studentACT) {
     else if (studentGPA >= 3.0) gpaFactor = -5;
     else if (studentGPA >= 2.7) gpaFactor = -12;
     else gpaFactor = -20;
+
+    const label = gpaLabel(studentGPA);
+    const verb = gpaFactor > 0 ? 'boosts' : gpaFactor < 0 ? 'lowers' : 'has a neutral effect on';
+    insights.push({
+      factor: 'gpa',
+      sentiment: sentimentFromImpact(gpaFactor),
+      message: `Your ${label} GPA (${studentGPA}) ${verb} your chances`,
+      impact: Math.round(gpaFactor),
+    });
   }
 
   // ── Selectivity adjustment ──
-  // Very selective schools (<20% admission) have compressed ranges
-  // Less selective schools (>60%) have wider ranges
   let selectivityScale = 1.0;
-  if (baseRate < 10) selectivityScale = 0.5;        // Ivy-tier: small adjustments
-  else if (baseRate < 20) selectivityScale = 0.65;   // Very selective
-  else if (baseRate < 35) selectivityScale = 0.8;    // Selective
-  else if (baseRate > 70) selectivityScale = 1.3;    // Less selective: wider swings
+  if (baseRate < 10) selectivityScale = 0.5;
+  else if (baseRate < 20) selectivityScale = 0.65;
+  else if (baseRate < 35) selectivityScale = 0.8;
+  else if (baseRate > 70) selectivityScale = 1.3;
 
   const adjustedSAT = satFactor * selectivityScale;
   const adjustedGPA = gpaFactor * selectivityScale;
 
-  // Round to nearest 5% to signal this is an estimate, not a precise prediction
+  // Scale the insight impacts to match the selectivity adjustment
+  for (const insight of insights) {
+    if (insight.factor === 'sat' || insight.factor === 'act') {
+      insight.impact = Math.round(insight.impact * selectivityScale);
+    } else if (insight.factor === 'gpa') {
+      insight.impact = Math.round(insight.impact * selectivityScale);
+    }
+  }
+
+  // Add selectivity insight for highly selective schools
+  if (baseRate < 20) {
+    insights.push({
+      factor: 'selectivity',
+      sentiment: 'negative',
+      message: `Highly selective (${baseRate}% admit rate) — stats alone don't guarantee admission`,
+      impact: 0,
+    });
+  } else if (baseRate > 70) {
+    insights.push({
+      factor: 'selectivity',
+      sentiment: 'positive',
+      message: `Open admissions (${baseRate}% admit rate) — most qualified applicants are accepted`,
+      impact: 0,
+    });
+  }
+
+  // Round to nearest 5% to signal this is an estimate
   const raw = clamp(baseRate + adjustedSAT + adjustedGPA, 5, 95);
-  return Math.round(raw / 5) * 5;
+  const chance = Math.round(raw / 5) * 5;
+
+  return { chance, insights };
 }
 
 /**
@@ -119,18 +231,18 @@ export async function computeChances(profile) {
         if (s.id && s.id.trim() !== '') {
           college = await getCollege(s.id);
         } else {
-          // Use lookupByName which handles name expansions (e.g. "Texas" → "University of Texas at Austin")
           college = await lookupByName(s.name);
         }
         if (!college) return null;
 
-        const chance = calculateChance(profile.sat, profile.gpa, college, profile.act);
-        if (chance == null) return null;
+        const result = calculateChance(profile.sat, profile.gpa, college, profile.act);
+        if (result == null) return null;
 
         return {
           schoolName: s.name,
           schoolId: college.id,
-          chance,
+          chance: result.chance,
+          insights: result.insights,
           admissionRate: college.admissionRate,
           avgSAT: college.avgSAT,
           sat25: college.sat25,

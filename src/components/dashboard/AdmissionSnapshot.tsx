@@ -1,13 +1,21 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
-import type { Profile } from '@/lib/types/database'
+import { motion, AnimatePresence } from 'framer-motion'
+import type { Profile, UserCollege } from '@/lib/types/database'
 import Link from 'next/link'
+
+interface Insight {
+  factor: 'sat' | 'act' | 'gpa' | 'selectivity' | 'test_optional'
+  sentiment: 'positive' | 'neutral' | 'negative'
+  message: string
+  impact: number
+}
 
 interface SchoolResult {
   schoolName: string
   chance: number
+  insights: Insight[]
   admissionRate: number | null
   avgSAT: number | null
   sat25: number | null
@@ -17,45 +25,44 @@ interface SchoolResult {
 
 interface AdmissionSnapshotProps {
   profile: Profile | null | undefined
+  colleges: UserCollege[]
   loading: boolean
 }
 
 function chanceLabel(pct: number): { label: string; color: string; softColor: string; bgColor: string; borderColor: string } {
-  // Desaturated, softer palette for dark mode readability
   if (pct >= 65) return { label: 'Safety', color: '#34D399', softColor: '#6EE7B7', bgColor: 'rgba(52,211,153,0.10)', borderColor: 'rgba(52,211,153,0.22)' }
   if (pct >= 35) return { label: 'Target', color: '#FBBF24', softColor: '#FCD34D', bgColor: 'rgba(251,191,36,0.10)', borderColor: 'rgba(251,191,36,0.22)' }
   return { label: 'Reach', color: '#FB7185', softColor: '#FDA4AF', bgColor: 'rgba(251,113,133,0.10)', borderColor: 'rgba(251,113,133,0.22)' }
 }
 
+const SENTIMENT_STYLES = {
+  positive: { icon: '↑', color: '#34D399', bg: 'rgba(52,211,153,0.08)', border: 'rgba(52,211,153,0.18)' },
+  neutral:  { icon: '–', color: '#94A3B8', bg: 'rgba(148,163,184,0.08)', border: 'rgba(148,163,184,0.15)' },
+  negative: { icon: '↓', color: '#FB7185', bg: 'rgba(251,113,133,0.08)', border: 'rgba(251,113,133,0.18)' },
+}
+
+const FACTOR_ICONS = {
+  sat: '📝',
+  act: '📝',
+  gpa: '📊',
+  selectivity: '🏫',
+  test_optional: '📋',
+}
+
 const SNAPSHOT_KEY = 'admission_snapshot_v2'
 
-export function AdmissionSnapshot({ profile, loading }: AdmissionSnapshotProps) {
-  const schools = profile
-    ? [
-        { name: profile.school1_name, id: profile.school1_id },
-        { name: profile.school2_name, id: profile.school2_id },
-        { name: profile.school3_name, id: profile.school3_id },
-        { name: profile.school4_name, id: profile.school4_id },
-        { name: profile.school5_name, id: profile.school5_id },
-        { name: profile.school6_name, id: profile.school6_id },
-        { name: profile.school7_name, id: profile.school7_id },
-        { name: profile.school8_name, id: profile.school8_id },
-        { name: profile.school9_name, id: profile.school9_id },
-      ].filter(s => s.name)
-    : []
+export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnapshotProps) {
+  const schools = colleges.map(c => ({ name: c.college_name, id: c.college_id }))
 
-  // Re-fetch whenever GPA, SAT, major, or schools change
   const fetchKey = profile
     ? `${profile.gpa}|${profile.sat}|${profile.act_score}|${profile.proposed_major}|${schools.map(s => s.name).join(',')}`
     : null
 
-  // Restore cached results from sessionStorage on mount
   const [results, setResults] = useState<SchoolResult[]>(() => {
     try {
       const saved = sessionStorage.getItem(SNAPSHOT_KEY)
       if (saved) {
         const { key, data } = JSON.parse(saved)
-        // Only restore if profile hasn't changed since last fetch
         if (key && data) return data
       }
     } catch { /* ignore */ }
@@ -72,6 +79,7 @@ export function AdmissionSnapshot({ profile, loading }: AdmissionSnapshotProps) 
     } catch { /* ignore */ }
     return null
   })
+  const [expandedCard, setExpandedCard] = useState<number | null>(null)
 
   useEffect(() => {
     if (!profile || loading || !fetchKey || fetchKey === lastFetchKey || schools.length === 0) return
@@ -136,10 +144,12 @@ export function AdmissionSnapshot({ profile, loading }: AdmissionSnapshotProps) 
       )}
 
       {!fetching && results.length > 0 && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14 }}>
           {results.map((r, i) => {
             const { label, color, softColor, bgColor, borderColor } = chanceLabel(r.chance)
             const schoolAdmitRate = r.admissionRate != null ? `${r.admissionRate}% overall admit rate` : null
+            const isExpanded = expandedCard === i
+            const hasInsights = r.insights && r.insights.length > 0
 
             return (
               <motion.div
@@ -155,7 +165,9 @@ export function AdmissionSnapshot({ profile, loading }: AdmissionSnapshotProps) 
                   display: 'flex',
                   flexDirection: 'column',
                   gap: 10,
+                  cursor: hasInsights ? 'pointer' : 'default',
                 }}
+                onClick={() => hasInsights && setExpandedCard(isExpanded ? null : i)}
               >
                 {/* School name + tier label */}
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
@@ -190,8 +202,104 @@ export function AdmissionSnapshot({ profile, loading }: AdmissionSnapshotProps) 
                   )}
                 </div>
 
-                {/* SAT range + ACT midpoint from real data */}
-                {(r.sat25 || r.sat75 || r.avgSAT || r.actMidpoint) && (
+                {/* Inline factor summary (always visible) */}
+                {hasInsights && !isExpanded && (
+                  <div style={{
+                    display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 2,
+                  }}>
+                    {r.insights.filter(ins => ins.impact !== 0 || ins.factor === 'selectivity' || ins.factor === 'test_optional').slice(0, 3).map((ins, j) => {
+                      const style = SENTIMENT_STYLES[ins.sentiment]
+                      return (
+                        <span
+                          key={j}
+                          style={{
+                            fontSize: 10,
+                            fontWeight: 600,
+                            padding: '2px 8px',
+                            borderRadius: 20,
+                            background: style.bg,
+                            color: style.color,
+                            border: `1px solid ${style.border}`,
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {style.icon} {ins.factor === 'sat' || ins.factor === 'act' ? 'Test scores' : ins.factor === 'gpa' ? 'GPA' : ins.factor === 'selectivity' ? 'Selectivity' : 'No scores'}
+                          {ins.impact !== 0 && ` ${ins.impact > 0 ? '+' : ''}${ins.impact}%`}
+                        </span>
+                      )
+                    })}
+                    <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', alignSelf: 'center', fontWeight: 500 }}>
+                      Tap for details
+                    </span>
+                  </div>
+                )}
+
+                {/* Expanded insights panel */}
+                <AnimatePresence>
+                  {isExpanded && hasInsights && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25, ease: 'easeInOut' }}
+                      style={{ overflow: 'hidden' }}
+                    >
+                      <div style={{
+                        borderTop: '1px solid rgba(255,255,255,0.06)',
+                        paddingTop: 10,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 8,
+                      }}>
+                        <div style={{ fontSize: 10, fontWeight: 800, color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          Why this estimate
+                        </div>
+
+                        {r.insights.map((ins, j) => {
+                          const style = SENTIMENT_STYLES[ins.sentiment]
+                          const icon = FACTOR_ICONS[ins.factor] || '📌'
+
+                          return (
+                            <div
+                              key={j}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'flex-start',
+                                gap: 8,
+                                padding: '6px 10px',
+                                borderRadius: 8,
+                                background: style.bg,
+                                border: `1px solid ${style.border}`,
+                              }}
+                            >
+                              <span style={{ fontSize: 12, flexShrink: 0, marginTop: 1 }}>{icon}</span>
+                              <div style={{ flex: 1 }}>
+                                <div style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.85)', lineHeight: 1.35 }}>
+                                  {ins.message}
+                                </div>
+                                {ins.impact !== 0 && (
+                                  <div style={{ fontSize: 10, fontWeight: 700, color: style.color, marginTop: 2 }}>
+                                    {ins.impact > 0 ? '+' : ''}{ins.impact} percentage points
+                                  </div>
+                                )}
+                              </div>
+                              <span style={{ fontSize: 14, fontWeight: 700, color: style.color, flexShrink: 0 }}>
+                                {style.icon}
+                              </span>
+                            </div>
+                          )
+                        })}
+
+                        <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.30)', fontStyle: 'italic', marginTop: 2 }}>
+                          Estimates are based on public admit-rate data and your academic profile. Actual decisions depend on many more factors including essays, extracurriculars, and recommendations.
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* SAT range + ACT midpoint from real data (show when NOT expanded) */}
+                {!isExpanded && (r.sat25 || r.sat75 || r.avgSAT || r.actMidpoint) && (
                   <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 8, display: 'flex', gap: 16 }}>
                     {(r.sat25 || r.sat75 || r.avgSAT) && (
                       <div style={{ flex: 1 }}>

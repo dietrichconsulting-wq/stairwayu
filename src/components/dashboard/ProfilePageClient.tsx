@@ -3,15 +3,21 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile'
+import { useUserColleges, useAddCollege, useRemoveCollege, useUpdateCollege } from '@/hooks/useUserColleges'
 import { useSeedTasks, useTasks } from '@/hooks/useTasks'
 import { MajorSelect } from '@/components/MajorSelect'
 import { CollegeSelect } from '@/components/CollegeSelect'
 import { createClient } from '@/lib/supabase/client'
+import type { UserCollege } from '@/lib/types/database'
 
 const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY']
 
 export function ProfilePageClient({ userId }: { userId: string }) {
   const { data: profile, isLoading } = useProfile(userId)
+  const { data: colleges = [], isLoading: collegesLoading } = useUserColleges(userId)
+  const addCollege = useAddCollege(userId)
+  const removeCollege = useRemoveCollege(userId)
+  const updateCollege = useUpdateCollege(userId)
   const { data: tasks = [] } = useTasks(userId)
   const updateProfile = useUpdateProfile(userId)
   const seedTasks = useSeedTasks(userId)
@@ -19,8 +25,6 @@ export function ProfilePageClient({ userId }: { userId: string }) {
 
   const [form, setForm] = useState({
     display_name: '', gpa: '', sat: '', act_score: '', proposed_major: '', home_state: '',
-    school1_name: '', school2_name: '', school3_name: '', school4_name: '',
-    school5_name: '', school6_name: '', school7_name: '', school8_name: '', school9_name: '',
   })
 
   const [weeklyNudge, setWeeklyNudge] = useState(true)
@@ -61,15 +65,6 @@ export function ProfilePageClient({ userId }: { userId: string }) {
         act_score: profile.act_score?.toString() ?? '',
         proposed_major: profile.proposed_major ?? '',
         home_state: profile.home_state ?? '',
-        school1_name: profile.school1_name ?? '',
-        school2_name: profile.school2_name ?? '',
-        school3_name: profile.school3_name ?? '',
-        school4_name: profile.school4_name ?? '',
-        school5_name: profile.school5_name ?? '',
-        school6_name: profile.school6_name ?? '',
-        school7_name: profile.school7_name ?? '',
-        school8_name: profile.school8_name ?? '',
-        school9_name: profile.school9_name ?? '',
       })
 
       // Load email preferences
@@ -106,21 +101,12 @@ export function ProfilePageClient({ userId }: { userId: string }) {
       act_score: form.act_score ? parseInt(form.act_score) : null,
       proposed_major: form.proposed_major || null,
       home_state: form.home_state || null,
-      school1_name: form.school1_name || null,
-      school2_name: form.school2_name || null,
-      school3_name: form.school3_name || null,
-      school4_name: form.school4_name || null,
-      school5_name: form.school5_name || null,
-      school6_name: form.school6_name || null,
-      school7_name: form.school7_name || null,
-      school8_name: form.school8_name || null,
-      school9_name: form.school9_name || null,
     })
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }
 
-  if (isLoading) {
+  if (isLoading || collegesLoading) {
     return (
       <div style={{ maxWidth: 600 }}>
         {[...Array(6)].map((_, i) => (
@@ -161,12 +147,25 @@ export function ProfilePageClient({ userId }: { userId: string }) {
       <div className="card-elevated" style={{ padding: '28px 28px 32px', marginBottom: 24 }}>
         <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20 }}>Target Schools</h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {(['school1_name', 'school2_name', 'school3_name', 'school4_name', 'school5_name', 'school6_name', 'school7_name', 'school8_name', 'school9_name'] as const).map((key, i) => (
-            <div key={key} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <label style={labelStyle}>School {i + 1}{i === 0 ? ' (Top choice)' : ''}</label>
-              <CollegeSelect value={form[key]} onChange={v => setForm(f => ({ ...f, [key]: v }))} placeholder="Search for a college…" />
-            </div>
+          {colleges.map((college, i) => (
+            <CollegeRow
+              key={college.id}
+              college={college}
+              index={i}
+              onUpdate={(name) => updateCollege.mutate({ id: college.id, name })}
+              onRemove={() => removeCollege.mutate(college.id)}
+            />
           ))}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <label style={labelStyle}>
+              {colleges.length === 0 ? 'Add your first school' : 'Add another school'}
+            </label>
+            <CollegeSelect
+              value=""
+              onChange={v => { if (v) addCollege.mutate({ name: v }) }}
+              placeholder="Search for a college…"
+            />
+          </div>
         </div>
       </div>
 
@@ -292,6 +291,51 @@ export function ProfilePageClient({ userId }: { userId: string }) {
         )}
       </div>
     </motion.div>
+  )
+}
+
+function CollegeRow({ college, index, onUpdate, onRemove }: {
+  college: UserCollege
+  index: number
+  onUpdate: (name: string) => void
+  onRemove: () => void
+}) {
+  const [editing, setEditing] = useState(false)
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <label style={labelStyle}>School {index + 1}{index === 0 ? ' (Top choice)' : ''}</label>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        {editing ? (
+          <div style={{ flex: 1 }}>
+            <CollegeSelect
+              value={college.college_name}
+              onChange={v => { if (v) onUpdate(v); setEditing(false) }}
+              placeholder="Search for a college…"
+            />
+          </div>
+        ) : (
+          <div
+            onClick={() => setEditing(true)}
+            style={{ ...inputStyle, flex: 1, cursor: 'text', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+          >
+            <span>{college.college_name}</span>
+            <span style={{ fontSize: 9, color: 'var(--color-text-muted)', opacity: 0.6 }}>✎</span>
+          </div>
+        )}
+        <button
+          onClick={onRemove}
+          title="Remove school"
+          style={{
+            background: 'none', border: '1.5px solid var(--color-border)', borderRadius: 8,
+            cursor: 'pointer', fontSize: 13, color: 'var(--color-text-muted)', padding: '8px 10px',
+            lineHeight: 1, flexShrink: 0,
+          }}
+        >
+          ✕
+        </button>
+      </div>
+    </div>
   )
 }
 

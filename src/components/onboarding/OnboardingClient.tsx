@@ -55,15 +55,7 @@ type FormData = {
   school_size_pref: string
   school_type_pref: string
   distance_pref: string
-  school1_name: string
-  school2_name: string
-  school3_name: string
-  school4_name: string
-  school5_name: string
-  school6_name: string
-  school7_name: string
-  school8_name: string
-  school9_name: string
+  schools: string[] // dynamic list of school names
 }
 
 export function OnboardingClient({ userId, initialName = '' }: { userId: string; initialName?: string }) {
@@ -86,15 +78,7 @@ export function OnboardingClient({ userId, initialName = '' }: { userId: string;
     school_size_pref: '',
     school_type_pref: '',
     distance_pref: '',
-    school1_name: '',
-    school2_name: '',
-    school3_name: '',
-    school4_name: '',
-    school5_name: '',
-    school6_name: '',
-    school7_name: '',
-    school8_name: '',
-    school9_name: '',
+    schools: ['', '', '', ''], // start with 4 slots visible
   })
 
   function set(key: keyof FormData, value: string) {
@@ -113,6 +97,7 @@ export function OnboardingClient({ userId, initialName = '' }: { userId: string;
     setSaveError('')
     try {
       const supabase = createClient()
+      // Update profile (no school columns)
       const { error } = await supabase.from('profiles').update({
         display_name: form.display_name || null,
         home_state: form.home_state || null,
@@ -127,18 +112,24 @@ export function OnboardingClient({ userId, initialName = '' }: { userId: string;
         school_size_pref: form.school_size_pref || null,
         school_type_pref: form.school_type_pref || null,
         distance_pref: form.distance_pref || null,
-        school1_name: form.school1_name || null,
-        school2_name: form.school2_name || null,
-        school3_name: form.school3_name || null,
-        school4_name: form.school4_name || null,
-        school5_name: form.school5_name || null,
-        school6_name: form.school6_name || null,
-        school7_name: form.school7_name || null,
-        school8_name: form.school8_name || null,
-        school9_name: form.school9_name || null,
         onboarding_complete: true,
       }).eq('id', userId)
       if (error) throw error
+
+      // Insert schools into user_colleges
+      const schoolNames = form.schools.filter(s => s.trim())
+      if (schoolNames.length > 0) {
+        const rows = schoolNames.map((name, i) => ({
+          user_id: userId,
+          college_name: name,
+          sort_order: i + 1,
+        }))
+        const { error: schoolError } = await supabase
+          .from('user_colleges')
+          .upsert(rows, { onConflict: 'user_id,college_name' })
+        if (schoolError) throw schoolError
+      }
+
       await seedTasks.mutateAsync()
       router.push('/dashboard')
     } catch (err: unknown) {
@@ -212,7 +203,7 @@ export function OnboardingClient({ userId, initialName = '' }: { userId: string;
               {step === 0 && <StepAbout form={form} set={set} />}
               {step === 1 && <StepAcademics form={form} set={set} />}
               {step === 2 && <StepPreferences form={form} set={set} />}
-              {step === 3 && <StepSchools form={form} set={set} />}
+              {step === 3 && <StepSchools schools={form.schools} setSchools={schools => setForm(f => ({ ...f, schools }))} />}
             </div>
           </motion.div>
         </AnimatePresence>
@@ -364,33 +355,70 @@ function StepPreferences({ form, set }: { form: FormData; set: (k: keyof FormDat
 }
 
 // ─── Step 4: Target Schools ───────────────────────────────────────────────────
-function StepSchools({ form, set }: { form: FormData; set: (k: keyof FormData, v: string) => void }) {
-  const schools: { key: keyof FormData; label: string; hint: string }[] = [
-    { key: 'school1_name', label: 'School 1 — Top Choice', hint: 'Your dream / reach school' },
-    { key: 'school2_name', label: 'School 2', hint: 'Another reach or strong target' },
-    { key: 'school3_name', label: 'School 3', hint: 'A solid target school' },
-    { key: 'school4_name', label: 'School 4 — Safety', hint: 'A school you\'re very confident about' },
-    { key: 'school5_name', label: 'School 5', hint: 'Optional — add more schools' },
-    { key: 'school6_name', label: 'School 6', hint: 'Optional — add more schools' },
-    { key: 'school7_name', label: 'School 7', hint: 'Optional — add more schools' },
-    { key: 'school8_name', label: 'School 8', hint: 'Optional — add more schools' },
-    { key: 'school9_name', label: 'School 9', hint: 'Optional — add more schools' },
+function StepSchools({ schools, setSchools }: { schools: string[]; setSchools: (s: string[]) => void }) {
+  const hints = [
+    'Your dream / reach school',
+    'Another reach or strong target',
+    'A solid target school',
+    'A school you\'re very confident about',
   ]
+
+  function updateSchool(index: number, value: string) {
+    const next = [...schools]
+    next[index] = value
+    setSchools(next)
+  }
+
+  function addSlot() {
+    setSchools([...schools, ''])
+  }
+
+  function removeSlot(index: number) {
+    setSchools(schools.filter((_, i) => i !== index))
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 4 }}>
         You can search and add more schools later. Even adding one is enough to get started.
       </p>
-      {schools.map(({ key, label, hint }) => (
-        <div key={key} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <label style={labelStyle}>{label}</label>
-          <CollegeSelect
-            value={form[key] as string}
-            onChange={v => set(key, v)}
-            placeholder={hint}
-          />
+      {schools.map((school, i) => (
+        <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <label style={labelStyle}>
+            {i === 0 ? 'School 1 — Top Choice' : `School ${i + 1}`}
+          </label>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <div style={{ flex: 1 }}>
+              <CollegeSelect
+                value={school}
+                onChange={v => updateSchool(i, v)}
+                placeholder={hints[i] ?? 'Search for a college…'}
+              />
+            </div>
+            {i >= 4 && (
+              <button
+                type="button"
+                onClick={() => removeSlot(i)}
+                style={{ background: 'none', border: '1.5px solid var(--color-border)', borderRadius: 8, cursor: 'pointer', fontSize: 13, color: 'var(--color-text-muted)', padding: '8px 10px', lineHeight: 1, flexShrink: 0 }}
+              >
+                ✕
+              </button>
+            )}
+          </div>
         </div>
       ))}
+      <button
+        type="button"
+        onClick={addSlot}
+        style={{
+          background: 'var(--color-column)', color: 'var(--color-text-muted)',
+          border: '1.5px dashed var(--color-border)', borderRadius: 8,
+          padding: '10px 16px', fontWeight: 600, fontSize: 13, cursor: 'pointer',
+          alignSelf: 'flex-start',
+        }}
+      >
+        + Add another school
+      </button>
     </div>
   )
 }

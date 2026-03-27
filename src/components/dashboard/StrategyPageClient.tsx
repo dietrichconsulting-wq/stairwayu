@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { createClient } from '@/lib/supabase/client'
 import { MajorSelect } from '@/components/MajorSelect'
 
 const CLIMATE_OPTIONS = [
@@ -53,33 +52,15 @@ interface StrategyPageClientProps {
     gpa: number | null
     sat: number | null
     proposed_major: string | null
-    school1_name: string | null
-    school2_name: string | null
-    school3_name: string | null
-    school4_name: string | null
-    school5_name: string | null
-    school6_name: string | null
-    school7_name: string | null
-    school8_name: string | null
-    school9_name: string | null
     strategy_result?: StrategyResult | null
     strategy_generated_at?: string | null
   } | null
+  colleges: string[] // college names from user_colleges, sorted by sort_order
   userId: string
 }
 
-export function StrategyPageClient({ profile, userId }: StrategyPageClientProps) {
-  const [slots, setSlots] = useState<(string | null)[]>([
-    profile?.school1_name ?? null,
-    profile?.school2_name ?? null,
-    profile?.school3_name ?? null,
-    profile?.school4_name ?? null,
-    profile?.school5_name ?? null,
-    profile?.school6_name ?? null,
-    profile?.school7_name ?? null,
-    profile?.school8_name ?? null,
-    profile?.school9_name ?? null,
-  ])
+export function StrategyPageClient({ profile, colleges, userId }: StrategyPageClientProps) {
+  const [collegeNames, setCollegeNames] = useState<string[]>(colleges)
   const [form, setForm] = useState({
     gpa: profile?.gpa?.toString() ?? '',
     sat: profile?.sat?.toString() ?? '',
@@ -103,7 +84,7 @@ export function StrategyPageClient({ profile, userId }: StrategyPageClientProps)
       const res = await fetch('/api/strategy/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, schools: slots.filter(Boolean) }),
+        body: JSON.stringify({ ...form, schools: collegeNames.filter(Boolean) }),
       })
       if (!res.ok) {
         const errText = await res.text()
@@ -167,11 +148,15 @@ export function StrategyPageClient({ profile, userId }: StrategyPageClientProps)
                 </div>
               )}
               {(['reach', 'target', 'safety'] as Tier[]).map(tier => (
-                <TierSection key={tier} tier={tier} schools={result[tier]} slots={slots} onSave={async (name, slot) => {
+                <TierSection key={tier} tier={tier} schools={result[tier]} collegeNames={collegeNames} onAdd={async (name) => {
+                  const { createClient } = await import('@/lib/supabase/client')
                   const supabase = createClient()
-                  const update: Record<string, string> = { [`school${slot}_name`]: name }
-                  await supabase.from('profiles').update(update).eq('id', userId)
-                  setSlots(s => { const n = [...s]; n[slot - 1] = name; return n })
+                  const nextOrder = collegeNames.length + 1
+                  await supabase.from('user_colleges').upsert(
+                    { user_id: userId, college_name: name, sort_order: nextOrder },
+                    { onConflict: 'user_id,college_name' },
+                  )
+                  setCollegeNames(prev => prev.includes(name) ? prev : [...prev, name])
                 }} />
               ))}
             </motion.div>
@@ -182,11 +167,11 @@ export function StrategyPageClient({ profile, userId }: StrategyPageClientProps)
   )
 }
 
-function TierSection({ tier, schools, slots, onSave }: {
+function TierSection({ tier, schools, collegeNames, onAdd }: {
   tier: Tier
   schools: School[]
-  slots: (string | null)[]
-  onSave: (name: string, slot: number) => Promise<void>
+  collegeNames: string[]
+  onAdd: (name: string) => Promise<void>
 }) {
   const cfg = getTierConfig()[tier]
   if (!schools?.length) return null
@@ -199,32 +184,30 @@ function TierSection({ tier, schools, slots, onSave }: {
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {schools.map((school, i) => (
-          <SchoolCard key={school.name} school={school} tier={tier} index={i} slots={slots} onSave={onSave} />
+          <SchoolCard key={school.name} school={school} tier={tier} index={i} collegeNames={collegeNames} onAdd={onAdd} />
         ))}
       </div>
     </div>
   )
 }
 
-function SchoolCard({ school, tier, index, slots, onSave }: {
+function SchoolCard({ school, tier, index, collegeNames, onAdd }: {
   school: School
   tier: Tier
   index: number
-  slots: (string | null)[]
-  onSave: (name: string, slot: number) => Promise<void>
+  collegeNames: string[]
+  onAdd: (name: string) => Promise<void>
 }) {
   const cfg = getTierConfig()[tier]
-  const [picking, setPicking] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
-  const alreadyAdded = slots.includes(school.name)
+  const alreadyAdded = collegeNames.includes(school.name)
 
-  async function handlePick(slot: number) {
+  async function handleAdd() {
     setSaving(true)
-    await onSave(school.name, slot)
+    await onAdd(school.name)
     setSaving(false)
-    setPicking(false)
     setSaved(true)
     setTimeout(() => setSaved(false), 2500)
   }
@@ -250,52 +233,13 @@ function SchoolCard({ school, tier, index, slots, onSave }: {
           ) : alreadyAdded ? (
             <span style={{ fontSize: 11, color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>On dashboard</span>
           ) : (
-            <div style={{ position: 'relative' }}>
-              <button
-                onClick={() => setPicking(p => !p)}
-                style={{ fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 8, border: '1.5px solid var(--color-border)', background: 'var(--color-column)', color: 'var(--color-text)', cursor: 'pointer', whiteSpace: 'nowrap' }}
-              >
-                + Add to Dashboard
-              </button>
-              <AnimatePresence>
-                {picking && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -4, scale: 0.97 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -4, scale: 0.97 }}
-                    transition={{ duration: 0.12 }}
-                    style={{
-                      position: 'absolute', right: 0, top: '110%', zIndex: 50,
-                      background: 'var(--color-card)', border: '1.5px solid var(--color-border)',
-                      borderRadius: 10, padding: 8, minWidth: 180,
-                      boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-                    }}
-                  >
-                    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6, paddingLeft: 4 }}>
-                      Replace which slot?
-                    </div>
-                    {([1, 2, 3, 4, 5, 6, 7, 8, 9] as const).map(slot => (
-                      <button
-                        key={slot}
-                        disabled={saving}
-                        onClick={() => handlePick(slot)}
-                        style={{
-                          display: 'block', width: '100%', textAlign: 'left',
-                          padding: '7px 10px', borderRadius: 7, border: 'none',
-                          background: 'transparent', cursor: 'pointer', fontSize: 13,
-                          color: 'var(--color-text)', fontWeight: 500,
-                        }}
-                        onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-column)')}
-                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                      >
-                        <span style={{ fontWeight: 700, color: 'var(--color-primary)', marginRight: 6 }}>#{slot}</span>
-                        {slots[slot - 1] ? <span style={{ color: 'var(--color-text-muted)' }}>{slots[slot - 1]}</span> : <span style={{ color: 'var(--color-text-muted)', fontStyle: 'italic' }}>Empty</span>}
-                      </button>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            <button
+              onClick={handleAdd}
+              disabled={saving}
+              style={{ fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 8, border: '1.5px solid var(--color-border)', background: 'var(--color-column)', color: 'var(--color-text)', cursor: saving ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap' }}
+            >
+              {saving ? 'Adding…' : '+ Add to Dashboard'}
+            </button>
           )}
         </div>
       </div>

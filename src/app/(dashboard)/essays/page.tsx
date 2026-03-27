@@ -11,9 +11,17 @@ export default async function EssaysPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('gpa, sat, proposed_major, school1_name, school2_name, school3_name, school4_name, school5_name, school6_name, school7_name, school8_name, school9_name')
+    .select('gpa, sat, proposed_major')
     .eq('id', user.id)
     .single()
 
-  return <EssayStudio profile={profile} />
+  const { data: colleges } = await supabase
+    .from('user_colleges')
+    .select('college_name')
+    .eq('user_id', user.id)
+    .order('sort_order')
+
+  const collegeNames = (colleges ?? []).map((c: { college_name: string }) => c.college_name)
+
+  return <EssayStudio profile={profile} colleges={collegeNames} />
 }

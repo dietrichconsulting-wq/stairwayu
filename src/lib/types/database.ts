@@ -15,24 +15,6 @@ export interface Profile {
   sat: number | null
   act_score: number | null
   proposed_major: string | null
-  school1_name: string | null
-  school1_id: string | null
-  school2_name: string | null
-  school2_id: string | null
-  school3_name: string | null
-  school3_id: string | null
-  school4_name: string | null
-  school4_id: string | null
-  school5_name: string | null
-  school5_id: string | null
-  school6_name: string | null
-  school6_id: string | null
-  school7_name: string | null
-  school7_id: string | null
-  school8_name: string | null
-  school8_id: string | null
-  school9_name: string | null
-  school9_id: string | null
   home_state: string | null
   grad_year: number | null
   desired_climate: string | null
@@ -42,6 +24,16 @@ export interface Profile {
   extracurriculars: string | null
   career_interests: string | null
   onboarding_complete: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface UserCollege {
+  id: string
+  user_id: string
+  college_name: string
+  college_id: string | null
+  sort_order: number
   created_at: string
   updated_at: string
 }
@@ -129,6 +121,7 @@ export type Database = {
   public: {
     Tables: {
       profiles: { Row: Profile; Insert: Partial<Profile>; Update: Partial<Profile> }
+      user_colleges: { Row: UserCollege; Insert: Partial<UserCollege>; Update: Partial<UserCollege> }
       tasks: { Row: Task; Insert: Partial<Task>; Update: Partial<Task> }
       progress: { Row: Milestone; Insert: Partial<Milestone>; Update: Partial<Milestone> }
       scholarships: { Row: Scholarship; Insert: Partial<Scholarship>; Update: Partial<Scholarship> }

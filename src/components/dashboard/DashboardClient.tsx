@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useProfile } from '@/hooks/useProfile'
+import { useUserColleges } from '@/hooks/useUserColleges'
 import { useTasks } from '@/hooks/useTasks'
 import { useReadinessScore } from '@/hooks/useReadinessScore'
 import { ProfileStats } from './ProfileStats'
@@ -16,6 +17,7 @@ interface DashboardClientProps {
 
 export function DashboardClient({ userId }: DashboardClientProps) {
   const { data: profile, isLoading: profileLoading } = useProfile(userId)
+  const { data: colleges = [], isLoading: collegesLoading } = useUserColleges(userId)
   const updateProfile = useUpdateProfile(userId)
   const { data: tasks = [], isLoading: tasksLoading } = useTasks(userId)
   const { total: readinessTotal, isLoading: scoreLoading } = useReadinessScore(userId)
@@ -138,7 +140,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
       )}
 
       {/* Admission Snapshot */}
-      <AdmissionSnapshot profile={profile} loading={profileLoading} />
+      <AdmissionSnapshot profile={profile} colleges={colleges} loading={profileLoading || collegesLoading} />
 
       {/* Task list */}
       <div style={{ marginTop: 20 }}>
