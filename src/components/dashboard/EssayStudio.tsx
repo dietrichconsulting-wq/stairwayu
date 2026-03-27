@@ -186,7 +186,7 @@ function BrainstormTab({ schools, profile }: { schools: string[]; profile: Profi
     <div>
       {/* Setup */}
       <div className="card-elevated" style={{ padding: '24px 28px', marginBottom: 20 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: step === 'setup' ? 20 : 0 }}>
+        <div className="grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: step === 'setup' ? 20 : 0 }}>
           <SelectField label="School" value={school} onChange={setSchool} options={schools.length ? schools : ['Add schools in your profile']} disabled={step !== 'setup'} />
           <SelectField label="Essay Type" value={essayType} onChange={setEssayType} options={ESSAY_TYPES} disabled={step !== 'setup'} />
         </div>
@@ -288,7 +288,7 @@ function BrainstormTab({ schools, profile }: { schools: string[]; profile: Profi
                         &ldquo;{p.hook}&rdquo;
                       </div>
 
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                      <div className="grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                         <InfoBlock label="The Angle" text={p.angle} />
                         <InfoBlock label={`Why It Works for ${school.split(' ')[0]}`} text={p.whyItWorks} />
                       </div>
@@ -356,7 +356,7 @@ function CritiqueTab({ schools, profile }: { schools: string[]; profile: Profile
   return (
     <div>
       <div className="card-elevated" style={{ padding: '24px 28px', marginBottom: 20 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+        <div className="grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
           <SelectField label="School" value={school} onChange={setSchool} options={schools.length ? schools : ['Add schools in your profile']} />
           <SelectField label="Essay Type" value={essayType} onChange={setEssayType} options={ESSAY_TYPES} />
         </div>
@@ -412,7 +412,7 @@ function CritiqueTab({ schools, profile }: { schools: string[]; profile: Profile
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+            <div className="grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
               {/* Strengths */}
               <div className="card-elevated" style={{ padding: '18px 20px' }}>
                 <h4 style={{ fontSize: 12, fontWeight: 800, color: '#059669', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>
@@ -446,7 +446,7 @@ function CritiqueTab({ schools, profile }: { schools: string[]; profile: Profile
             </div>
 
             {/* Opening / Closing */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+            <div className="grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
               <FeedbackBlock label="Opening" text={critique.openingFeedback} color="#0891b2" />
               <FeedbackBlock label="Closing" text={critique.closingFeedback} color="#0891b2" />
             </div>

@@ -141,7 +141,7 @@ export function FinancialPlanner() {
         See what college will really cost and how savings, aid, and loans cover the gap.
       </p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: 24, alignItems: 'flex-start' }}>
+      <div className="finance-layout" style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: 24, alignItems: 'flex-start' }}>
 
         {/* ── Inputs ── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -187,7 +187,7 @@ export function FinancialPlanner() {
 
           {/* Summary cards */}
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+            <div className="grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
               <SummaryCard label="4-Year College Cost" value={fmt$(calc.totalCost)} sub="inflation-adjusted" color="var(--color-text)" />
               <SummaryCard label="529 at Enrollment" value={fmt$(calc.projected529)} sub={`from ${fmt$(parseFloat(inputs.savings529) || 0)} today`} color="#2563eb" />
               <SummaryCard label="Total Aid / Scholarships" value={fmt$(calc.totalAid)} sub="4-year total" color="#059669" />
@@ -338,7 +338,7 @@ export function FinancialPlanner() {
                 <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)', marginBottom: 10 }}>
                   With these changes:
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <div className="grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                   <WhatIfStat label="New loan burden" value={whatIf.gap > 0 ? fmt$(whatIf.gap) : '✓ $0'} delta={loanDelta} invert />
                   <WhatIfStat label="Monthly payment" value={whatIf.payment > 0 ? `${fmt$(whatIf.payment)}/mo` : '✓ None'} delta={paymentDelta} invert />
                   <WhatIfStat label="529 at enrollment" value={fmt$(whatIf.projected529)} delta={whatIf.projected529 - calc.projected529} />

@@ -397,12 +397,12 @@ export function ScholarshipsPageClient({ userId, profile }: Props) {
               <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
                 className="card-elevated" style={{ padding: '20px 24px', marginBottom: 24 }}>
                 <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 16 }}>{editId ? 'Edit' : 'New'} Scholarship</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
+                <div className="scholarship-form-row" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
                   <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Scholarship name *" style={iS} />
                   <input value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} placeholder="Amount ($)" type="number" style={iS} />
                   <input value={form.deadline} onChange={e => setForm(f => ({ ...f, deadline: e.target.value }))} type="date" style={iS} />
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
+                <div className="scholarship-form-row-4" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
                   <select value={form.stage} onChange={e => setForm(f => ({ ...f, stage: e.target.value as ScholarshipStage }))} style={iS}>
                     {STAGES.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
