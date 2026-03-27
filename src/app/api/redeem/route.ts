@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 
 const VALID_CODES: Record<string, { days: number; repeatable?: boolean }> = {
   'stairway tester': { days: 7 },
@@ -34,8 +34,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'You already have an active subscription' }, { status: 400 })
   }
 
+  // Use service role client to bypass RLS for subscription writes
+  const admin = await createServiceClient()
+
   if (existing) {
-    await supabase
+    const { error } = await admin
       .from('subscriptions')
       .update({
         tier: 'pro',
@@ -44,8 +47,9 @@ export async function POST(req: Request) {
         current_period_end: trialEnd.toISOString(),
       })
       .eq('user_id', user.id)
+    if (error) return NextResponse.json({ error: 'Failed to activate trial' }, { status: 500 })
   } else {
-    await supabase
+    const { error } = await admin
       .from('subscriptions')
       .insert({
         user_id: user.id,
@@ -55,6 +59,7 @@ export async function POST(req: Request) {
         current_period_end: trialEnd.toISOString(),
         cancel_at_period_end: false,
       })
+    if (error) return NextResponse.json({ error: 'Failed to activate trial' }, { status: 500 })
   }
 
   // Bust the Next.js cache so the dashboard layout sees the updated subscription
