@@ -115,7 +115,7 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
         className="card-elevated"
-        style={{ padding: '28px 24px', marginTop: 20, textAlign: 'center' }}
+        style={{ padding: '28px 24px', textAlign: 'center' }}
       >
         <div style={{ fontSize: 32, marginBottom: 8 }}>🎓</div>
         <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>
@@ -150,7 +150,7 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
       className="card-elevated"
-      style={{ padding: '20px 24px', marginTop: 20 }}
+      style={{ padding: '20px 24px' }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <div>

@@ -41,10 +41,12 @@ interface TaskListProps {
   tasks: Task[]
   loading: boolean
   userId: string
+  collapsedMax?: number
 }
 
-export function TaskList({ tasks, loading, userId }: TaskListProps) {
+export function TaskList({ tasks, loading, userId, collapsedMax }: TaskListProps) {
   const [filter, setFilter] = useState<TaskCategory | 'All'>('All')
+  const [expanded, setExpanded] = useState(false)
   const updateStatus = useUpdateTaskStatus(userId)
   const updateTask = useUpdateTask(userId)
   const createTask = useCreateTask(userId)
@@ -52,7 +54,9 @@ export function TaskList({ tasks, loading, userId }: TaskListProps) {
   const [editingDateId, setEditingDateId] = useState<string | null>(null)
 
   const activeTasks = tasks.filter(t => t.status !== 'Done')
-  const filtered = tasks.filter(t => filter === 'All' || t.category === filter)
+  const allFiltered = tasks.filter(t => filter === 'All' || t.category === filter)
+  const isCollapsible = collapsedMax != null && !expanded && allFiltered.length > collapsedMax
+  const filtered = isCollapsible ? allFiltered.slice(0, collapsedMax) : allFiltered
 
   function formatDate(dateStr: string | null) {
     if (!dateStr) return null
@@ -244,6 +248,28 @@ export function TaskList({ tasks, loading, userId }: TaskListProps) {
           </div>
         )}
       </div>
+
+      {/* Show all / Show less toggle */}
+      {collapsedMax != null && allFiltered.length > collapsedMax && (
+        <button
+          onClick={() => setExpanded(prev => !prev)}
+          style={{
+            display: 'block',
+            width: '100%',
+            marginTop: 12,
+            padding: '8px 0',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: 13,
+            fontWeight: 600,
+            color: 'var(--color-primary)',
+            textAlign: 'center',
+          }}
+        >
+          {expanded ? 'Show less' : `Show all ${allFiltered.length} tasks`}
+        </button>
+      )}
 
     </div>
   )

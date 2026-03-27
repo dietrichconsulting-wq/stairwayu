@@ -330,7 +330,8 @@ body {
 
   /* ── Generic 2-column grids → single column ── */
   .grid-2col,
-  .profile-grid {
+  .profile-grid,
+  .dashboard-mid-grid {
     grid-template-columns: 1fr !important;
   }
 
