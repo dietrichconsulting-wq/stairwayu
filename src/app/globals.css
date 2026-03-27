@@ -367,6 +367,11 @@ body {
   .scholarship-form-row-4 {
     grid-template-columns: 1fr 1fr !important;
   }
+
+  /* ── Task rows: wrap so actions sit below content ── */
+  .task-row {
+    flex-wrap: wrap;
+  }
 }
 
 /* ── Landing page gradients ─────────────────────────────────────────────── */
@@ -490,23 +495,27 @@ body {
   background: var(--color-success);
 }
 
-/* On devices that support hover (desktop), hide actions until row hover */
-@media (hover: hover) {
-  .task-row__actions {
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.15s;
-  }
-  .task-row:hover .task-row__actions {
-    opacity: 1;
-    pointer-events: auto;
-  }
+/* Desktop: hide actions until row hover */
+.task-row__actions {
+  opacity: 0;
+  max-height: 0;
+  pointer-events: none;
+  transition: opacity 0.15s, max-height 0.15s;
+  overflow: hidden;
+}
+.task-row:hover .task-row__actions {
+  opacity: 1;
+  max-height: 2rem;
+  pointer-events: auto;
 }
 
-/* On touch devices (no hover), actions are always visible */
-@media (hover: none) {
+/* Mobile: always show actions */
+@media (max-width: 767px) {
   .task-row__actions {
     opacity: 1;
+    max-height: 2rem;
+    pointer-events: auto;
+    margin-top: 0.4rem;
   }
 }
 
