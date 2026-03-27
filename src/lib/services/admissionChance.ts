@@ -248,6 +248,9 @@ export async function computeChances(profile) {
           sat25: college.sat25,
           sat75: college.sat75,
           actMidpoint: college.actMidpoint || null,
+          avgNetPrice: college.avgNetPrice || null,
+          tuitionInState: college.tuitionInState || null,
+          tuitionOutOfState: college.tuitionOutOfState || null,
         };
       } catch {
         return null;

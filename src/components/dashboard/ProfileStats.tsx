@@ -1,7 +1,7 @@
 'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import type { Profile, Task, UserCollege } from '@/lib/types/database'
 import { useUpdateProfile } from '@/hooks/useProfile'
 import { useUserColleges, useAddCollege, useRemoveCollege, useUpdateCollege } from '@/hooks/useUserColleges'
@@ -9,6 +9,7 @@ import { MajorSelect } from '@/components/MajorSelect'
 import { CollegeSelect } from '@/components/CollegeSelect'
 import { useReadinessScore } from '@/hooks/useReadinessScore'
 import type { ReadinessScore } from '@/hooks/useReadinessScore'
+import Link from 'next/link'
 
 interface ProfileStatsProps {
   profile: Profile | null | undefined
@@ -324,6 +325,7 @@ export function ProfileStats({ profile, loading, tasks, userId }: ProfileStatsPr
         {!loading && (
           <SchoolChipsRow
             colleges={colleges}
+            profile={profile}
             onAdd={name => addCollege.mutate({ name })}
             onUpdate={(id, name) => updateCollegeMut.mutate({ id, name })}
             onRemove={id => removeCollege.mutate(id)}
@@ -465,85 +467,79 @@ function EditableMajorPill({ label, display, onSave }: {
   )
 }
 
-function SchoolChipsRow({ colleges, onAdd, onUpdate, onRemove }: {
+interface QuickViewData {
+  chance: number
+  admissionRate: number | null
+  sat25: number | null
+  sat75: number | null
+  avgSAT: number | null
+  avgNetPrice: number | null
+}
+
+function SchoolChipsRow({ colleges, profile, onAdd, onUpdate, onRemove }: {
   colleges: UserCollege[]
+  profile: Profile | null | undefined
   onAdd: (name: string) => void
   onUpdate: (id: string, name: string) => void
   onRemove: (id: string) => void
 }) {
-  const [showMore, setShowMore] = useState(false)
   const [addingSchool, setAddingSchool] = useState(false)
-  const popoverRef = useRef<HTMLDivElement>(null)
+  const [activeChipId, setActiveChipId] = useState<string | null>(null)
+  const [quickViewCache, setQuickViewCache] = useState<Record<string, QuickViewData | 'loading' | 'error'>>({})
 
-  const visibleSchools = colleges
-  const overflowSchools: UserCollege[] = []
-
-  // Close popover on click-outside or Escape
-  useEffect(() => {
-    if (!showMore) return
-    function handleClick(e: MouseEvent) {
-      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
-        setShowMore(false)
-      }
-    }
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') setShowMore(false)
-    }
-    document.addEventListener('mousedown', handleClick)
-    document.addEventListener('keydown', handleKey)
-    return () => {
-      document.removeEventListener('mousedown', handleClick)
-      document.removeEventListener('keydown', handleKey)
-    }
-  }, [showMore])
+  const fetchQuickView = useCallback((college: UserCollege) => {
+    if (quickViewCache[college.id] && quickViewCache[college.id] !== 'error') return
+    setQuickViewCache(prev => ({ ...prev, [college.id]: 'loading' }))
+    fetch('/api/colleges/chances', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        gpa: profile?.gpa,
+        sat: profile?.sat,
+        act: profile?.act_score,
+        proposed_major: profile?.proposed_major,
+        schools: [{ name: college.college_name, id: college.college_id }],
+      }),
+    })
+      .then(r => r.json())
+      .then(data => {
+        const r = data.results?.[0]
+        if (r) {
+          setQuickViewCache(prev => ({
+            ...prev,
+            [college.id]: {
+              chance: r.chance,
+              admissionRate: r.admissionRate,
+              sat25: r.sat25,
+              sat75: r.sat75,
+              avgSAT: r.avgSAT,
+              avgNetPrice: r.avgNetPrice ?? null,
+            },
+          }))
+        } else {
+          setQuickViewCache(prev => ({ ...prev, [college.id]: 'error' }))
+        }
+      })
+      .catch(() => setQuickViewCache(prev => ({ ...prev, [college.id]: 'error' })))
+  }, [profile, quickViewCache])
 
   return (
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginLeft: 'auto', alignItems: 'center', position: 'relative' }}>
-      {/* First 3 colleges as inline editable chips */}
-      {visibleSchools.map(c => (
-        <EditableSchoolChip
+      {colleges.map(c => (
+        <SchoolChipWithQuickView
           key={c.id}
-          name={c.college_name}
-          onSave={v => onUpdate(c.id, v)}
+          college={c}
+          isActive={activeChipId === c.id}
+          quickViewData={quickViewCache[c.id] ?? null}
+          onOpen={() => {
+            setActiveChipId(prev => prev === c.id ? null : c.id)
+            fetchQuickView(c)
+          }}
+          onClose={() => setActiveChipId(null)}
+          onEdit={v => { onUpdate(c.id, v); setActiveChipId(null) }}
+          onRemove={() => { onRemove(c.id); setActiveChipId(null) }}
         />
       ))}
-
-      {/* "+N more" chip with popover */}
-      {overflowSchools.length > 0 && (
-        <div style={{ position: 'relative' }} ref={popoverRef}>
-          <button
-            onClick={() => setShowMore(v => !v)}
-            style={{
-              background: 'var(--color-column)', color: 'var(--color-text-muted)',
-              fontWeight: 600, fontSize: 11, padding: '5px 12px', borderRadius: 20,
-              border: '1px solid var(--color-border)', cursor: 'pointer',
-            }}
-          >
-            +{overflowSchools.length} more
-          </button>
-
-          {/* Popover */}
-          {showMore && (
-            <div
-              className="card-elevated"
-              style={{
-                position: 'absolute', top: '100%', right: 0, marginTop: 6,
-                zIndex: 50, minWidth: 240, padding: '12px 14px',
-                display: 'flex', flexDirection: 'column', gap: 8,
-              }}
-            >
-              {overflowSchools.map(c => (
-                <OverflowSchoolRow
-                  key={c.id}
-                  name={c.college_name}
-                  onEdit={v => onUpdate(c.id, v)}
-                  onRemove={() => onRemove(c.id)}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      )}
 
       {/* "+ Add" chip */}
       {addingSchool ? (
@@ -554,7 +550,7 @@ function SchoolChipsRow({ colleges, onAdd, onUpdate, onRemove }: {
               if (v) onAdd(v)
               setAddingSchool(false)
             }}
-            placeholder="Search for a college…"
+            placeholder="Search for a college..."
             inputStyle={{ padding: '5px 10px', fontSize: 12, borderRadius: 20 }}
           />
         </div>
@@ -569,6 +565,19 @@ function SchoolChipsRow({ colleges, onAdd, onUpdate, onRemove }: {
         >
           + Add College
         </button>
+      )}
+
+      {/* Compare link */}
+      {colleges.length >= 2 && (
+        <Link
+          href="/compare"
+          style={{
+            fontSize: 11, fontWeight: 700, color: 'var(--color-primary)',
+            textDecoration: 'none', padding: '5px 10px', whiteSpace: 'nowrap',
+          }}
+        >
+          Compare →
+        </Link>
       )}
     </div>
   )
@@ -617,35 +626,178 @@ function OverflowSchoolRow({ name, onEdit, onRemove }: {
   )
 }
 
-function EditableSchoolChip({ name, onSave }: { name: string; onSave: (v: string) => void }) {
+function tierLabel(chance: number): { label: string; color: string; bg: string } {
+  if (chance >= 65) return { label: 'Safety', color: '#34D399', bg: 'rgba(52,211,153,0.12)' }
+  if (chance >= 35) return { label: 'Target', color: '#FBBF24', bg: 'rgba(251,191,36,0.12)' }
+  return { label: 'Reach', color: '#FB7185', bg: 'rgba(251,113,133,0.12)' }
+}
+
+function fmt$(n: number | null): string {
+  if (n == null) return '--'
+  return `$${(n / 1000).toFixed(0)}k`
+}
+
+function SchoolChipWithQuickView({ college, isActive, quickViewData, onOpen, onClose, onEdit, onRemove }: {
+  college: UserCollege
+  isActive: boolean
+  quickViewData: QuickViewData | 'loading' | 'error' | null
+  onOpen: () => void
+  onClose: () => void
+  onEdit: (name: string) => void
+  onRemove: () => void
+}) {
   const [editing, setEditing] = useState(false)
+  const popRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!isActive) return
+    function handleClick(e: MouseEvent) {
+      if (popRef.current && !popRef.current.contains(e.target as Node)) onClose()
+    }
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('mousedown', handleClick)
+    document.addEventListener('keydown', handleKey)
+    return () => {
+      document.removeEventListener('mousedown', handleClick)
+      document.removeEventListener('keydown', handleKey)
+    }
+  }, [isActive, onClose])
 
   if (editing) {
     return (
       <div style={{ width: 220 }}>
         <CollegeSelect
-          value={name}
-          onChange={v => { onSave(v); setEditing(false) }}
-          placeholder="Search for a college…"
+          value={college.college_name}
+          onChange={v => { onEdit(v); setEditing(false) }}
+          placeholder="Search for a college..."
           inputStyle={{ padding: '5px 10px', fontSize: 12, borderRadius: 20 }}
         />
       </div>
     )
   }
 
+  const data = typeof quickViewData === 'object' && quickViewData !== null ? quickViewData : null
+  const isLoading = quickViewData === 'loading'
+  const isError = quickViewData === 'error'
+
   return (
-    <button
-      onClick={() => setEditing(true)}
-      title={`${name} — click to change`}
-      style={{
-        background: 'var(--color-column)', color: 'var(--color-text)', fontWeight: 600, fontSize: 11,
-        padding: '5px 12px', borderRadius: 20, border: '1.5px solid var(--color-border)',
-        cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
-        maxWidth: 200, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-      }}
-    >
-      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{chipName(name)}</span>
-      <span style={{ fontSize: 9, opacity: 0.6, flexShrink: 0 }}>✎</span>
-    </button>
+    <div style={{ position: 'relative' }} ref={popRef}>
+      <button
+        onClick={onOpen}
+        title={`${college.college_name} — click for details`}
+        style={{
+          background: isActive ? 'var(--color-primary)' : 'var(--color-column)',
+          color: isActive ? '#fff' : 'var(--color-text)',
+          fontWeight: 600, fontSize: 11,
+          padding: '5px 12px', borderRadius: 20,
+          border: isActive ? '1.5px solid var(--color-primary)' : '1.5px solid var(--color-border)',
+          cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+          maxWidth: 200, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+          transition: 'background 0.15s, color 0.15s, border-color 0.15s',
+        }}
+      >
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{chipName(college.college_name)}</span>
+      </button>
+
+      {/* Quick-view popover */}
+      <AnimatePresence>
+        {isActive && (
+          <motion.div
+            initial={{ opacity: 0, y: 4, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 4, scale: 0.97 }}
+            transition={{ duration: 0.15 }}
+            className="card-elevated"
+            style={{
+              position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)',
+              marginTop: 8, zIndex: 60, width: 260, padding: '14px 16px',
+            }}
+          >
+            {/* School name */}
+            <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--color-text)', marginBottom: 10, lineHeight: 1.3 }}>
+              {college.college_name}
+            </div>
+
+            {isLoading && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div className="skeleton" style={{ height: 14, borderRadius: 6, width: '80%' }} />
+                <div className="skeleton" style={{ height: 14, borderRadius: 6, width: '60%' }} />
+                <div className="skeleton" style={{ height: 14, borderRadius: 6, width: '70%' }} />
+              </div>
+            )}
+
+            {isError && (
+              <div style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
+                Could not load details.
+              </div>
+            )}
+
+            {data && (
+              <>
+                {/* Tier badge + chance */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                  <span style={{
+                    fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 20,
+                    background: tierLabel(data.chance).bg, color: tierLabel(data.chance).color,
+                  }}>
+                    {tierLabel(data.chance).label}
+                  </span>
+                  <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-text)' }}>
+                    ~{data.chance}%
+                  </span>
+                  <span style={{ fontSize: 10, color: 'var(--color-text-muted)' }}>your chance</span>
+                </div>
+
+                {/* Stats grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 16px', marginBottom: 12 }}>
+                  <QuickStat label="Admit Rate" value={data.admissionRate != null ? `${data.admissionRate}%` : '--'} />
+                  <QuickStat label="SAT Range" value={data.sat25 && data.sat75 ? `${data.sat25}-${data.sat75}` : data.avgSAT ? `Avg ${data.avgSAT}` : '--'} />
+                  <QuickStat label="Avg Net Price" value={fmt$(data.avgNetPrice)} />
+                </div>
+              </>
+            )}
+
+            {/* Actions */}
+            <div style={{ display: 'flex', gap: 8, borderTop: '1px solid var(--color-border)', paddingTop: 10 }}>
+              <button
+                onClick={e => { e.stopPropagation(); setEditing(true); onClose() }}
+                style={{
+                  flex: 1, fontSize: 11, fontWeight: 600, padding: '5px 0',
+                  background: 'var(--color-column)', border: '1px solid var(--color-border)',
+                  borderRadius: 6, cursor: 'pointer', color: 'var(--color-text)',
+                }}
+              >
+                Edit
+              </button>
+              <button
+                onClick={e => { e.stopPropagation(); onRemove() }}
+                style={{
+                  flex: 1, fontSize: 11, fontWeight: 600, padding: '5px 0',
+                  background: 'rgba(251,113,133,0.08)', border: '1px solid rgba(251,113,133,0.2)',
+                  borderRadius: 6, cursor: 'pointer', color: '#FB7185',
+                }}
+              >
+                Remove
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+function QuickStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>
+        {label}
+      </div>
+      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
+        {value}
+      </div>
+    </div>
   )
 }
