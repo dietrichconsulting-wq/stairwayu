@@ -43,7 +43,17 @@ export async function POST(req: Request) {
         metadata: { supabase_user_id: user.id },
       })
       customerId = customer.id
-      await supabase.from('subscriptions').update({ stripe_customer_id: customerId }).eq('user_id', user.id)
+
+      if (subscription) {
+        await supabase.from('subscriptions').update({ stripe_customer_id: customerId }).eq('user_id', user.id)
+      } else {
+        await supabase.from('subscriptions').insert({
+          user_id: user.id,
+          stripe_customer_id: customerId,
+          tier: 'free',
+          cancel_at_period_end: false,
+        })
+      }
     }
 
     const priceId = plan === 'annual'

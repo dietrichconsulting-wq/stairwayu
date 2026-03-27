@@ -18,6 +18,7 @@ const PRO_FEATURES = [
 export default function UpgradePage() {
   const [plan, setPlan] = useState<'monthly' | 'annual'>('annual')
   const [loading, setLoading] = useState(false)
+  const [upgradeError, setUpgradeError] = useState('')
   const [code, setCode] = useState('')
   const [codeLoading, setCodeLoading] = useState(false)
   const [codeError, setCodeError] = useState('')
@@ -25,15 +26,22 @@ export default function UpgradePage() {
 
   async function handleUpgrade() {
     setLoading(true)
+    setUpgradeError('')
     try {
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ plan }),
       })
-      const { url } = await res.json()
-      if (url) window.location.href = url
+      const data = await res.json()
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        setUpgradeError(data.error || 'Failed to start checkout. Please try again.')
+        setLoading(false)
+      }
     } catch {
+      setUpgradeError('Something went wrong. Please try again.')
       setLoading(false)
     }
   }
@@ -139,6 +147,8 @@ export default function UpgradePage() {
           >
             {loading ? 'Redirecting…' : 'Start 7-day Free Trial →'}
           </button>
+
+          {upgradeError && <p style={{ fontSize: 12, color: '#ef4444', marginBottom: 8 }}>{upgradeError}</p>}
 
           <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 20 }}>
             Cancel anytime.
