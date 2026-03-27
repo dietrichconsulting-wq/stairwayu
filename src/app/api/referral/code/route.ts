@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 
 const BASE_URL = 'https://www.stairwayu.com'
 const CHARS = 'abcdefghijklmnopqrstuvwxyz0123456789'
@@ -19,14 +19,20 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const supabaseAdmin = await createServiceClient()
+  // RLS policies allow users to read/insert their own referral rows,
+  // so the authenticated client works here without needing service role.
 
   // Check for existing referral code
-  const { data: existing } = await supabaseAdmin
+  const { data: existing, error: selectError } = await supabase
     .from('referrals')
     .select('referral_code')
     .eq('referrer_id', user.id)
     .maybeSingle()
+
+  if (selectError) {
+    console.error('Failed to fetch referral:', selectError)
+    return NextResponse.json({ error: 'Failed to fetch referral code' }, { status: 500 })
+  }
 
   let code: string
 
@@ -34,7 +40,7 @@ export async function GET() {
     code = existing.referral_code
   } else {
     // Generate a code like `sophia-x7k2`
-    const { data: profile } = await supabaseAdmin
+    const { data: profile } = await supabase
       .from('profiles')
       .select('display_name')
       .eq('id', user.id)
@@ -48,7 +54,7 @@ export async function GET() {
     let lastError = null
     for (let attempt = 0; attempt < 5; attempt++) {
       const candidate = `${firstName || 'user'}-${randomChars(4)}`
-      const { error: insertError } = await supabaseAdmin
+      const { error: insertError } = await supabase
         .from('referrals')
         .insert({ referrer_id: user.id, referral_code: candidate })
 
