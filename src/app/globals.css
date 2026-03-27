@@ -239,6 +239,11 @@ body {
 
 /* ── Responsive: ≤768px (mobile/tablet) ──────────────────────────────────── */
 @media (max-width: 768px) {
+  /* Switch sidebar-layout from row to column so topbar spans full width */
+  .sidebar-layout {
+    flex-direction: column;
+  }
+
   /* Hide the static desktop sidebar */
   .sidebar--desktop {
     display: none;
