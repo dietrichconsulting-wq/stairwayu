@@ -47,15 +47,26 @@ export function ProfilePageClient({ userId }: { userId: string }) {
     setReferralLoading(true)
     try {
       const supabase = createClient()
+
+      // Ensure we have an active auth session before querying RLS-protected tables
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        console.warn('Referral: no active session, retrying in 1s…')
+        setTimeout(() => fetchReferralCode(), 1000)
+        return
+      }
+
       const CHARS = 'abcdefghijklmnopqrstuvwxyz0123456789'
       const randomChars = (n: number) => Array.from({ length: n }, () => CHARS[Math.floor(Math.random() * CHARS.length)]).join('')
 
       // Check for existing referral code
-      const { data: existing } = await supabase
+      const { data: existing, error: selectErr } = await supabase
         .from('referrals')
         .select('referral_code')
         .eq('referrer_id', userId)
         .maybeSingle()
+
+      if (selectErr) console.error('Referral select error:', selectErr)
 
       let code: string | null = existing?.referral_code ?? null
 
@@ -76,6 +87,7 @@ export function ProfilePageClient({ userId }: { userId: string }) {
             .from('referrals')
             .insert({ referrer_id: userId, referral_code: candidate })
           if (!error) { code = candidate; break }
+          console.error(`Referral insert attempt ${attempt + 1} failed:`, error)
         }
       }
 
