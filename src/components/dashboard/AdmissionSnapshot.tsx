@@ -179,7 +179,7 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
         <div>
           <h2 style={{ fontSize: 15, fontWeight: 800, margin: 0 }}>Admission Snapshot</h2>
           <p style={{ fontSize: 12, color: 'var(--color-text-muted)', margin: '2px 0 0' }}>
-            AI-generated estimates based on your GPA{profile?.sat ? ', SAT' : ''}{profile?.act_score ? ', ACT' : ''} & school admit rates
+            AI-generated estimates based on your GPA, SAT/ACT & school admit rates
           </p>
         </div>
         <Link href="/strategy" style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-primary)', textDecoration: 'none' }}>
