@@ -1,9 +1,13 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { CollegeSelect } from '@/components/CollegeSelect'
 import type { CollegeResult } from '@/components/CollegeSelect'
+
+interface FinancialPlannerProps {
+  savedColleges?: string[]
+}
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 function fmt$(n: number) {
@@ -52,8 +56,9 @@ interface Inputs {
 }
 
 // ── component ────────────────────────────────────────────────────────────────
-export function FinancialPlanner() {
+export function FinancialPlanner({ savedColleges = [] }: FinancialPlannerProps) {
   const [selectedCollege, setSelectedCollege] = useState('')
+  const [loadingCost, setLoadingCost] = useState(false)
   const [inputs, setInputs] = useState<Inputs>({
     currentTuition: '45000',
     inflationRate: '4',
@@ -64,8 +69,7 @@ export function FinancialPlanner() {
     annualIncome: '120000',
   })
 
-  function handleCollegeSelect(name: string, result?: CollegeResult) {
-    setSelectedCollege(name)
+  function applyCost(result?: CollegeResult) {
     if (result?.costAttendance) {
       set('currentTuition', String(Math.round(result.costAttendance)))
     } else if (result?.tuitionOutOfState) {
@@ -74,6 +78,23 @@ export function FinancialPlanner() {
       set('currentTuition', String(Math.round(result.tuitionInState)))
     }
   }
+
+  function handleCollegeSelect(name: string, result?: CollegeResult) {
+    setSelectedCollege(name)
+    applyCost(result)
+  }
+
+  const handleSavedCollegeSelect = useCallback(async (name: string) => {
+    setSelectedCollege(name)
+    setLoadingCost(true)
+    try {
+      const res = await fetch(`/api/colleges/search?q=${encodeURIComponent(name)}`)
+      const data: CollegeResult[] = await res.json()
+      const match = data.find(r => r.name.toLowerCase() === name.toLowerCase()) ?? data[0]
+      if (match) applyCost(match)
+    } catch { /* keep manual input */ }
+    finally { setLoadingCost(false) }
+  }, [])
 
   // What-if sliders
   const [whatIfContrib, setWhatIfContrib] = useState<number | null>(null)
@@ -149,15 +170,55 @@ export function FinancialPlanner() {
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="card-elevated" style={{ padding: '22px 24px' }}>
             <SectionHeader>College Costs</SectionHeader>
             <div style={{ marginBottom: 14 }}>
-              <label style={labelStyle}>Select a college</label>
-              <div style={{ fontSize: 10, color: 'var(--color-text-muted)', marginBottom: 3 }}>Auto-fills cost from U.S. Dept of Education data</div>
-              <CollegeSelect
-                value={selectedCollege}
-                onChange={handleCollegeSelect}
-                placeholder="Search for a college…"
-                showCost
-                inputStyle={{ padding: '9px 12px', fontSize: 13, borderRadius: 8 }}
-              />
+              {savedColleges.length > 0 ? (
+                <>
+                  <label style={labelStyle}>Your colleges</label>
+                  <div style={{ fontSize: 10, color: 'var(--color-text-muted)', marginBottom: 3 }}>Auto-fills cost from U.S. Dept of Education data</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+                    {savedColleges.map(name => (
+                      <button
+                        key={name}
+                        type="button"
+                        onClick={() => handleSavedCollegeSelect(name)}
+                        style={{
+                          padding: '6px 12px',
+                          fontSize: 12,
+                          fontWeight: 600,
+                          borderRadius: 99,
+                          border: selectedCollege === name ? '1.5px solid var(--color-primary)' : '1.5px solid var(--color-border)',
+                          background: selectedCollege === name ? 'color-mix(in srgb, var(--color-primary) 12%, transparent)' : 'var(--color-column)',
+                          color: selectedCollege === name ? 'var(--color-primary)' : 'var(--color-text)',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        {name}
+                        {loadingCost && selectedCollege === name && ' …'}
+                      </button>
+                    ))}
+                  </div>
+                  <div style={{ fontSize: 10, color: 'var(--color-text-muted)', marginBottom: 3 }}>Or search for another college</div>
+                  <CollegeSelect
+                    value={selectedCollege}
+                    onChange={handleCollegeSelect}
+                    placeholder="Search for a different college…"
+                    showCost
+                    inputStyle={{ padding: '7px 10px', fontSize: 12, borderRadius: 8 }}
+                  />
+                </>
+              ) : (
+                <>
+                  <label style={labelStyle}>Select a college</label>
+                  <div style={{ fontSize: 10, color: 'var(--color-text-muted)', marginBottom: 3 }}>Auto-fills cost from U.S. Dept of Education data</div>
+                  <CollegeSelect
+                    value={selectedCollege}
+                    onChange={handleCollegeSelect}
+                    placeholder="Search for a college…"
+                    showCost
+                    inputStyle={{ padding: '9px 12px', fontSize: 13, borderRadius: 8 }}
+                  />
+                </>
+              )}
               {selectedCollege && (
                 <div style={{ fontSize: 11, color: '#059669', fontWeight: 600, marginTop: 4 }}>
                   {selectedCollege}
