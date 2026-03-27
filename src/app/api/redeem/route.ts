@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
-const VALID_CODES: Record<string, { days: number }> = {
+const VALID_CODES: Record<string, { days: number; repeatable?: boolean }> = {
   'stairway tester': { days: 7 },
+  'stairway climber': { days: 7, repeatable: true },
 }
 
 export async function POST(req: Request) {
@@ -28,7 +29,7 @@ export async function POST(req: Request) {
     .eq('user_id', user.id)
     .single()
 
-  if (existing?.tier === 'pro' && (existing?.status === 'active' || existing?.status === 'trialing')) {
+  if (!promo.repeatable && existing?.tier === 'pro' && (existing?.status === 'active' || existing?.status === 'trialing')) {
     return NextResponse.json({ error: 'You already have an active subscription' }, { status: 400 })
   }
 
