@@ -5,6 +5,8 @@ import { useProfile } from '@/hooks/useProfile'
 import { useUserColleges } from '@/hooks/useUserColleges'
 import { useTasks } from '@/hooks/useTasks'
 import { useReadinessScore } from '@/hooks/useReadinessScore'
+import { useMilestones } from '@/hooks/useMilestones'
+import { MILESTONES } from '@/lib/milestones'
 import { ProfileStats } from './ProfileStats'
 import { AdmissionSnapshot } from './AdmissionSnapshot'
 import { TaskList } from './TaskList'
@@ -22,6 +24,10 @@ export function DashboardClient({ userId }: DashboardClientProps) {
   const updateProfile = useUpdateProfile(userId)
   const { data: tasks = [], isLoading: tasksLoading } = useTasks(userId)
   const { total: readinessTotal, dimensions, topActions, isLoading: scoreLoading } = useReadinessScore(userId)
+  const milestonesQuery = useMilestones(userId)
+  const reachedKeys = new Set((milestonesQuery.data ?? []).map((m: { milestone_key: string }) => m.milestone_key))
+  const nextMilestone = MILESTONES.find(m => !reachedKeys.has(m.key)) ?? null
+  const allDone = reachedKeys.size === MILESTONES.length
 
   function getSubtitle(score: number) {
     if (score <= 15) return "Let's get started — fill in your profile to begin."
@@ -125,6 +131,48 @@ export function DashboardClient({ userId }: DashboardClientProps) {
           {scoreLoading ? 'Change your GPA, SAT, major, and schools to check your chance of getting in.' : getSubtitle(readinessTotal)}
         </p>
       </div>
+
+      {/* ── What's Next card ── */}
+      {!milestonesQuery.isLoading && (
+        <Link href="/journey" style={{ textDecoration: 'none', display: 'block', marginBottom: 20 }}>
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            style={{
+              background: 'color-mix(in srgb, var(--color-primary) 8%, var(--color-card))',
+              border: '1.5px solid color-mix(in srgb, var(--color-primary) 25%, var(--color-border))',
+              borderRadius: 14,
+              padding: '16px 20px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 14,
+              cursor: 'pointer',
+              transition: 'border-color 0.15s',
+            }}
+            whileHover={{ borderColor: 'var(--color-primary)' }}
+          >
+            <span style={{ fontSize: 28, lineHeight: 1, flexShrink: 0 }}>
+              {allDone ? '\u{1F389}' : nextMilestone?.icon}
+            </span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-primary)', marginBottom: 2 }}>
+                {allDone ? 'Journey Complete' : `${nextMilestone?.phase} phase`}
+              </div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>
+                {allDone
+                  ? 'All milestones reached \u2014 congratulations!'
+                  : `Next up: ${nextMilestone?.label}`}
+              </div>
+              {!allDone && nextMilestone && (
+                <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 2 }}>
+                  {nextMilestone.desc}
+                </div>
+              )}
+            </div>
+            <span style={{ fontSize: 18, color: 'var(--color-primary)', flexShrink: 0 }}>{'\u2192'}</span>
+          </motion.div>
+        </Link>
+      )}
 
       {/* ── Section 1: Profile Stats ── */}
       <ProfileStats profile={profile} loading={profileLoading} tasks={tasks} userId={userId} />

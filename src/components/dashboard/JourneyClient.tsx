@@ -2,19 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { useMilestones, useMarkMilestone, type MilestoneRecord } from '@/hooks/useMilestones'
-
-const MILESTONES = [
-  { key: 'psat_taken',         label: 'PSAT Taken',             icon: '📝', desc: 'You took the PSAT — your College Board journey begins.',                    phase: 'Prep'     },
-  { key: 'schools_researched', label: 'Schools Researched',     icon: '🔭', desc: 'Built your initial list of colleges.',                                        phase: 'Prep'     },
-  { key: 'first_sat',          label: 'First SAT Complete',     icon: '✏️', desc: 'First official SAT score in the books.',                                     phase: 'Prep'     },
-  { key: 'campus_visits_done', label: 'Campus Visits Done',     icon: '🏫', desc: 'Visited campuses and got a feel for your schools.',                           phase: 'Research' },
-  { key: 'recommenders_asked', label: 'Recommenders Asked',     icon: '🤝', desc: 'Secured your letter writers.',                                                phase: 'Research' },
-  { key: 'essay_drafted',      label: 'Essay Drafted',          icon: '✍️', desc: 'Your Common App personal statement is drafted.',                             phase: 'Apply'    },
-  { key: 'commonapp_started',  label: 'Common App Started',     icon: '🖥️', desc: 'Your Common App account is live.',                                           phase: 'Apply'    },
-  { key: 'fafsa_submitted',    label: 'FAFSA Submitted',        icon: '💰', desc: 'Financial aid form submitted on time.',                                       phase: 'Apply'    },
-  { key: 'apps_submitted',     label: 'Applications Submitted', icon: '🚀', desc: 'All applications are in — now you wait!',                                    phase: 'Final'    },
-  { key: 'decision_made',      label: 'Decision Made',          icon: '🎓', desc: 'You committed to your school — the journey ends here and a new one begins!', phase: 'Final'    },
-]
+import { MILESTONES } from '@/lib/milestones'
 
 const isDark = () => document.documentElement.getAttribute('data-theme') === 'dark'
 const getPhases = () => isDark() ? [
