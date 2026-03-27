@@ -48,10 +48,10 @@ export function JourneyClient({ userId }: { userId: string }) {
   const nextMilestone = firstUnreached >= 0 ? MILESTONES[firstUnreached] : null
 
   return (
-    <div style={{ display: 'flex', gap: 36, alignItems: 'flex-start' }}>
+    <div className="journey-layout" style={{ display: 'flex', gap: 36, alignItems: 'flex-start' }}>
 
       {/* ── Left: milestone list ── */}
-      <div style={{ flex: '0 0 400px', minWidth: 0 }}>
+      <div className="journey-layout__list" style={{ flex: '0 0 400px', minWidth: 0 }}>
         <h1 style={{ fontSize: 26, fontWeight: 800, marginBottom: 6 }}>Your Journey 🗺️</h1>
         <p style={{ fontSize: 14, color: 'var(--color-text-muted)', marginBottom: 32 }}>
           Track your progress toward key milestones on the road to acceptance. · {reached.size} of {MILESTONES.length} reached
@@ -120,7 +120,7 @@ export function JourneyClient({ userId }: { userId: string }) {
       </div>
 
       {/* ── Right: visualization panel ── */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 16, position: 'sticky', top: 24 }}>
+      <div className="journey-layout__viz" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 16, position: 'sticky', top: 24 }}>
 
         {/* Big segmented ring */}
         <motion.div

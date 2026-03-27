@@ -110,6 +110,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
       <ProfileStats profile={profile} loading={profileLoading} tasks={tasks} userId={userId} />
 
       {/* Major Explorer */}
+      <div id="major-explorer" />
       {(!profile?.proposed_major || profile?.proposed_major === 'Undecided') ? (
         <MajorExplorer
           currentMajor={profile?.proposed_major}
