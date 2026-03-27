@@ -71,7 +71,7 @@ export async function generateStrategy({ gpa, sat, major, budget, climate, schoo
 
   // Build the prompt telling Gemini which schools are already placed
   const preAssignedNote = preAssigned.length
-    ? `\nThe student already has these schools assigned to tiers (DO NOT include them in your response — they are handled separately):\n${preAssigned.map(s => `- ${s.name} → ${s.tier} (${s.yourChance}% chance)`).join('\n')}\n`
+    ? `\nThe student already has these schools on their dashboard (already assigned to tiers — include them in "existingSchools" with programStrength and whyFit, but DO NOT include them in "schools"):\n${preAssigned.map(s => `- ${s.name} → ${s.tier} (${s.yourChance}% chance)`).join('\n')}\n`
     : '';
 
   const totalMin = Math.max(totalNeed, 3); // at least 3 new recommendations
@@ -101,12 +101,12 @@ For each school provide ONLY:
 - whyFit: one sentence ≤15 words explaining fit
 
 DO NOT include yourChance or admitRate — we compute those from real data.
-
+${preAssigned.length ? `\nAlso provide "existingSchools": for EACH of the student's dashboard schools listed above, provide { "name": "exact name", "programStrength": "...", "whyFit": "..." } — analyze them with the same depth as new recommendations.` : ''}
 Also include top-level "rationale": 2-3 sentences on the overall strategy (covering both the student's existing schools and your new recommendations).
 
 Respond ONLY with valid JSON, no markdown:
 {
-  "rationale": "...",
+  "rationale": "...",${preAssigned.length ? '\n  "existingSchools": [{ "name": "...", "programStrength": "...", "whyFit": "..." }],' : ''}
   "schools": [{ "name": "...", "tier": "reach|target|safety", "programStrength": "...", "whyFit": "..." }]
 }`;
 
@@ -128,8 +128,14 @@ Respond ONLY with valid JSON, no markdown:
     throw new Error('AI returned malformed JSON. Please try again.');
   }
 
-  const { rationale } = aiResult;
+  const { rationale, existingSchools: aiExistingSchools = [] } = aiResult;
   let { schools: aiNewSchools = [] } = aiResult;
+
+  // Build a lookup for AI-generated insights on user's existing schools
+  const existingInsights = new Map();
+  for (const es of aiExistingSchools) {
+    if (es?.name) existingInsights.set(es.name.toLowerCase(), es);
+  }
 
   // Remove any duplicates of user's schools that AI included anyway
   const preNames = new Set(preAssigned.map(s => s.name.toLowerCase()));
@@ -159,12 +165,15 @@ Respond ONLY with valid JSON, no markdown:
     }
   }
 
-  // Combine: user's pre-assigned schools first, then AI recommendations
-  const aiSchools = [...preAssigned.map(s => ({
-    ...s,
-    programStrength: null,
-    whyFit: 'On your dashboard',
-  })), ...aiNewSchools];
+  // Combine: user's pre-assigned schools first (with AI insights), then AI recommendations
+  const aiSchools = [...preAssigned.map(s => {
+    const insights = existingInsights.get(s.name.toLowerCase());
+    return {
+      ...s,
+      programStrength: insights?.programStrength ?? null,
+      whyFit: insights?.whyFit ?? null,
+    };
+  }), ...aiNewSchools];
 
   if (!aiSchools.length) return { rationale, reach: [], target: [], safety: [] };
 
