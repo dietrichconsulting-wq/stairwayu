@@ -11,7 +11,7 @@ import { useRouter } from 'next/navigation'
 
 const NAV_ITEMS = [
   { href: '/dashboard',     icon: '⊞',  label: 'Dashboard' },
-  { href: '/dashboard#major-explorer', icon: '🧭', label: 'Find Your Major' },
+  { href: '/find-major',  icon: '🧭', label: 'Find Your Major' },
   { href: '/journey',       icon: '🗺️',  label: 'Your Journey' },
   { href: '/compare',       icon: '⚖️',  label: 'Compare' },
   { href: '/strategy',      icon: '⚡',  label: 'Strategy' },
@@ -80,8 +80,7 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
 
       <div className="sidebar__nav">
         {NAV_ITEMS.map(item => {
-          const isHashLink = item.href.includes('#')
-          const active = isHashLink ? false : (pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href)))
+          const active = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
           return (
             <Link key={item.href} href={item.href} className={`sidebar__nav-item ${active ? 'sidebar__nav-item--active' : ''}`}>
               {active && (

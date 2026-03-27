@@ -8,7 +8,6 @@ import { useReadinessScore } from '@/hooks/useReadinessScore'
 import { ProfileStats } from './ProfileStats'
 import { AdmissionSnapshot } from './AdmissionSnapshot'
 import { TaskList } from './TaskList'
-import { MajorExplorer } from './MajorExplorer'
 import { useUpdateProfile } from '@/hooks/useProfile'
 
 interface DashboardClientProps {
@@ -31,20 +30,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
   }
 
   const [referralToast, setReferralToast] = useState<string | null>(null)
-  const [explorerOpen, setExplorerOpen] = useState(false)
   const fulfillAttempted = useRef(false)
-
-  // Auto-open explorer when navigating via #major-explorer hash
-  useEffect(() => {
-    const checkHash = () => {
-      if (window.location.hash === '#major-explorer') {
-        setExplorerOpen(true)
-      }
-    }
-    checkHash()
-    window.addEventListener('hashchange', checkHash)
-    return () => window.removeEventListener('hashchange', checkHash)
-  }, [])
 
   useEffect(() => {
     if (fulfillAttempted.current) return
@@ -121,44 +107,6 @@ export function DashboardClient({ userId }: DashboardClientProps) {
 
       {/* Profile Stats */}
       <ProfileStats profile={profile} loading={profileLoading} tasks={tasks} userId={userId} />
-
-      {/* Major Explorer */}
-      <div id="major-explorer" />
-      {(!profile?.proposed_major || profile?.proposed_major === 'Undecided') ? (
-        <MajorExplorer
-          currentMajor={profile?.proposed_major}
-          onSelectMajor={(major) => {
-            updateProfile.mutate({ proposed_major: major })
-            setReferralToast(`✓ Major set to ${major}`)
-            setTimeout(() => setReferralToast(null), 3000)
-          }}
-        />
-      ) : (
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ background: 'var(--color-card)', border: '1px solid var(--color-border)', borderRadius: 12, padding: '12px 16px' }}>
-            <button
-              onClick={() => setExplorerOpen(o => !o)}
-              style={{ cursor: 'pointer', color: 'var(--color-text-muted)', fontSize: 13, fontWeight: 500, userSelect: 'none', background: 'none', border: 'none', padding: 0, display: 'flex', alignItems: 'center', gap: 6, width: '100%' }}
-            >
-              <span style={{ fontSize: 10, transition: 'transform 0.2s', transform: explorerOpen ? 'rotate(90deg)' : 'rotate(0deg)' }}>▶</span>
-              🧭 Explore other majors
-            </button>
-            {explorerOpen && (
-              <div style={{ marginTop: 16 }}>
-                <MajorExplorer
-                  currentMajor={profile.proposed_major}
-                  onSelectMajor={(major) => {
-                    updateProfile.mutate({ proposed_major: major })
-                    setReferralToast(`✓ Major set to ${major}`)
-                    setTimeout(() => setReferralToast(null), 3000)
-                    setExplorerOpen(false)
-                  }}
-                />
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* Admission Snapshot */}
       <AdmissionSnapshot profile={profile} colleges={colleges} loading={profileLoading || collegesLoading} />
