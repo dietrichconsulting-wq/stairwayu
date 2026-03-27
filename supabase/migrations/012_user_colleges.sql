@@ -4,7 +4,7 @@
 -- ordering the user chose (1 = top choice).
 
 CREATE TABLE public.user_colleges (
-  id          uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id     uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   college_name text NOT NULL,
   college_id   text,            -- College Scorecard unit ID (optional)
