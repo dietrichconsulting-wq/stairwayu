@@ -179,7 +179,7 @@ export function ScholarshipsPageClient({ userId, profile }: Props) {
       {/* Tab Switcher */}
       <div style={{ display: 'flex', gap: 4, background: 'var(--color-column)', borderRadius: 12, padding: 4, marginBottom: 24, width: 'fit-content' }}>
         {([
-          { id: 'find', label: '✨ Find Scholarships' },
+          { id: 'find', label: '🎯 Find Scholarships' },
           { id: 'pipeline', label: '📋 My Pipeline' },
         ] as const).map(t => (
           <button key={t.id} onClick={() => setTab(t.id)} style={{
@@ -198,18 +198,18 @@ export function ScholarshipsPageClient({ userId, profile }: Props) {
       {/* ── FIND TAB ── */}
       {tab === 'find' && (
         <div>
-          {/* AI header banner */}
+          {/* Header banner */}
           <div className="card-elevated" style={{
             padding: '20px 24px', marginBottom: 20,
             background: 'linear-gradient(135deg, rgba(94,234,212,0.08) 0%, rgba(252,211,77,0.06) 100%)',
             border: '1.5px solid rgba(94,234,212,0.18)',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ fontSize: 32 }}>🤖</div>
+              <div style={{ fontSize: 32 }}>🎯</div>
               <div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-text)' }}>AI Scholarship Finder</div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-text)' }}>Scholarship Finder</div>
                 <div style={{ fontSize: 13, color: 'var(--color-text-muted)', marginTop: 2 }}>
-                  Answer a few questions and we'll surface real scholarships tailored to your profile — with direct application links.
+                  Matched from a curated database of verified scholarships with real application links — no AI-generated results.
                 </div>
               </div>
             </div>
@@ -292,9 +292,9 @@ export function ScholarshipsPageClient({ userId, profile }: Props) {
                 transition: 'all 0.2s',
               }}>
               {searching ? (
-                <><span className="strategy-spinner" /> Finding scholarships…</>
+                <><span className="strategy-spinner" /> Matching scholarships…</>
               ) : (
-                <>✨ Find My Scholarships</>
+                <>🎯 Find My Scholarships</>
               )}
             </button>
           </div>
@@ -303,8 +303,13 @@ export function ScholarshipsPageClient({ userId, profile }: Props) {
           <AnimatePresence>
             {suggestions.length > 0 && (
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-                <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 14 }}>
-                  {suggestions.length} scholarships found — click Apply Now to go directly to the application
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+                  <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                    {suggestions.length} verified scholarships matched
+                  </span>
+                  <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: 'rgba(34,197,94,0.1)', color: '#16a34a', border: '1px solid rgba(34,197,94,0.2)' }}>
+                    ✓ Real links
+                  </span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
                   {suggestions.map((s, i) => {
@@ -350,7 +355,7 @@ export function ScholarshipsPageClient({ userId, profile }: Props) {
 
                         {/* Why match */}
                         <div style={{ background: 'color-mix(in srgb, var(--color-primary) 6%, transparent)', border: '1px solid color-mix(in srgb, var(--color-primary) 15%, transparent)', borderRadius: 8, padding: '8px 10px' }}>
-                          <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 3 }}>✨ Why you match</div>
+                          <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 3 }}>Why you match</div>
                           <div style={{ fontSize: 12, color: 'var(--color-text)', lineHeight: 1.5 }}>{s.whyMatch}</div>
                         </div>
 
@@ -387,7 +392,7 @@ export function ScholarshipsPageClient({ userId, profile }: Props) {
               <div style={{ fontSize: 36, marginBottom: 12 }}>🔍</div>
               <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 6 }}>Your matches will appear here</div>
               <div style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
-                Fill in your profile above and click Find My Scholarships to get personalized suggestions with direct application links.
+                Fill in your profile above and click Find My Scholarships to get matched with verified scholarships from our curated database.
               </div>
             </div>
           )}
