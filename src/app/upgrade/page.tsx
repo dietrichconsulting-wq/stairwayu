@@ -60,7 +60,7 @@ export default function UpgradePage() {
         setCodeError(data.error || 'Invalid code')
       } else {
         setCodeSuccess(true)
-        setTimeout(() => { window.location.href = '/dashboard?upgraded=true' }, 1500)
+        setTimeout(() => { window.location.replace(`/dashboard?upgraded=${Date.now()}`) }, 2000)
       }
     } catch {
       setCodeError('Something went wrong')
