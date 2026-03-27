@@ -150,8 +150,9 @@ export default function UpgradePage() {
 
           {upgradeError && <p style={{ fontSize: 12, color: '#ef4444', marginBottom: 8 }}>{upgradeError}</p>}
 
-          <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 20 }}>
-            Cancel anytime.
+          <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 20, lineHeight: 1.6 }}>
+            You won&apos;t be charged during the 7-day trial.<br />
+            Cancel anytime from your Profile before the trial ends — no charge.
           </div>
 
           <div style={{ borderTop: '1px solid var(--color-border, #e5e7eb)', paddingTop: 20, marginBottom: 20 }}>

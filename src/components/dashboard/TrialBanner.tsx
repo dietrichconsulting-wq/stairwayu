@@ -37,7 +37,10 @@ export function TrialBanner({ status, trialEnd, tier }: TrialBannerProps) {
         </span>
         <span className="text-sm font-medium">
           {daysLeft === 1 ? '1 day' : `${daysLeft} days`} left in your free trial
-          {daysLeft <= 3 && <span style={{ color: '#16a34a', fontWeight: 700 }}> · Save 34% with annual</span>}
+          {daysLeft <= 3
+            ? <span style={{ color: '#16a34a', fontWeight: 700 }}> · Save 34% with annual</span>
+            : <span style={{ fontWeight: 400 }}> · Cancel anytime from <Link href="/profile#subscription" style={{ textDecoration: 'underline' }}>Profile</Link></span>
+          }
         </span>
       </div>
       <Link

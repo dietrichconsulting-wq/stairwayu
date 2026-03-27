@@ -203,6 +203,33 @@ export function ProfilePageClient({ userId }: { userId: string }) {
         </div>
       </div>
 
+      {/* Subscription Management */}
+      <div id="subscription" className="card-elevated" style={{ padding: '28px 28px 32px', marginBottom: 24 }}>
+        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span>💳</span> Subscription
+        </h2>
+        <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 16 }}>
+          Manage your plan, update payment info, or cancel your subscription.
+        </p>
+        <button
+          onClick={async () => {
+            try {
+              const res = await fetch('/api/stripe/portal', { method: 'POST' })
+              const data = await res.json()
+              if (data.url) {
+                window.location.href = data.url
+              }
+            } catch {}
+          }}
+          style={{
+            background: 'var(--color-primary)', color: '#fff', border: 'none',
+            borderRadius: 10, padding: '10px 24px', fontWeight: 700, fontSize: 13, cursor: 'pointer',
+          }}
+        >
+          Manage Subscription
+        </button>
+      </div>
+
       {/* Refer a Friend */}
       <div id="referrals" className="card-elevated" style={{ padding: '28px 28px 32px', marginBottom: 24 }}>
         <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
