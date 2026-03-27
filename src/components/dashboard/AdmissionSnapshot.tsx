@@ -21,6 +21,10 @@ interface SchoolResult {
   sat25: number | null
   sat75: number | null
   actMidpoint: number | null
+  avgNetPrice: number | null
+  tuitionInState: number | null
+  tuitionOutOfState: number | null
+  schoolState: string | null
 }
 
 interface AdmissionSnapshotProps {
@@ -334,28 +338,23 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
                   )}
                 </AnimatePresence>
 
-                {/* SAT range + ACT midpoint from real data (show when NOT expanded) */}
-                {!isExpanded && (r.sat25 || r.sat75 || r.avgSAT || r.actMidpoint) && (
-                  <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 8, display: 'flex', gap: 16 }}>
+                {/* Stats footer (show when NOT expanded) */}
+                {!isExpanded && (
+                  <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 8, display: 'flex', flexWrap: 'wrap', gap: '8px 16px' }}>
                     {(r.sat25 || r.sat75 || r.avgSAT) && (
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>
-                          SAT Range
-                        </div>
-                        <div style={{ fontSize: 12, color: 'var(--color-text-muted)', fontWeight: 600 }}>
-                          {r.sat25 && r.sat75 ? `${r.sat25} – ${r.sat75}` : r.avgSAT ? `Avg ${r.avgSAT}` : '—'}
-                        </div>
-                      </div>
+                      <SnapshotStat label="SAT Range" value={r.sat25 && r.sat75 ? `${r.sat25} – ${r.sat75}` : r.avgSAT ? `Avg ${r.avgSAT}` : '—'} />
                     )}
                     {r.actMidpoint != null && (
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>
-                          ACT Midpoint
-                        </div>
-                        <div style={{ fontSize: 12, color: 'var(--color-text-muted)', fontWeight: 600 }}>
-                          {r.actMidpoint}
-                        </div>
-                      </div>
+                      <SnapshotStat label="ACT Midpoint" value={`${r.actMidpoint}`} />
+                    )}
+                    {(r.tuitionInState || r.tuitionOutOfState) && (() => {
+                      const isInState = profile?.home_state && r.schoolState && profile.home_state.toLowerCase() === r.schoolState.toLowerCase()
+                      const tuition = isInState ? r.tuitionInState : r.tuitionOutOfState
+                      const label = isInState ? 'Tuition (In-State)' : 'Tuition (Out-of-State)'
+                      return <SnapshotStat label={label} value={tuition != null ? `$${(tuition / 1000).toFixed(0)}k` : '—'} />
+                    })()}
+                    {r.avgNetPrice != null && (
+                      <SnapshotStat label="Avg Net Price" value={`$${(r.avgNetPrice / 1000).toFixed(0)}k`} />
                     )}
                   </div>
                 )}
@@ -366,5 +365,18 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
         </div>
       )}
     </motion.div>
+  )
+}
+
+function SnapshotStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div style={{ flex: 1, minWidth: 80 }}>
+      <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>
+        {label}
+      </div>
+      <div style={{ fontSize: 12, color: 'var(--color-text-muted)', fontWeight: 600 }}>
+        {value}
+      </div>
+    </div>
   )
 }

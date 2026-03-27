@@ -473,7 +473,11 @@ interface QuickViewData {
   sat25: number | null
   sat75: number | null
   avgSAT: number | null
+  actMidpoint: number | null
   avgNetPrice: number | null
+  tuitionInState: number | null
+  tuitionOutOfState: number | null
+  schoolState: string | null
 }
 
 function SchoolChipsRow({ colleges, profile, onAdd, onUpdate, onRemove }: {
@@ -513,7 +517,11 @@ function SchoolChipsRow({ colleges, profile, onAdd, onUpdate, onRemove }: {
               sat25: r.sat25,
               sat75: r.sat75,
               avgSAT: r.avgSAT,
+              actMidpoint: r.actMidpoint ?? null,
               avgNetPrice: r.avgNetPrice ?? null,
+              tuitionInState: r.tuitionInState ?? null,
+              tuitionOutOfState: r.tuitionOutOfState ?? null,
+              schoolState: r.schoolState ?? null,
             },
           }))
         } else {
@@ -529,6 +537,7 @@ function SchoolChipsRow({ colleges, profile, onAdd, onUpdate, onRemove }: {
         <SchoolChipWithQuickView
           key={c.id}
           college={c}
+          homeState={profile?.home_state ?? null}
           isActive={activeChipId === c.id}
           quickViewData={quickViewCache[c.id] ?? null}
           onOpen={() => {
@@ -637,8 +646,9 @@ function fmt$(n: number | null): string {
   return `$${(n / 1000).toFixed(0)}k`
 }
 
-function SchoolChipWithQuickView({ college, isActive, quickViewData, onOpen, onClose, onEdit, onRemove }: {
+function SchoolChipWithQuickView({ college, homeState, isActive, quickViewData, onOpen, onClose, onEdit, onRemove }: {
   college: UserCollege
+  homeState: string | null
   isActive: boolean
   quickViewData: QuickViewData | 'loading' | 'error' | null
   onOpen: () => void
@@ -754,6 +764,13 @@ function SchoolChipWithQuickView({ college, isActive, quickViewData, onOpen, onC
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 16px', marginBottom: 12 }}>
                   <QuickStat label="Admit Rate" value={data.admissionRate != null ? `${data.admissionRate}%` : '--'} />
                   <QuickStat label="SAT Range" value={data.sat25 && data.sat75 ? `${data.sat25}-${data.sat75}` : data.avgSAT ? `Avg ${data.avgSAT}` : '--'} />
+                  {data.actMidpoint != null && (
+                    <QuickStat label="ACT Midpoint" value={`${data.actMidpoint}`} />
+                  )}
+                  <QuickStat
+                    label={homeState && data.schoolState && homeState.toLowerCase() === data.schoolState.toLowerCase() ? 'Tuition (In-State)' : 'Tuition (Out-of-State)'}
+                    value={fmt$(homeState && data.schoolState && homeState.toLowerCase() === data.schoolState.toLowerCase() ? data.tuitionInState : data.tuitionOutOfState)}
+                  />
                   <QuickStat label="Avg Net Price" value={fmt$(data.avgNetPrice)} />
                 </div>
               </>

@@ -119,18 +119,14 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
           </Link>
         )}
 
-        {isPro ? (
+        {isPro && (
           <div style={{ fontSize: 11, fontWeight: 700, color: typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'dark' ? '#FCD34D' : '#d97706', background: typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'dark' ? 'rgba(252,211,77,0.10)' : 'rgba(217,119,6,0.1)', borderRadius: 8, padding: '4px 10px', textAlign: 'center', marginBottom: 12 }}>
-            {subscription?.billing_interval === 'year'
-              ? '✨ Pro Annual'
-              : subscription?.billing_interval === 'month'
-              ? '✨ Pro Monthly'
-              : '✨ Pro Trial'}
+            {subscription?.status === 'trialing'
+              ? '✨ Free Trial'
+              : subscription?.billing_interval === 'year'
+              ? '✨ Annual'
+              : '✨ Monthly'}
           </div>
-        ) : (
-          <Link href="/upgrade" style={{ display: 'block', textAlign: 'center', fontSize: 12, fontWeight: 700, color: '#fff', background: 'var(--color-primary)', borderRadius: 8, padding: '6px 10px', marginBottom: 12, textDecoration: 'none' }}>
-            Upgrade to Pro
-          </Link>
         )}
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'space-between' }}>

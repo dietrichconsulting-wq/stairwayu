@@ -24,6 +24,18 @@ export default async function DashboardLayout({ children }: { children: React.Re
     .eq('user_id', user.id)
     .single()
 
+  // Block access if no active subscription or trial
+  const isActive = subscription?.tier === 'pro' &&
+    (subscription?.status === 'active' || subscription?.status === 'trialing')
+
+  // If trialing, also verify the trial hasn't expired
+  const trialStillValid = subscription?.status !== 'trialing' ||
+    (subscription?.trial_end && new Date(subscription.trial_end) > new Date())
+
+  if (!isActive || !trialStillValid) {
+    redirect('/upgrade')
+  }
+
   return (
     <div className="sidebar-layout">
       <Sidebar

@@ -321,7 +321,7 @@ function buildEmailHtml(opts: {
       <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background: #FEF3C7; border-radius: 8px; padding: 14px 16px;">
         <tr><td>
           <span style="font-size: 14px; font-weight: 700; color: #92400E;">⏳ Trial Ending Soon</span><br>
-          <span style="font-size: 13px; color: #78350F;">Your free trial ends in ${trialDaysLeft} day${trialDaysLeft === 1 ? '' : 's'}. Upgrade to keep access to all your tools.</span>
+          <span style="font-size: 13px; color: #78350F;">Your free trial ends in ${trialDaysLeft} day${trialDaysLeft === 1 ? '' : 's'}. Subscribe to keep access to all your tools.</span>
         </td></tr>
       </table>
     </td></tr>

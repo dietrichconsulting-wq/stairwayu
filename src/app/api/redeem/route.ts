@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     .single()
 
   if (existing?.tier === 'pro' && (existing?.status === 'active' || existing?.status === 'trialing')) {
-    return NextResponse.json({ error: 'You already have Pro access' }, { status: 400 })
+    return NextResponse.json({ error: 'You already have an active subscription' }, { status: 400 })
   }
 
   if (existing) {

@@ -209,7 +209,7 @@ export function ProfilePageClient({ userId }: { userId: string }) {
           <span>🎁</span> Invite Friends
         </h2>
         <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 20 }}>
-          You both get 2 weeks of free Pro.
+          You both get 2 extra weeks free.
         </p>
 
         {referralLoading ? (

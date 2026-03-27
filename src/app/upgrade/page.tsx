@@ -66,7 +66,7 @@ export default function UpgradePage() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ maxWidth: 480, width: '100%' }}>
         <div className="card-elevated" style={{ padding: '40px 36px', textAlign: 'center' }}>
           <div style={{ fontSize: 40, marginBottom: 12 }}>✨</div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-primary)', marginBottom: 6 }}>Stairway U Pro</h1>
+          <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-primary)', marginBottom: 6 }}>Stairway U</h1>
           <p style={{ fontSize: 14, color: 'var(--color-text-muted)', marginBottom: 20 }}>
             Everything you need to get into your dream school
           </p>
@@ -148,7 +148,7 @@ export default function UpgradePage() {
             <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 10 }}>Have a promo code?</p>
             {codeSuccess ? (
               <div style={{ fontSize: 14, fontWeight: 700, color: '#16a34a' }}>
-                Pro activated! Redirecting...
+                Access activated! Redirecting...
               </div>
             ) : (
               <div style={{ display: 'flex', gap: 8 }}>

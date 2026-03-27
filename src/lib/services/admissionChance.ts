@@ -251,6 +251,7 @@ export async function computeChances(profile) {
           avgNetPrice: college.avgNetPrice || null,
           tuitionInState: college.tuitionInState || null,
           tuitionOutOfState: college.tuitionOutOfState || null,
+          schoolState: college.state || null,
         };
       } catch {
         return null;

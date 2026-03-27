@@ -52,7 +52,7 @@ function ProCard() {
       <div style={{ position: 'absolute', top: 20, right: 20, background: '#fbbf24', color: '#78350f', fontSize: 10, fontWeight: 800, padding: '4px 10px', borderRadius: 2, letterSpacing: '0.1em' }}>
         MOST POPULAR
       </div>
-      <div style={{ fontSize: 11, fontWeight: 800, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 16 }}>Pro</div>
+      <div style={{ fontSize: 11, fontWeight: 800, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 16 }}>Full Access</div>
 
       {/* Billing toggle */}
       <div style={{ display: 'inline-flex', background: 'rgba(255,255,255,0.1)', borderRadius: 8, padding: 2, marginBottom: 16, border: '1px solid rgba(255,255,255,0.15)' }}>
@@ -107,7 +107,7 @@ function ProCard() {
         textDecoration: 'none', borderRadius: 4, padding: '14px',
         fontWeight: 800, fontSize: 13, letterSpacing: '0.05em', textTransform: 'uppercase',
       }}>
-        Start Pro Free →
+        Start Free Trial →
       </Link>
     </div>
   )

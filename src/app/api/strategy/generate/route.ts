@@ -9,11 +9,11 @@ export async function POST(req: Request) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    // Pro feature gate
+    // Subscription gate
     const { allowed, subscription } = await requirePro(user.id)
     if (!allowed) {
       return NextResponse.json({
-        error: 'Pro subscription required',
+        error: 'Subscription required',
         subscription,
         upgrade_url: '/upgrade',
       }, { status: 403 })
