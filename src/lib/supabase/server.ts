@@ -1,4 +1,5 @@
 import { createServerClient } from '@supabase/ssr'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 
 const cookieConfig = async () => {
@@ -27,12 +28,14 @@ export async function createClient(): Promise<any> {
   )
 }
 
+// Service-role client that truly bypasses RLS.
+// Uses @supabase/supabase-js directly (no cookie auth) so the service_role key
+// is used for both apikey and Authorization headers.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function createServiceClient(): Promise<any> {
-  const config = await cookieConfig()
-  return createServerClient(
+  return createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
     process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder-service-key',
-    config
+    { auth: { persistSession: false } }
   )
 }
