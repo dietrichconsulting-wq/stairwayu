@@ -10,15 +10,15 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
 const NAV_ITEMS = [
-  { href: '/dashboard',     icon: '⊞',  label: 'Dashboard' },
-  { href: '/find-major',  icon: '🧭', label: 'Find Your Major' },
-  { href: '/journey',       icon: '🗺️',  label: 'Your Journey' },
-  { href: '/compare',       icon: '⚖️',  label: 'Compare' },
-  { href: '/strategy',      icon: '⚡',  label: 'Strategy' },
-  { href: '/essays',        icon: '✍️',  label: 'Essays' },
-  { href: '/scholarships',  icon: '🏆',  label: 'Scholarships' },
-  { href: '/finance',       icon: '💵',  label: 'Finance Plan' },
-  { href: '/profile',       icon: '👤',  label: 'Profile' },
+  { href: '/dashboard',      icon: '⊞',  label: 'Dashboard' },
+  { href: '/journey',        icon: '🗺️',  label: 'Your Journey' },
+  { href: '/strategy',       icon: '⚡',  label: 'Strategy' },
+  { href: '/compare',        icon: '⚖️',  label: 'Compare' },
+  { href: '/find-major',     icon: '🧭', label: 'Find Your Major' },
+  { href: '/essays',         icon: '✍️',  label: 'Essays' },
+  { href: '/scholarships',   icon: '🏆',  label: 'Scholarships' },
+  { href: '/finance',        icon: '💵',  label: 'Finance Plan' },
+  { href: '/profile',        icon: '👤',  label: 'Profile' },
 ]
 
 interface SidebarProps {
