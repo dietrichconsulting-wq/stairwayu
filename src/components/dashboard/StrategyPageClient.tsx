@@ -150,7 +150,26 @@ export function StrategyPageClient({ profile, colleges, userId }: StrategyPageCl
         {/* ── Right: Results ── */}
         <div>
           <AnimatePresence>
-            {result ? (
+            {loading ? (
+              <div>
+                {/* Skeleton for rationale */}
+                <div className="skeleton" style={{ height: 48, borderRadius: 10, marginBottom: 24 }} />
+                {/* Skeleton tier sections */}
+                {['Reach', 'Target', 'Safety'].map(tier => (
+                  <div key={tier} style={{ marginBottom: 24 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                      <div className="skeleton" style={{ width: 20, height: 20, borderRadius: '50%' }} />
+                      <div className="skeleton" style={{ height: 18, width: 80, borderRadius: 6 }} />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      {[...Array(tier === 'Target' ? 3 : 2)].map((_, i) => (
+                        <div key={i} className="skeleton" style={{ height: 120, borderRadius: 12 }} />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : result ? (
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                 {result.rationale && (
                   <div style={{ background: 'color-mix(in srgb, var(--color-primary) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--color-primary) 18%, transparent)', borderRadius: 10, padding: '12px 16px', fontSize: 13, lineHeight: 1.6, marginBottom: 24 }}>

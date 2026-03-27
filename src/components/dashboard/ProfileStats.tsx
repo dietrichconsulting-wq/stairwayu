@@ -236,6 +236,32 @@ export function ProfileStats({ profile, loading, tasks, userId }: ProfileStatsPr
   const color = ringColor(score)
   const topAction = readiness.topActions[0]
 
+  if (loading) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="card-elevated"
+        style={{ padding: '20px 24px' }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
+          {[60, 60, 56, 48, 100].map((w, i) => (
+            <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <div className="skeleton" style={{ height: 10, width: 40, borderRadius: 4 }} />
+              <div className="skeleton" style={{ height: 22, width: w, borderRadius: 6 }} />
+            </div>
+          ))}
+          <div className="skeleton" style={{ width: 40, height: 40, borderRadius: '50%' }} />
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="skeleton" style={{ height: 28, width: 80, borderRadius: 20 }} />
+            ))}
+          </div>
+        </div>
+      </motion.div>
+    )
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}

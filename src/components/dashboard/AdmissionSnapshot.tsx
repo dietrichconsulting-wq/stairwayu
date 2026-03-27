@@ -111,7 +111,25 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
       .finally(() => setFetching(false))
   }, [fetchKey, loading]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (loading) return null
+  if (loading) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="card-elevated"
+        style={{ padding: '20px 24px' }}
+      >
+        <div className="skeleton" style={{ height: 18, width: 180, borderRadius: 6, marginBottom: 8 }} />
+        <div className="skeleton" style={{ height: 12, width: 280, borderRadius: 6, marginBottom: 16 }} />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 14 }}>
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="skeleton" style={{ height: 140, borderRadius: 12 }} />
+          ))}
+        </div>
+      </motion.div>
+    )
+  }
 
   if (schools.length === 0) {
     return (

@@ -133,7 +133,9 @@ export function DashboardClient({ userId }: DashboardClientProps) {
       </div>
 
       {/* ── What's Next card ── */}
-      {!milestonesQuery.isLoading && (
+      {milestonesQuery.isLoading ? (
+        <div className="skeleton" style={{ height: 68, borderRadius: 14, marginBottom: 20 }} />
+      ) : (
         <Link href="/journey" style={{ textDecoration: 'none', display: 'block', marginBottom: 20 }}>
           <motion.div
             initial={{ opacity: 0, y: 12 }}
@@ -172,7 +174,8 @@ export function DashboardClient({ userId }: DashboardClientProps) {
             <span style={{ fontSize: 18, color: 'var(--color-primary)', flexShrink: 0 }}>{'\u2192'}</span>
           </motion.div>
         </Link>
-      )}
+      )
+      }
 
       {/* ── Section 1: Profile Stats ── */}
       <ProfileStats profile={profile} loading={profileLoading} tasks={tasks} userId={userId} />
