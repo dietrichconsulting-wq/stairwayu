@@ -59,7 +59,7 @@ export function EssayStudio({ profile, colleges }: EssayStudioProps) {
   const schools = colleges
 
   return (
-    <div style={{ maxWidth: 860 }}>
+    <div style={{ maxWidth: 1200 }}>
       <h1 style={{ fontSize: 26, fontWeight: 800, marginBottom: 4 }}>Essay Studio ✍️</h1>
       <p style={{ fontSize: 14, color: 'var(--color-text-muted)', marginBottom: 24 }}>
         Brainstorm essay topics or paste a draft to get AI feedback tailored to each school.
@@ -354,67 +354,70 @@ function CritiqueTab({ schools, profile }: { schools: string[]; profile: Profile
     : 'var(--color-text)'
 
   return (
-    <div>
-      <div className="card-elevated" style={{ padding: '24px 28px', marginBottom: 20 }}>
-        <div className="grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
-          <SelectField label="School" value={school} onChange={setSchool} options={schools.length ? schools : ['Add schools in your profile']} />
-          <SelectField label="Essay Type" value={essayType} onChange={setEssayType} options={ESSAY_TYPES} />
+    <div className="essay-critique-layout" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, alignItems: 'flex-start' }}>
+      {/* ── Left: Draft input ── */}
+      <div style={{ position: 'sticky', top: 32 }}>
+        <div className="card-elevated" style={{ padding: '24px 28px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 16 }}>
+            <SelectField label="School" value={school} onChange={setSchool} options={schools.length ? schools : ['Add schools in your profile']} />
+            <SelectField label="Essay Type" value={essayType} onChange={setEssayType} options={ESSAY_TYPES} />
+          </div>
+
+          <label style={labelStyle}>Your Draft</label>
+          <div style={{ position: 'relative' }}>
+            <textarea
+              value={draft}
+              onChange={e => setDraft(e.target.value)}
+              placeholder="Paste your essay draft here…"
+              rows={16}
+              style={{
+                width: '100%', padding: '12px 14px', borderRadius: 10,
+                border: '1.5px solid var(--color-border)', background: 'var(--color-column)',
+                color: 'var(--color-text)', fontSize: 13, resize: 'vertical',
+                outline: 'none', fontFamily: 'inherit', lineHeight: 1.6, marginTop: 6,
+              }}
+            />
+            <span style={{
+              position: 'absolute', bottom: 10, right: 12,
+              fontSize: 11, color: liveWordCount > 650 ? '#dc2626' : 'var(--color-text-muted)',
+              fontWeight: 600, pointerEvents: 'none',
+            }}>
+              {liveWordCount} words
+            </span>
+          </div>
+
+          {error && <div style={{ color: '#EF4444', fontSize: 12, margin: '10px 0 0' }}>{error}</div>}
+
+          <button onClick={handleCritique} disabled={loading} style={{ ...primaryBtn(loading), marginTop: 16, width: '100%', justifyContent: 'center' }}>
+            {loading ? <><Spinner /> Analyzing your essay…</> : <>🔍 Critique My Essay</>}
+          </button>
         </div>
-
-        <label style={labelStyle}>Your Draft</label>
-        <div style={{ position: 'relative' }}>
-          <textarea
-            value={draft}
-            onChange={e => setDraft(e.target.value)}
-            placeholder="Paste your essay draft here…"
-            rows={12}
-            style={{
-              width: '100%', padding: '12px 14px', borderRadius: 10,
-              border: '1.5px solid var(--color-border)', background: 'var(--color-column)',
-              color: 'var(--color-text)', fontSize: 13, resize: 'vertical',
-              outline: 'none', fontFamily: 'inherit', lineHeight: 1.6, marginTop: 6,
-            }}
-          />
-          <span style={{
-            position: 'absolute', bottom: 10, right: 12,
-            fontSize: 11, color: liveWordCount > 650 ? '#dc2626' : 'var(--color-text-muted)',
-            fontWeight: 600, pointerEvents: 'none',
-          }}>
-            {liveWordCount} words
-          </span>
-        </div>
-
-        {error && <div style={{ color: '#EF4444', fontSize: 12, margin: '10px 0 0' }}>{error}</div>}
-
-        <button onClick={handleCritique} disabled={loading} style={{ ...primaryBtn(loading), marginTop: 16 }}>
-          {loading ? <><Spinner /> Analyzing your essay…</> : <>🔍 Critique My Essay</>}
-        </button>
       </div>
 
-      {/* Critique Results */}
-      <AnimatePresence>
-        {critique && (
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+      {/* ── Right: Results ── */}
+      <div>
+        <AnimatePresence>
+          {critique ? (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
 
-            {/* Score header */}
-            <div className="card-elevated" style={{ padding: '20px 24px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 20 }}>
-              <div style={{ textAlign: 'center', flexShrink: 0 }}>
-                <div style={{ fontSize: 40, fontWeight: 900, color: scoreColor, lineHeight: 1 }}>{critique.score}</div>
-                <div style={{ fontSize: 10, fontWeight: 700, color: scoreColor, textTransform: 'uppercase', letterSpacing: '0.05em' }}>/ 10</div>
+              {/* Score header */}
+              <div className="card-elevated" style={{ padding: '20px 24px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 20 }}>
+                <div style={{ textAlign: 'center', flexShrink: 0 }}>
+                  <div style={{ fontSize: 40, fontWeight: 900, color: scoreColor, lineHeight: 1 }}>{critique.score}</div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: scoreColor, textTransform: 'uppercase', letterSpacing: '0.05em' }}>/ 10</div>
+                </div>
+                <div style={{ width: 1, height: 48, background: 'var(--color-border)', flexShrink: 0 }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: scoreColor, marginBottom: 4 }}>{critique.scoreLabel}</div>
+                  <div style={{ fontSize: 13, color: 'var(--color-text-muted)', lineHeight: 1.5 }}>{critique.summary}</div>
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--color-text-muted)', flexShrink: 0 }}>
+                  {wordCount} words
+                </div>
               </div>
-              <div style={{ width: 1, height: 48, background: 'var(--color-border)', flexShrink: 0 }} />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 15, fontWeight: 800, color: scoreColor, marginBottom: 4 }}>{critique.scoreLabel}</div>
-                <div style={{ fontSize: 13, color: 'var(--color-text-muted)', lineHeight: 1.5 }}>{critique.summary}</div>
-              </div>
-              <div style={{ fontSize: 11, color: 'var(--color-text-muted)', flexShrink: 0 }}>
-                {wordCount} words
-              </div>
-            </div>
 
-            <div className="grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
               {/* Strengths */}
-              <div className="card-elevated" style={{ padding: '18px 20px' }}>
+              <div className="card-elevated" style={{ padding: '18px 20px', marginBottom: 14 }}>
                 <h4 style={{ fontSize: 12, fontWeight: 800, color: '#059669', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>
                   ✓ Strengths
                 </h4>
@@ -429,7 +432,7 @@ function CritiqueTab({ schools, profile }: { schools: string[]; profile: Profile
               </div>
 
               {/* Voice & School Fit */}
-              <div className="card-elevated" style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div className="card-elevated" style={{ padding: '18px 20px', marginBottom: 14, display: 'flex', flexDirection: 'column', gap: 14 }}>
                 <div>
                   <h4 style={{ fontSize: 12, fontWeight: 800, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>
                     Voice & Authenticity
@@ -443,46 +446,54 @@ function CritiqueTab({ schools, profile }: { schools: string[]; profile: Profile
                   <p style={{ fontSize: 12, color: 'var(--color-text-muted)', lineHeight: 1.5, margin: 0 }}>{critique.schoolFit}</p>
                 </div>
               </div>
-            </div>
 
-            {/* Opening / Closing */}
-            <div className="grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
-              <FeedbackBlock label="Opening" text={critique.openingFeedback} color="#0891b2" />
-              <FeedbackBlock label="Closing" text={critique.closingFeedback} color="#0891b2" />
-            </div>
-
-            {/* Areas to improve */}
-            {critique.improvements?.length > 0 && (
-              <div className="card-elevated" style={{ padding: '20px 24px' }}>
-                <h4 style={{ fontSize: 12, fontWeight: 800, color: '#d97706', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 14 }}>
-                  ⚡ Areas to Improve
-                </h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  {critique.improvements.map((item, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0, x: -6 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.06 }}
-                      style={{
-                        background: 'rgba(245,158,11,0.05)',
-                        border: '1px solid rgba(245,158,11,0.2)',
-                        borderRadius: 10, padding: '14px 16px',
-                      }}
-                    >
-                      <div style={{ fontSize: 12, fontWeight: 800, color: '#d97706', marginBottom: 4 }}>{item.issue}</div>
-                      <div style={{ fontSize: 12, color: 'var(--color-text-muted)', lineHeight: 1.5, marginBottom: 8 }}>{item.detail}</div>
-                      <div style={{ fontSize: 12, color: 'var(--color-text)', lineHeight: 1.5, padding: '8px 12px', background: 'var(--color-column)', borderRadius: 8, borderLeft: '3px solid #d97706' }}>
-                        <span style={{ fontWeight: 700, color: '#d97706' }}>Try: </span>{item.suggestion}
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
+              {/* Opening / Closing */}
+              <div className="grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+                <FeedbackBlock label="Opening" text={critique.openingFeedback} color="#0891b2" />
+                <FeedbackBlock label="Closing" text={critique.closingFeedback} color="#0891b2" />
               </div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+
+              {/* Areas to improve */}
+              {critique.improvements?.length > 0 && (
+                <div className="card-elevated" style={{ padding: '20px 24px' }}>
+                  <h4 style={{ fontSize: 12, fontWeight: 800, color: '#d97706', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 14 }}>
+                    ⚡ Areas to Improve
+                  </h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                    {critique.improvements.map((item, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, x: -6 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.06 }}
+                        style={{
+                          background: 'rgba(245,158,11,0.05)',
+                          border: '1px solid rgba(245,158,11,0.2)',
+                          borderRadius: 10, padding: '14px 16px',
+                        }}
+                      >
+                        <div style={{ fontSize: 12, fontWeight: 800, color: '#d97706', marginBottom: 4 }}>{item.issue}</div>
+                        <div style={{ fontSize: 12, color: 'var(--color-text-muted)', lineHeight: 1.5, marginBottom: 8 }}>{item.detail}</div>
+                        <div style={{ fontSize: 12, color: 'var(--color-text)', lineHeight: 1.5, padding: '8px 12px', background: 'var(--color-column)', borderRadius: 8, borderLeft: '3px solid #d97706' }}>
+                          <span style={{ fontWeight: 700, color: '#d97706' }}>Try: </span>{item.suggestion}
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 300, color: 'var(--color-text-muted)', fontSize: 14, textAlign: 'center', padding: 40 }}>
+              <div>
+                <div style={{ fontSize: 40, marginBottom: 12 }}>🔍</div>
+                <div style={{ fontWeight: 600, marginBottom: 4 }}>Your critique will appear here</div>
+                <div style={{ fontSize: 12 }}>Paste your essay draft and hit Critique My Essay</div>
+              </div>
+            </div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   )
 }

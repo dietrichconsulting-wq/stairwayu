@@ -110,58 +110,74 @@ export function StrategyPageClient({ profile, colleges, userId }: StrategyPageCl
   }
 
   return (
-    <div style={{ maxWidth: 800, width: '100%' }}>
+    <div style={{ maxWidth: 1200, width: '100%' }}>
       <h1 style={{ fontSize: 26, fontWeight: 800, marginBottom: 6 }}>College Strategy ⚡</h1>
       <p style={{ fontSize: 14, color: 'var(--color-text-muted)', marginBottom: 28 }}>
         Get an AI-powered reach, target, and safety list tailored to your profile.
       </p>
 
-      <div className="card-elevated" style={{ padding: '28px 28px 32px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 14, marginBottom: 20 }}>
-          <Field label="GPA" type="number" step="0.01" min="0" max="5.0" placeholder="3.9" value={form.gpa} onChange={v => setForm(f => ({ ...f, gpa: v }))} />
-          <Field label="SAT Score" type="number" min="400" max="1600" placeholder="1400" value={form.sat} onChange={v => setForm(f => ({ ...f, sat: v }))} />
-          <div style={{ gridColumn: 'span 2', display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Intended Major</label>
-            <MajorSelect value={form.major} onChange={v => setForm(f => ({ ...f, major: v }))} />
-          </div>
-          <Field label="Annual Budget ($)" type="number" min="0" placeholder="30000" value={form.budget} onChange={v => setForm(f => ({ ...f, budget: v }))} />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <label style={labelStyle}>Climate <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
-            <select value={form.climate} onChange={e => setForm(f => ({ ...f, climate: e.target.value }))} style={inputStyle}>
-              {CLIMATE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt || 'Any climate'}</option>)}
-            </select>
+      <div className="strategy-layout" style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: 24, alignItems: 'flex-start' }}>
+        {/* ── Left: Inputs ── */}
+        <div style={{ position: 'sticky', top: 32 }}>
+          <div className="card-elevated" style={{ padding: '24px 24px 28px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <Field label="GPA" type="number" step="0.01" min="0" max="5.0" placeholder="3.9" value={form.gpa} onChange={v => setForm(f => ({ ...f, gpa: v }))} />
+              <Field label="SAT Score" type="number" min="400" max="1600" placeholder="1400" value={form.sat} onChange={v => setForm(f => ({ ...f, sat: v }))} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Intended Major</label>
+                <MajorSelect value={form.major} onChange={v => setForm(f => ({ ...f, major: v }))} />
+              </div>
+              <Field label="Annual Budget ($)" type="number" min="0" placeholder="30000" value={form.budget} onChange={v => setForm(f => ({ ...f, budget: v }))} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={labelStyle}>Climate <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
+                <select value={form.climate} onChange={e => setForm(f => ({ ...f, climate: e.target.value }))} style={inputStyle}>
+                  {CLIMATE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt || 'Any climate'}</option>)}
+                </select>
+              </div>
+            </div>
+
+            {error && <div style={{ color: '#EF4444', fontSize: 13, marginTop: 14 }}>{error}</div>}
+
+            <button onClick={handleGenerate} disabled={loading} style={{ background: loading ? 'var(--color-text-muted)' : 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: 10, padding: '12px 28px', fontWeight: 700, fontSize: 14, cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: 8, marginTop: 18, width: '100%', justifyContent: 'center' }}>
+              {loading ? <><span className="strategy-spinner" /> Generating…</> : <>✨ Generate Strategy</>}
+            </button>
           </div>
         </div>
 
-        {error && <div style={{ color: '#EF4444', fontSize: 13, marginBottom: 12 }}>{error}</div>}
-
-        <button onClick={handleGenerate} disabled={loading} style={{ background: loading ? 'var(--color-text-muted)' : 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: 10, padding: '12px 28px', fontWeight: 700, fontSize: 14, cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
-          {loading ? <><span className="strategy-spinner" /> Generating…</> : <>✨ Generate Strategy</>}
-        </button>
-
-        <AnimatePresence>
-          {result && (
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} style={{ marginTop: 32 }}>
-              {result.rationale && (
-                <div style={{ background: 'color-mix(in srgb, var(--color-primary) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--color-primary) 18%, transparent)', borderRadius: 10, padding: '12px 16px', fontSize: 13, lineHeight: 1.6, marginBottom: 24 }}>
-                  <strong style={{ color: 'var(--color-primary)' }}>Strategy: </strong>{result.rationale}
+        {/* ── Right: Results ── */}
+        <div>
+          <AnimatePresence>
+            {result ? (
+              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+                {result.rationale && (
+                  <div style={{ background: 'color-mix(in srgb, var(--color-primary) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--color-primary) 18%, transparent)', borderRadius: 10, padding: '12px 16px', fontSize: 13, lineHeight: 1.6, marginBottom: 24 }}>
+                    <strong style={{ color: 'var(--color-primary)' }}>Strategy: </strong>{result.rationale}
+                  </div>
+                )}
+                {(['reach', 'target', 'safety'] as Tier[]).map(tier => (
+                  <TierSection key={tier} tier={tier} schools={result[tier]} collegeNames={collegeNames} onAdd={async (name) => {
+                    const { createClient } = await import('@/lib/supabase/client')
+                    const supabase = createClient()
+                    const nextOrder = collegeNames.length + 1
+                    await supabase.from('user_colleges').upsert(
+                      { user_id: userId, college_name: name, sort_order: nextOrder },
+                      { onConflict: 'user_id,college_name' },
+                    )
+                    setCollegeNames(prev => prev.includes(name) ? prev : [...prev, name])
+                  }} />
+                ))}
+              </motion.div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 300, color: 'var(--color-text-muted)', fontSize: 14, textAlign: 'center', padding: 40 }}>
+                <div>
+                  <div style={{ fontSize: 40, marginBottom: 12 }}>⚡</div>
+                  <div style={{ fontWeight: 600, marginBottom: 4 }}>Your school list will appear here</div>
+                  <div style={{ fontSize: 12 }}>Fill in your profile and hit Generate Strategy</div>
                 </div>
-              )}
-              {(['reach', 'target', 'safety'] as Tier[]).map(tier => (
-                <TierSection key={tier} tier={tier} schools={result[tier]} collegeNames={collegeNames} onAdd={async (name) => {
-                  const { createClient } = await import('@/lib/supabase/client')
-                  const supabase = createClient()
-                  const nextOrder = collegeNames.length + 1
-                  await supabase.from('user_colleges').upsert(
-                    { user_id: userId, college_name: name, sort_order: nextOrder },
-                    { onConflict: 'user_id,college_name' },
-                  )
-                  setCollegeNames(prev => prev.includes(name) ? prev : [...prev, name])
-                }} />
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
+              </div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   )

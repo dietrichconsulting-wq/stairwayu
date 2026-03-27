@@ -135,7 +135,7 @@ export function FinancialPlanner() {
   const paymentDelta = whatIf.payment - calc.payment
 
   return (
-    <div style={{ maxWidth: 960 }}>
+    <div style={{ maxWidth: 1200 }}>
       <h1 style={{ fontSize: 26, fontWeight: 800, marginBottom: 6 }}>Finance Plan 💵</h1>
       <p style={{ fontSize: 14, color: 'var(--color-text-muted)', marginBottom: 32 }}>
         See what college will really cost and how savings, aid, and loans cover the gap.

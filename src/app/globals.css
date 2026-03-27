@@ -335,8 +335,10 @@ body {
     grid-template-columns: 1fr !important;
   }
 
-  /* ── Finance: stack sidebar + results ── */
-  .finance-layout {
+  /* ── Finance / Strategy / Essays: stack sidebar + results ── */
+  .finance-layout,
+  .strategy-layout,
+  .essay-critique-layout {
     grid-template-columns: 1fr !important;
   }
 
