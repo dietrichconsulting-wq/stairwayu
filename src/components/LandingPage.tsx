@@ -128,7 +128,7 @@ export function LandingPage() {
       {/* ── NAV ── */}
       <nav style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
-        padding: '0 40px',
+        padding: '0 clamp(16px, 4vw, 40px)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 60,
         background: scrolled ? 'rgba(15,23,42,0.96)' : 'transparent',
         backdropFilter: scrolled ? 'blur(16px)' : 'none',
@@ -217,7 +217,7 @@ export function LandingPage() {
 
       {/* ── STATS BAR ── */}
       <section style={{ background: '#0f172a', padding: '28px 6%' }}>
-        <div style={{ maxWidth: 1000, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 24, textAlign: 'center' }}>
+        <div style={{ maxWidth: 1000, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 24, textAlign: 'center' }}>
           {STATS.map(s => (
             <div key={s.label}>
               <div style={{ fontSize: 28, fontWeight: 900, color: '#fff', letterSpacing: '-0.02em' }}>{s.value}</div>
@@ -229,7 +229,7 @@ export function LandingPage() {
 
       {/* ── FEATURE GRID — Nike product tiles ── */}
       <section style={{ background: '#f1f5f9', padding: '4px 4px 4px 4px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 4 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 4 }}>
           {FEATURES.map(f => (
             <div key={f.label} style={{ position: 'relative', aspectRatio: '4/3', overflow: 'hidden', background: '#0f172a', cursor: 'pointer' }}
               onMouseEnter={e => {
@@ -258,7 +258,7 @@ export function LandingPage() {
                   : 'linear-gradient(to top, rgba(18,19,24,0.9) 0%, transparent 60%)',
               }} />
               {/* Text content */}
-              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '32px 36px' }}>
+              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: 'clamp(16px, 3vw, 32px) clamp(16px, 3vw, 36px)' }}>
                 <div style={{ fontSize: 'clamp(20px, 2.5vw, 28px)', fontWeight: 900, color: '#fff', marginBottom: 8, letterSpacing: '-0.02em', lineHeight: 1.1 }}>
                   {f.label}
                 </div>

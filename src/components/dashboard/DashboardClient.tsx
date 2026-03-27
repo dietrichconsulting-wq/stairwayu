@@ -69,7 +69,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
   }, [])
 
   return (
-    <div style={{ maxWidth: 900 }}>
+    <div style={{ maxWidth: 900, width: '100%' }}>
       {/* Referral welcome toast */}
       {referralToast && (
         <div style={{

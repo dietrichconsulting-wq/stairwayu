@@ -514,9 +514,9 @@ function SchoolChipsRow({ colleges, onAdd, onUpdate, onRemove }: {
           <button
             onClick={() => setShowMore(v => !v)}
             style={{
-              background: 'rgba(255,255,255,0.07)', color: 'var(--color-text-muted)',
+              background: 'var(--color-column)', color: 'var(--color-text-muted)',
               fontWeight: 600, fontSize: 11, padding: '5px 12px', borderRadius: 20,
-              border: '1px solid rgba(255,255,255,0.15)', cursor: 'pointer',
+              border: '1px solid var(--color-border)', cursor: 'pointer',
             }}
           >
             +{overflowSchools.length} more
@@ -567,7 +567,7 @@ function SchoolChipsRow({ colleges, onAdd, onUpdate, onRemove }: {
             border: '1.5px dashed var(--color-border)', cursor: 'pointer',
           }}
         >
-          + Add
+          + Add College
         </button>
       )}
     </div>
@@ -638,8 +638,8 @@ function EditableSchoolChip({ name, onSave }: { name: string; onSave: (v: string
       onClick={() => setEditing(true)}
       title={`${name} — click to change`}
       style={{
-        background: 'rgba(255,255,255,0.1)', color: '#ffffff', fontWeight: 600, fontSize: 11,
-        padding: '5px 12px', borderRadius: 20, border: '1px solid rgba(255,255,255,0.2)',
+        background: 'var(--color-column)', color: 'var(--color-text)', fontWeight: 600, fontSize: 11,
+        padding: '5px 12px', borderRadius: 20, border: '1.5px solid var(--color-border)',
         cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
         maxWidth: 200, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
       }}

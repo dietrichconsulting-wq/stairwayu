@@ -106,7 +106,43 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
       .finally(() => setFetching(false))
   }, [fetchKey, loading]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (loading || schools.length === 0) return null
+  if (loading) return null
+
+  if (schools.length === 0) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="card-elevated"
+        style={{ padding: '28px 24px', marginTop: 20, textAlign: 'center' }}
+      >
+        <div style={{ fontSize: 32, marginBottom: 8 }}>🎓</div>
+        <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>
+          No schools added yet
+        </div>
+        <div style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 16, maxWidth: 360, marginLeft: 'auto', marginRight: 'auto' }}>
+          Add your target schools to see personalized admission chances and build your application strategy.
+        </div>
+        <Link
+          href="/profile"
+          style={{
+            display: 'inline-block',
+            background: 'var(--color-primary)',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 20,
+            padding: '8px 20px',
+            fontSize: 13,
+            fontWeight: 700,
+            textDecoration: 'none',
+          }}
+        >
+          + Add your first school
+        </Link>
+      </motion.div>
+    )
+  }
 
   return (
     <motion.div
@@ -161,7 +197,7 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
                   background: 'var(--color-card)',
                   borderRadius: 12,
                   padding: '14px 16px',
-                  border: '1px solid rgba(255,255,255,0.08)',
+                  border: '1px solid var(--color-border)',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: 10,
@@ -171,7 +207,7 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
               >
                 {/* School name + tier label */}
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.92)', lineHeight: 1.3, maxWidth: 180 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3, maxWidth: 180 }}>
                     {r.schoolName}
                   </div>
                   <span style={{
@@ -186,10 +222,10 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
                 {/* Chance bar */}
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 5 }}>
-                    <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.50)', fontWeight: 600 }}>Your chance</span>
-                    <span style={{ fontSize: 18, fontWeight: 800, color: 'rgba(255,255,255,0.92)' }}>~{r.chance}%</span>
+                    <span style={{ fontSize: 11, color: 'var(--color-text-muted)', fontWeight: 600 }}>Your chance</span>
+                    <span style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text)' }}>~{r.chance}%</span>
                   </div>
-                  <div style={{ height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 99, overflow: 'hidden' }}>
+                  <div style={{ height: 6, background: 'var(--color-border)', borderRadius: 99, overflow: 'hidden' }}>
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${r.chance}%` }}
@@ -198,7 +234,7 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
                     />
                   </div>
                   {schoolAdmitRate && (
-                    <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.40)', marginTop: 4 }}>{schoolAdmitRate}</div>
+                    <div style={{ fontSize: 10, color: 'var(--color-text-muted)', marginTop: 4 }}>{schoolAdmitRate}</div>
                   )}
                 </div>
 
@@ -228,7 +264,7 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
                         </span>
                       )
                     })}
-                    <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', alignSelf: 'center', fontWeight: 500 }}>
+                    <span style={{ fontSize: 10, color: 'var(--color-text-muted)', alignSelf: 'center', fontWeight: 500 }}>
                       Tap for details
                     </span>
                   </div>
@@ -245,13 +281,13 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
                       style={{ overflow: 'hidden' }}
                     >
                       <div style={{
-                        borderTop: '1px solid rgba(255,255,255,0.06)',
+                        borderTop: '1px solid var(--color-border)',
                         paddingTop: 10,
                         display: 'flex',
                         flexDirection: 'column',
                         gap: 8,
                       }}>
-                        <div style={{ fontSize: 10, fontWeight: 800, color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                           Why this estimate
                         </div>
 
@@ -274,7 +310,7 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
                             >
                               <span style={{ fontSize: 12, flexShrink: 0, marginTop: 1 }}>{icon}</span>
                               <div style={{ flex: 1 }}>
-                                <div style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.85)', lineHeight: 1.35 }}>
+                                <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.35 }}>
                                   {ins.message}
                                 </div>
                                 {ins.impact !== 0 && (
@@ -290,7 +326,7 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
                           )
                         })}
 
-                        <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.30)', fontStyle: 'italic', marginTop: 2 }}>
+                        <div style={{ fontSize: 10, color: 'var(--color-text-muted)', fontStyle: 'italic', marginTop: 2 }}>
                           Estimates are based on public admit-rate data and your academic profile. Actual decisions depend on many more factors including essays, extracurriculars, and recommendations.
                         </div>
                       </div>
@@ -300,23 +336,23 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
 
                 {/* SAT range + ACT midpoint from real data (show when NOT expanded) */}
                 {!isExpanded && (r.sat25 || r.sat75 || r.avgSAT || r.actMidpoint) && (
-                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 8, display: 'flex', gap: 16 }}>
+                  <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 8, display: 'flex', gap: 16 }}>
                     {(r.sat25 || r.sat75 || r.avgSAT) && (
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 10, fontWeight: 800, color: 'rgba(255,255,255,0.40)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>
+                        <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>
                           SAT Range
                         </div>
-                        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.70)', fontWeight: 600 }}>
+                        <div style={{ fontSize: 12, color: 'var(--color-text-muted)', fontWeight: 600 }}>
                           {r.sat25 && r.sat75 ? `${r.sat25} – ${r.sat75}` : r.avgSAT ? `Avg ${r.avgSAT}` : '—'}
                         </div>
                       </div>
                     )}
                     {r.actMidpoint != null && (
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 10, fontWeight: 800, color: 'rgba(255,255,255,0.40)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>
+                        <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>
                           ACT Midpoint
                         </div>
-                        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.70)', fontWeight: 600 }}>
+                        <div style={{ fontSize: 12, color: 'var(--color-text-muted)', fontWeight: 600 }}>
                           {r.actMidpoint}
                         </div>
                       </div>

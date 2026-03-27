@@ -218,7 +218,7 @@ export function ScholarshipsPageClient({ userId, profile }: Props) {
             <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 16 }}>
               Step 1 — Confirm your profile
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 12, marginBottom: 12 }}>
               <div>
                 <label style={labelS}>GPA</label>
                 <input value={finderProfile.gpa} onChange={e => setFinderProfile(p => ({ ...p, gpa: e.target.value }))} placeholder="e.g. 3.8" style={iS} />
@@ -300,7 +300,7 @@ export function ScholarshipsPageClient({ userId, profile }: Props) {
                 <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 14 }}>
                   {suggestions.length} scholarships found — click Apply Now to go directly to the application
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
                   {suggestions.map((s, i) => {
                     const isAdded = addedIds.has(s.name)
                     return (
@@ -438,7 +438,7 @@ export function ScholarshipsPageClient({ userId, profile }: Props) {
           </AnimatePresence>
 
           {/* Kanban */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
             {STAGES.map(stage => {
               const items = scholarships.filter(s => s.stage === stage)
               const c = getStageColors()[stage]
