@@ -475,8 +475,8 @@ function SchoolChipsRow({ colleges, onAdd, onUpdate, onRemove }: {
   const [addingSchool, setAddingSchool] = useState(false)
   const popoverRef = useRef<HTMLDivElement>(null)
 
-  const visibleSchools = colleges.slice(0, 3)
-  const overflowSchools = colleges.slice(3)
+  const visibleSchools = colleges
+  const overflowSchools: UserCollege[] = []
 
   // Close popover on click-outside or Escape
   useEffect(() => {
