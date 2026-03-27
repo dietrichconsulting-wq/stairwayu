@@ -290,8 +290,9 @@ export function ComparePageClient({ profile, colleges }: ComparePageClientProps)
       )}
 
       {results.length > 0 && (
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="card-elevated" style={{ padding: '24px 28px', overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="card-elevated" style={{ padding: '24px 28px' }}>
+          <div style={{ overflowX: 'auto', margin: '0 -28px', padding: '0 28px' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 520 }}>
             <thead>
               <tr>
                 <th style={{ textAlign: 'left', padding: '8px 12px', fontWeight: 700, color: 'var(--color-text-muted)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Metric</th>
@@ -319,6 +320,7 @@ export function ComparePageClient({ profile, colleges }: ComparePageClientProps)
               ))}
             </tbody>
           </table>
+          </div>
         </motion.div>
       )}
     </div>

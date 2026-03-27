@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 
 const BASE_URL = 'https://www.stairwayu.com'
 const CHARS = 'abcdefghijklmnopqrstuvwxyz0123456789'
@@ -19,12 +19,14 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  const supabaseAdmin = await createServiceClient()
+
   // Check for existing referral code
-  const { data: existing } = await supabase
+  const { data: existing } = await supabaseAdmin
     .from('referrals')
     .select('referral_code')
     .eq('referrer_id', user.id)
-    .single()
+    .maybeSingle()
 
   let code: string
 
@@ -32,20 +34,21 @@ export async function GET() {
     code = existing.referral_code
   } else {
     // Generate a code like `sophia-x7k2`
-    const { data: profile } = await supabase
+    const { data: profile } = await supabaseAdmin
       .from('profiles')
       .select('display_name')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
 
     const rawName = profile?.display_name || user.email?.split('@')[0] || 'user'
     const firstName = rawName.split(' ')[0].toLowerCase().replace(/[^a-z0-9]/g, '')
 
     // Retry on uniqueness collision
     let inserted = false
+    let lastError = null
     for (let attempt = 0; attempt < 5; attempt++) {
-      const candidate = `${firstName}-${randomChars(4)}`
-      const { error: insertError } = await supabase
+      const candidate = `${firstName || 'user'}-${randomChars(4)}`
+      const { error: insertError } = await supabaseAdmin
         .from('referrals')
         .insert({ referrer_id: user.id, referral_code: candidate })
 
@@ -53,11 +56,14 @@ export async function GET() {
         code = candidate
         inserted = true
         break
+      } else {
+        lastError = insertError
       }
     }
 
     if (!inserted) {
-      return NextResponse.json({ error: 'Could not generate referral code' }, { status: 500 })
+      console.error('Failed to insert referral:', lastError)
+      return NextResponse.json({ error: 'Could not generate referral code', details: lastError }, { status: 500 })
     }
   }
 
