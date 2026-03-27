@@ -46,16 +46,54 @@ export function ProfilePageClient({ userId }: { userId: string }) {
   const fetchReferralCode = useCallback(async () => {
     setReferralLoading(true)
     try {
-      const res = await fetch('/api/referral/code')
-      if (res.ok) {
-        const data = await res.json()
-        setReferralCode(data.code)
-        setReferralLink(data.link)
-        setReferralCount(data.completions ?? 0)
+      const supabase = createClient()
+      const CHARS = 'abcdefghijklmnopqrstuvwxyz0123456789'
+      const randomChars = (n: number) => Array.from({ length: n }, () => CHARS[Math.floor(Math.random() * CHARS.length)]).join('')
+
+      // Check for existing referral code
+      const { data: existing } = await supabase
+        .from('referrals')
+        .select('referral_code')
+        .eq('referrer_id', userId)
+        .maybeSingle()
+
+      let code: string | null = existing?.referral_code ?? null
+
+      if (!code) {
+        // Generate a code like `sophia-x7k2`
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('display_name')
+          .eq('id', userId)
+          .maybeSingle()
+
+        const rawName = profile?.display_name || 'user'
+        const firstName = rawName.split(' ')[0].toLowerCase().replace(/[^a-z0-9]/g, '') || 'user'
+
+        for (let attempt = 0; attempt < 5; attempt++) {
+          const candidate = `${firstName}-${randomChars(4)}`
+          const { error } = await supabase
+            .from('referrals')
+            .insert({ referrer_id: userId, referral_code: candidate })
+          if (!error) { code = candidate; break }
+        }
       }
-    } catch {}
+
+      if (code) {
+        setReferralCode(code)
+        setReferralLink(`https://www.stairwayu.com/signup?ref=${code}`)
+
+        const { count } = await supabase
+          .from('referral_completions')
+          .select('id', { count: 'exact', head: true })
+          .eq('referral_code', code)
+        setReferralCount(count ?? 0)
+      }
+    } catch (err) {
+      console.error('Referral fetch error:', err)
+    }
     setReferralLoading(false)
-  }, [])
+  }, [userId])
 
   useEffect(() => {
     fetchReferralCode()
