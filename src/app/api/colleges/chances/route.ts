@@ -4,7 +4,7 @@ import { computeChances } from '@/lib/services/admissionChance'
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { gpa, sat, act, proposed_major, schools } = body
+    const { gpa, gpa_weighted, sat, act, proposed_major, schools } = body
 
     if (!schools || schools.length === 0) {
       return NextResponse.json({ results: [] })
@@ -12,6 +12,7 @@ export async function POST(req: Request) {
 
     const results = await computeChances({
       gpa,
+      gpa_weighted,
       sat,
       act,
       proposedMajor: proposed_major,

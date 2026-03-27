@@ -12,6 +12,7 @@ export interface Profile {
   id: string
   display_name: string | null
   gpa: number | null
+  gpa_weighted: number | null
   sat: number | null
   act_score: number | null
   proposed_major: string | null

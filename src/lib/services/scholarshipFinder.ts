@@ -25,6 +25,7 @@ export interface ScholarshipSuggestion {
 
 export interface FinderInput {
   gpa?: number | null
+  gpa_weighted?: number | null
   sat?: number | null
   act?: number | null
   major?: string | null
@@ -43,7 +44,7 @@ export async function findScholarships(input: FinderInput): Promise<ScholarshipS
   const prompt = `You are a college scholarship advisor. Based on the student profile below, suggest exactly 10 real, currently-active scholarships they should apply for. Only include scholarships that genuinely exist and where you are highly confident in the application URL.
 
 Student Profile:
-- GPA: ${input.gpa ?? 'not provided'}
+- Unweighted GPA: ${input.gpa ?? 'not provided'} | Weighted GPA: ${input.gpa_weighted ?? 'not provided'}
 - SAT: ${input.sat ?? 'not provided'} / ACT: ${input.act ?? 'not provided'}
 - Intended Major: ${input.major || 'undecided'}
 - Home State: ${input.homeState || 'not provided'}

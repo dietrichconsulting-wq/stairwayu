@@ -27,7 +27,7 @@ function getModel() {
  * Generate a tiered college strategy list.
  * Returns { reach: [], target: [], safety: [], rationale: string }
  */
-export async function generateStrategy({ gpa, sat, major, budget, climate, schools: userSchools }) {
+export async function generateStrategy({ gpa, gpaWeighted, sat, major, budget, climate, schools: userSchools }) {
   const gemini = getModel();
   if (!gemini) throw new Error('Gemini API key not configured');
 
@@ -48,6 +48,7 @@ export async function generateStrategy({ gpa, sat, major, budget, climate, schoo
   if (userSchoolsList.length && (sat || gpa)) {
     const chanceResults = await computeChances({
       gpa: parseFloat(gpa) || null,
+      gpa_weighted: parseFloat(gpaWeighted) || null,
       sat: parseInt(sat) || null,
       act: null,
       schools: userSchoolsList.map(name => ({ name, id: '' })),
@@ -80,7 +81,8 @@ export async function generateStrategy({ gpa, sat, major, budget, climate, schoo
   const recommendPrompt = `You are a college admissions strategist. Recommend ADDITIONAL schools for this US high school student.
 
 STUDENT PROFILE:
-- GPA: ${gpa}
+- Unweighted GPA (4.0 scale): ${gpa || 'Not provided'}
+- Weighted GPA (5.0 scale): ${gpaWeighted || 'Not provided'}
 - SAT: ${sat}
 - Intended Major: ${major}
 - ${budgetNote}
@@ -187,6 +189,7 @@ Respond ONLY with valid JSON, no markdown:
   //    model does, guaranteeing alignment with the dashboard Admission Snapshot.
   const studentSAT = parseInt(sat) || null;
   const studentGPA = parseFloat(gpa) || null;
+  const studentGPAWeighted = parseFloat(gpaWeighted) || null;
 
   const enriched = aiSchools.map((ai, i) => {
     const real = realProfiles[i] || {};
@@ -204,7 +207,7 @@ Respond ONLY with valid JSON, no markdown:
         sat25: real.sat25 ?? null,
         sat75: real.sat75 ?? null,
         actMidpoint: real.actMidpoint ?? null,
-      }, null);
+      }, null, studentGPAWeighted);
     }
     // Derive tier from model chance (same thresholds as dashboard)
     const computedTier = modelChance != null

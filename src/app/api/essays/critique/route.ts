@@ -22,7 +22,7 @@ export async function POST(req: Request) {
                 }, { status: 403 })
         }
     
-    const { school, essayType, major, gpa, sat, draft } = await req.json()
+    const { school, essayType, major, gpa, gpa_weighted, sat, draft } = await req.json()
 
     if (!draft || draft.trim().length < 50) {
       return NextResponse.json({ error: 'Draft is too short to critique.' }, { status: 400 })
@@ -36,7 +36,7 @@ Essay context:
 - School: ${school}
 - Essay type: ${essayType}
 - Student's intended major: ${major || 'Undecided'}
-- GPA: ${gpa || 'Not provided'} | SAT: ${sat || 'Not provided'}
+- Unweighted GPA: ${gpa || 'Not provided'} | Weighted GPA: ${gpa_weighted || 'Not provided'} | SAT: ${sat || 'Not provided'}
 - Word count: ${wordCount}
 
 ESSAY DRAFT:

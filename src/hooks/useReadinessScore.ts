@@ -34,7 +34,7 @@ function computeProfileDimension(profile: Profile | null | undefined, schoolCoun
 
   const items = [
     { label: 'Name', earned: !!(profile?.display_name?.trim()), points: 1 },
-    { label: 'GPA', earned: profile?.gpa != null, points: 2 },
+    { label: 'GPA', earned: profile?.gpa != null || profile?.gpa_weighted != null, points: 2 },
     { label: 'SAT or ACT', earned: profile?.sat != null || profile?.act_score != null, points: 2 },
     { label: 'Major', earned: !!(profile?.proposed_major?.trim()), points: 2 },
     { label: 'Home state', earned: !!(profile?.home_state?.trim()), points: 1 },
@@ -114,7 +114,7 @@ export function useReadinessScore(userId: string): ReadinessScore {
 
   const candidateActions: { label: string; points: number }[] = []
 
-  if (profile?.gpa == null) candidateActions.push({ label: 'Add your GPA (+2 pts)', points: 2 })
+  if (profile?.gpa == null && profile?.gpa_weighted == null) candidateActions.push({ label: 'Add your GPA (+2 pts)', points: 2 })
   if (profile?.sat == null && profile?.act_score == null) candidateActions.push({ label: 'Add your SAT or ACT score (+2 pts)', points: 2 })
   if (!profile?.proposed_major?.trim()) candidateActions.push({ label: 'Set your intended major (+2 pts)', points: 2 })
   if (!(profile?.desired_climate && profile?.school_size_pref && profile?.school_type_pref)) {

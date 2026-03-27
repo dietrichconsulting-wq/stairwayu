@@ -13,7 +13,7 @@ import { computeChances } from './admissionChance';
 /**
  * Fetch comparison data using authoritative API sources only.
  */
-export async function compareColleges(schoolNames, { major, gpa, sat, homeState } = {}) {
+export async function compareColleges(schoolNames, { major, gpa, gpa_weighted, sat, homeState } = {}) {
   if (!schoolNames || schoolNames.length === 0) return [];
 
   const majorLabel = major || 'Undecided';
@@ -23,9 +23,10 @@ export async function compareColleges(schoolNames, { major, gpa, sat, homeState 
 
   // Use the Scorecard IDs already resolved in realData so chances match the Dashboard
   let chanceResults = [];
-  if (gpa || sat) {
+  if (gpa || gpa_weighted || sat) {
     chanceResults = await computeChances({
       gpa,
+      gpa_weighted,
       sat,
       proposedMajor: majorLabel,
       schools: schoolNames.map((name, i) => ({

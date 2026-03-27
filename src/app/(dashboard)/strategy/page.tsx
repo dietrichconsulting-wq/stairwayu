@@ -11,7 +11,7 @@ export default async function StrategyPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('gpa, sat, proposed_major, strategy_result, strategy_generated_at')
+    .select('gpa, gpa_weighted, sat, proposed_major, strategy_result, strategy_generated_at')
     .eq('id', user.id)
     .single()
 

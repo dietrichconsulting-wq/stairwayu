@@ -23,7 +23,7 @@ export async function POST(req: Request) {
         }
     
     const body = await req.json()
-    const { action, school, essayType, major, gpa, sat, answers } = body
+    const { action, school, essayType, major, gpa, gpa_weighted, sat, answers } = body
 
     if (action === 'questions') {
       // Step 1: return tailored questions for the student to answer
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
 
 Student profile:
 - Intended major: ${major || 'Undecided'}
-- GPA: ${gpa || 'Not provided'}
+- Unweighted GPA: ${gpa || 'Not provided'} | Weighted GPA: ${gpa_weighted || 'Not provided'}
 - SAT: ${sat || 'Not provided'}
 
 Generate exactly 4 short, conversational questions to understand this student's unique story before suggesting essay prompts. The questions should:

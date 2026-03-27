@@ -46,6 +46,7 @@ type FormData = {
   home_state: string
   grad_year: string
   gpa: string
+  gpa_weighted: string
   sat: string
   act_score: string
   proposed_major: string
@@ -69,6 +70,7 @@ export function OnboardingClient({ userId, initialName = '' }: { userId: string;
     home_state: '',
     grad_year: String(CURRENT_YEAR + 1),
     gpa: '',
+    gpa_weighted: '',
     sat: '',
     act_score: '',
     proposed_major: '',
@@ -103,6 +105,7 @@ export function OnboardingClient({ userId, initialName = '' }: { userId: string;
         home_state: form.home_state || null,
         grad_year: form.grad_year ? parseInt(form.grad_year) : null,
         gpa: form.gpa ? parseFloat(form.gpa) : null,
+        gpa_weighted: form.gpa_weighted ? parseFloat(form.gpa_weighted) : null,
         sat: form.sat ? parseInt(form.sat) : null,
         act_score: form.act_score ? parseInt(form.act_score) : null,
         proposed_major: form.proposed_major || null,
@@ -288,8 +291,11 @@ function StepAbout({ form, set }: { form: FormData; set: (k: keyof FormData, v: 
 function StepAcademics({ form, set }: { form: FormData; set: (k: keyof FormData, v: string) => void }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
-        <Field label="GPA" value={form.gpa} onChange={v => set('gpa', v)} placeholder="3.9" type="number" step="0.01" min="0" max="5.0" />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <Field label="Unweighted GPA (4.0 scale)" value={form.gpa} onChange={v => set('gpa', v)} placeholder="3.9" type="number" step="0.01" min="0" max="4.0" />
+        <Field label="Weighted GPA (5.0 scale)" value={form.gpa_weighted} onChange={v => set('gpa_weighted', v)} placeholder="4.3" type="number" step="0.01" min="0" max="5.0" />
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
         <Field label="SAT Score" value={form.sat} onChange={v => set('sat', v)} placeholder="1400" type="number" min="400" max="1600" />
         <Field label="ACT Score" value={form.act_score} onChange={v => set('act_score', v)} placeholder="32" type="number" min="1" max="36" />
       </div>

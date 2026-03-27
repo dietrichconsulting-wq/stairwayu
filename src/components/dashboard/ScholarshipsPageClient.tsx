@@ -51,6 +51,7 @@ export function ScholarshipsPageClient({ userId, profile }: Props) {
   // Finder state
   const [finderProfile, setFinderProfile] = useState({
     gpa: profile?.gpa?.toString() ?? '',
+    gpa_weighted: profile?.gpa_weighted?.toString() ?? '',
     sat: profile?.sat?.toString() ?? '',
     act: profile?.act_score?.toString() ?? '',
     major: profile?.proposed_major ?? '',
@@ -116,6 +117,7 @@ export function ScholarshipsPageClient({ userId, profile }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           gpa: finderProfile.gpa ? parseFloat(finderProfile.gpa) : null,
+          gpa_weighted: finderProfile.gpa_weighted ? parseFloat(finderProfile.gpa_weighted) : null,
           sat: finderProfile.sat ? parseInt(finderProfile.sat) : null,
           act: finderProfile.act ? parseInt(finderProfile.act) : null,
           major: finderProfile.major || null,
@@ -220,8 +222,12 @@ export function ScholarshipsPageClient({ userId, profile }: Props) {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 12, marginBottom: 12 }}>
               <div>
-                <label style={labelS}>GPA</label>
+                <label style={labelS}>UW GPA (4.0)</label>
                 <input value={finderProfile.gpa} onChange={e => setFinderProfile(p => ({ ...p, gpa: e.target.value }))} placeholder="e.g. 3.8" style={iS} />
+              </div>
+              <div>
+                <label style={labelS}>W GPA (5.0)</label>
+                <input value={finderProfile.gpa_weighted} onChange={e => setFinderProfile(p => ({ ...p, gpa_weighted: e.target.value }))} placeholder="e.g. 4.3" style={iS} />
               </div>
               <div>
                 <label style={labelS}>SAT Score</label>

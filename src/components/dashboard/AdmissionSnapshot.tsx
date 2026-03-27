@@ -59,7 +59,7 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
   const schools = colleges.map(c => ({ name: c.college_name, id: c.college_id }))
 
   const fetchKey = profile
-    ? `${profile.gpa}|${profile.sat}|${profile.act_score}|${profile.proposed_major}|${schools.map(s => s.name).join(',')}`
+    ? `${profile.gpa}|${profile.gpa_weighted}|${profile.sat}|${profile.act_score}|${profile.proposed_major}|${schools.map(s => s.name).join(',')}`
     : null
 
   const [results, setResults] = useState<SchoolResult[]>(() => {
@@ -93,6 +93,7 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         gpa: profile.gpa,
+        gpa_weighted: profile.gpa_weighted,
         sat: profile.sat,
         act: profile.act_score,
         proposed_major: profile.proposed_major,

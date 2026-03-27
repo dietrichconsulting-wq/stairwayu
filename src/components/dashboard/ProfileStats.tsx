@@ -244,13 +244,21 @@ export function ProfileStats({ profile, loading, tasks, userId }: ProfileStatsPr
       style={{ padding: '20px 24px' }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
-        {/* GPA */}
+        {/* Unweighted GPA */}
         <EditableStatPill
-          label="GPA" color={isDark() ? 'var(--color-stat-gpa, #5EEAD4)' : 'var(--color-primary)'}
+          label="UW GPA" color={isDark() ? 'var(--color-stat-gpa, #5EEAD4)' : 'var(--color-primary)'}
           value={loading ? null : profile?.gpa ?? null}
           display={loading ? '—' : profile?.gpa?.toString() ?? '—'}
           type="gpa"
           onSave={v => updateProfile.mutate({ gpa: v ? parseFloat(v) : null })}
+        />
+        {/* Weighted GPA */}
+        <EditableStatPill
+          label="W GPA" color={isDark() ? 'var(--color-stat-gpa, #5EEAD4)' : 'var(--color-primary)'}
+          value={loading ? null : profile?.gpa_weighted ?? null}
+          display={loading ? '—' : profile?.gpa_weighted?.toString() ?? '—'}
+          type="gpa_weighted"
+          onSave={v => updateProfile.mutate({ gpa_weighted: v ? parseFloat(v) : null })}
         />
         {/* SAT */}
         <EditableStatPill
@@ -344,7 +352,7 @@ export function ProfileStats({ profile, loading, tasks, userId }: ProfileStatsPr
 
 function EditableStatPill({ label, color, display, onSave, type }: {
   label: string; color: string; value: number | null
-  display: string; type: 'gpa' | 'sat' | 'act'
+  display: string; type: 'gpa' | 'gpa_weighted' | 'sat' | 'act'
   onSave: (v: string) => void
 }) {
   const [editing, setEditing] = useState(false)
@@ -365,6 +373,9 @@ function EditableStatPill({ label, color, display, onSave, type }: {
     if (!val) { onSave(''); setSaved(true); setTimeout(() => setSaved(false), 1800); return }
     // Basic validation
     if (type === 'gpa') {
+      const n = parseFloat(val)
+      if (isNaN(n) || n < 0 || n > 4.0) { setSaved(false); return }
+    } else if (type === 'gpa_weighted') {
       const n = parseFloat(val)
       if (isNaN(n) || n < 0 || n > 5.0) { setSaved(false); return }
     } else if (type === 'act') {
@@ -392,12 +403,12 @@ function EditableStatPill({ label, color, display, onSave, type }: {
           onBlur={commit}
           onKeyDown={e => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') setEditing(false) }}
           type="number"
-          step={type === 'gpa' ? '0.01' : type === 'act' ? '1' : '10'}
-          min={type === 'gpa' ? '0' : type === 'act' ? '1' : '400'}
-          max={type === 'gpa' ? '5.0' : type === 'act' ? '36' : '1600'}
+          step={type === 'gpa' || type === 'gpa_weighted' ? '0.01' : type === 'act' ? '1' : '10'}
+          min={type === 'gpa' || type === 'gpa_weighted' ? '0' : type === 'act' ? '1' : '400'}
+          max={type === 'gpa' ? '4.0' : type === 'gpa_weighted' ? '5.0' : type === 'act' ? '36' : '1600'}
           style={{
             fontSize: 20, fontWeight: 800, color, lineHeight: 1,
-            width: type === 'gpa' ? 56 : type === 'act' ? 48 : 72, border: 'none', borderBottom: `2px solid ${color}`,
+            width: type === 'gpa' || type === 'gpa_weighted' ? 56 : type === 'act' ? 48 : 72, border: 'none', borderBottom: `2px solid ${color}`,
             background: 'transparent', outline: 'none', padding: '0 0 2px',
           }}
         />
@@ -499,6 +510,7 @@ function SchoolChipsRow({ colleges, profile, onAdd, onUpdate, onRemove }: {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         gpa: profile?.gpa,
+        gpa_weighted: profile?.gpa_weighted,
         sat: profile?.sat,
         act: profile?.act_score,
         proposed_major: profile?.proposed_major,

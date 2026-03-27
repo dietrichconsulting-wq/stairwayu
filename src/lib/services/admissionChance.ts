@@ -3,7 +3,8 @@ import { getCollege, lookupByName } from './collegeScorecard';
 /**
  * Estimate admission probability using a logistic model based on:
  * 1. SAT score relative to school's 25th-75th percentile range
- * 2. GPA relative to a 4.0 scale (bonus for higher)
+ * 2. Unweighted GPA (4.0 scale) — if only weighted GPA (5.0 scale) is
+ *    provided, it is normalized to the 4.0 scale: (weighted / 5) * 4
  * 3. School's overall admission rate as a baseline
  *
  * This is an ESTIMATE for guidance — not a guarantee.
@@ -73,7 +74,7 @@ function sentimentFromImpact(impact: number): 'positive' | 'neutral' | 'negative
  * Core probability calculation for a single school.
  * Returns { chance: 0-100, insights: Insight[] }.
  */
-export function calculateChance(studentSAT, studentGPA, school, studentACT): ChanceResult | null {
+export function calculateChance(studentSAT, studentGPA, school, studentACT, studentGPAWeighted?): ChanceResult | null {
   const { admissionRate, avgSAT, sat25, sat75, actMidpoint } = school;
 
   // If no admission data at all, return null
@@ -81,6 +82,14 @@ export function calculateChance(studentSAT, studentGPA, school, studentACT): Cha
 
   const baseRate = admissionRate; // Already a percentage (0–100) from collegeScorecard
   const insights: Insight[] = [];
+
+  // ── Effective GPA: prefer unweighted (4.0 scale), normalize weighted as fallback ──
+  const effectiveGPA = studentGPA != null
+    ? studentGPA
+    : studentGPAWeighted != null
+      ? Math.round(((studentGPAWeighted / 5) * 4) * 100) / 100
+      : null;
+  const gpaIsNormalized = studentGPA == null && studentGPAWeighted != null;
 
   // ── Effective SAT (best of SAT or converted ACT) ──
   const convertedACT = actToSAT(studentACT);
@@ -156,21 +165,24 @@ export function calculateChance(studentSAT, studentGPA, school, studentACT): Cha
 
   // ── GPA Factor ──
   let gpaFactor = 0;
-  if (studentGPA) {
-    if (studentGPA >= 3.9) gpaFactor = 12;
-    else if (studentGPA >= 3.7) gpaFactor = 8;
-    else if (studentGPA >= 3.5) gpaFactor = 4;
-    else if (studentGPA >= 3.2) gpaFactor = 0;
-    else if (studentGPA >= 3.0) gpaFactor = -5;
-    else if (studentGPA >= 2.7) gpaFactor = -12;
+  if (effectiveGPA) {
+    if (effectiveGPA >= 3.9) gpaFactor = 12;
+    else if (effectiveGPA >= 3.7) gpaFactor = 8;
+    else if (effectiveGPA >= 3.5) gpaFactor = 4;
+    else if (effectiveGPA >= 3.2) gpaFactor = 0;
+    else if (effectiveGPA >= 3.0) gpaFactor = -5;
+    else if (effectiveGPA >= 2.7) gpaFactor = -12;
     else gpaFactor = -20;
 
-    const label = gpaLabel(studentGPA);
+    const label = gpaLabel(effectiveGPA);
     const verb = gpaFactor > 0 ? 'boosts' : gpaFactor < 0 ? 'lowers' : 'has a neutral effect on';
+    const gpaDisplay = gpaIsNormalized
+      ? `${studentGPAWeighted} weighted, ~${effectiveGPA} unweighted`
+      : `${effectiveGPA}`;
     insights.push({
       factor: 'gpa',
       sentiment: sentimentFromImpact(gpaFactor),
-      message: `Your ${label} GPA (${studentGPA}) ${verb} your chances`,
+      message: `Your ${label} GPA (${gpaDisplay}) ${verb} your chances`,
       impact: Math.round(gpaFactor),
     });
   }
@@ -235,7 +247,7 @@ export async function computeChances(profile) {
         }
         if (!college) return null;
 
-        const result = calculateChance(profile.sat, profile.gpa, college, profile.act);
+        const result = calculateChance(profile.sat, profile.gpa, college, profile.act, profile.gpa_weighted);
         if (result == null) return null;
 
         return {

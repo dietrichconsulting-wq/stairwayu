@@ -50,6 +50,7 @@ interface StrategyResult {
 interface StrategyPageClientProps {
   profile: {
     gpa: number | null
+    gpa_weighted: number | null
     sat: number | null
     proposed_major: string | null
     strategy_result?: StrategyResult | null
@@ -63,6 +64,7 @@ export function StrategyPageClient({ profile, colleges, userId }: StrategyPageCl
   const [collegeNames, setCollegeNames] = useState<string[]>(colleges)
   const [form, setForm] = useState({
     gpa: profile?.gpa?.toString() ?? '',
+    gpaWeighted: profile?.gpa_weighted?.toString() ?? '',
     sat: profile?.sat?.toString() ?? '',
     major: profile?.proposed_major ?? '',
     budget: '',
@@ -73,8 +75,8 @@ export function StrategyPageClient({ profile, colleges, userId }: StrategyPageCl
   const [error, setError] = useState('')
 
   async function handleGenerate() {
-    if (!form.gpa || !form.sat || !form.major) {
-      setError('GPA, SAT, and major are required.')
+    if ((!form.gpa && !form.gpaWeighted) || !form.sat || !form.major) {
+      setError('At least one GPA (unweighted or weighted), SAT, and major are required.')
       return
     }
     setError('')
@@ -121,7 +123,8 @@ export function StrategyPageClient({ profile, colleges, userId }: StrategyPageCl
         <div style={{ position: 'sticky', top: 32 }}>
           <div className="card-elevated" style={{ padding: '24px 24px 28px' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <Field label="GPA" type="number" step="0.01" min="0" max="5.0" placeholder="3.9" value={form.gpa} onChange={v => setForm(f => ({ ...f, gpa: v }))} />
+              <Field label="Unweighted GPA (4.0)" type="number" step="0.01" min="0" max="4.0" placeholder="3.9" value={form.gpa} onChange={v => setForm(f => ({ ...f, gpa: v }))} />
+              <Field label="Weighted GPA (5.0)" type="number" step="0.01" min="0" max="5.0" placeholder="4.3" value={form.gpaWeighted} onChange={v => setForm(f => ({ ...f, gpaWeighted: v }))} />
               <Field label="SAT Score" type="number" min="400" max="1600" placeholder="1400" value={form.sat} onChange={v => setForm(f => ({ ...f, sat: v }))} />
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Intended Major</label>

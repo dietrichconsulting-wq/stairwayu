@@ -8,10 +8,10 @@ export async function POST(req: Request) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const { schools, major, gpa, sat, homeState } = await req.json()
+    const { schools, major, gpa, gpa_weighted, sat, homeState } = await req.json()
     if (!schools?.length) return NextResponse.json([])
 
-    const data = await compareColleges(schools, { major, gpa, sat, homeState })
+    const data = await compareColleges(schools, { major, gpa, gpa_weighted, sat, homeState })
     return NextResponse.json(data)
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown error'

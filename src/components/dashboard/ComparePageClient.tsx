@@ -83,6 +83,7 @@ export function ComparePageClient({ profile, colleges }: ComparePageClientProps)
         body: JSON.stringify({
           schools: validSchools,
           gpa: profile?.gpa,
+          gpa_weighted: profile?.gpa_weighted,
           sat: profile?.sat,
           major: profile?.proposed_major,
           homeState: homeState || null,

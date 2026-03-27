@@ -16,6 +16,7 @@ const ESSAY_TYPES = [
 
 interface Profile {
   gpa: number | null
+  gpa_weighted: number | null
   sat: number | null
   proposed_major: string | null
 }
@@ -129,6 +130,7 @@ function BrainstormTab({ schools, profile }: { schools: string[]; profile: Profi
           essayType,
           major: profile?.proposed_major,
           gpa: profile?.gpa,
+          gpa_weighted: profile?.gpa_weighted,
           sat: profile?.sat,
         }),
       })
@@ -159,6 +161,7 @@ function BrainstormTab({ schools, profile }: { schools: string[]; profile: Profi
           essayType,
           major: profile?.proposed_major,
           gpa: profile?.gpa,
+          gpa_weighted: profile?.gpa_weighted,
           sat: profile?.sat,
           answers,
         }),
@@ -332,6 +335,7 @@ function CritiqueTab({ schools, profile }: { schools: string[]; profile: Profile
           essayType,
           major: profile?.proposed_major,
           gpa: profile?.gpa,
+          gpa_weighted: profile?.gpa_weighted,
           sat: profile?.sat,
           draft,
         }),

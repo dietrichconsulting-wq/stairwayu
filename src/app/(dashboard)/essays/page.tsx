@@ -11,7 +11,7 @@ export default async function EssaysPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('gpa, sat, proposed_major')
+    .select('gpa, gpa_weighted, sat, proposed_major')
     .eq('id', user.id)
     .single()
 
