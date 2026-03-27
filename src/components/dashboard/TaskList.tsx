@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useUpdateTaskStatus, useUpdateTask, useCreateTask } from '@/hooks/useTasks'
 import type { Task, TaskStatus, TaskCategory } from '@/lib/types/database'
@@ -52,6 +52,9 @@ export function TaskList({ tasks, loading, userId, collapsedMax }: TaskListProps
   const createTask = useCreateTask(userId)
   const [newTitle, setNewTitle] = useState('')
   const [editingDateId, setEditingDateId] = useState<string | null>(null)
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null)
+  const [editingTitle, setEditingTitle] = useState('')
+  const editInputRef = useRef<HTMLInputElement>(null)
 
   const activeTasks = tasks.filter(t => t.status !== 'Done')
   const allFiltered = tasks.filter(t => filter === 'All' || t.category === filter)
@@ -76,6 +79,33 @@ export function TaskList({ tasks, loading, userId, collapsedMax }: TaskListProps
       confetti({ particleCount: 60, spread: 55, origin: { y: 0.7 }, colors: ['#5EEAD4', '#FCD34D', '#86EFAC'] })
     }
   }
+
+  function startEditing(task: Task) {
+    setEditingTaskId(task.id)
+    setEditingTitle(task.title)
+  }
+
+  async function saveEdit(taskId: string) {
+    const trimmed = editingTitle.trim()
+    if (trimmed) {
+      await updateTask.mutateAsync({ taskId, updates: { title: trimmed } })
+    }
+    setEditingTaskId(null)
+  }
+
+  function snoozeTask(task: Task) {
+    const current = task.due_date ? new Date(task.due_date) : new Date()
+    const snoozed = new Date(current)
+    snoozed.setDate(snoozed.getDate() + 1)
+    updateTask.mutate({ taskId: task.id, updates: { due_date: snoozed.toISOString().split('T')[0] } })
+  }
+
+  useEffect(() => {
+    if (editingTaskId && editInputRef.current) {
+      editInputRef.current.focus()
+      editInputRef.current.select()
+    }
+  }, [editingTaskId])
 
   async function addTask() {
     if (!newTitle.trim()) return
@@ -152,6 +182,7 @@ export function TaskList({ tasks, loading, userId, collapsedMax }: TaskListProps
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: isDone ? 0.5 : 1, x: 0 }}
                 exit={{ opacity: 0, x: 8 }}
+                className="task-row"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -160,6 +191,7 @@ export function TaskList({ tasks, loading, userId, collapsedMax }: TaskListProps
                   background: 'var(--color-column)',
                   borderRadius: 10,
                   border: '1px solid var(--color-border)',
+                  position: 'relative',
                 }}
               >
                 <button
@@ -177,33 +209,54 @@ export function TaskList({ tasks, loading, userId, collapsedMax }: TaskListProps
                   {isDone ? '✓' : ''}
                 </button>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{
-                    fontSize: 13, fontWeight: 600,
-                    color: isDone ? 'var(--color-text-muted)' : 'var(--color-text)',
-                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                    textDecoration: isDone ? 'line-through' : 'none',
-                  }}>
-                    {task.title}
-                  </div>
-                  {!isDone && (
-                    <div style={{ display: 'flex', gap: 6, marginTop: 2, alignItems: 'center', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: 10, fontWeight: 600, color: getCategoryColor(task.category), background: `${getCategoryColor(task.category)}18`, padding: '1px 6px', borderRadius: 10 }}>
-                        {task.category}
-                      </span>
-                      {task.description && !dateInfo && (
-                        <span style={{ fontSize: 10, color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
-                          {task.description}
-                        </span>
+                  {editingTaskId === task.id ? (
+                    <input
+                      ref={editInputRef}
+                      value={editingTitle}
+                      onChange={e => setEditingTitle(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') saveEdit(task.id)
+                        if (e.key === 'Escape') setEditingTaskId(null)
+                      }}
+                      onBlur={() => saveEdit(task.id)}
+                      style={{
+                        fontSize: 13, fontWeight: 600, color: 'var(--color-text)',
+                        width: '100%', padding: '2px 6px', borderRadius: 6,
+                        border: '1.5px solid var(--color-primary)', background: 'var(--color-card)',
+                        outline: 'none',
+                      }}
+                    />
+                  ) : (
+                    <>
+                      <div style={{
+                        fontSize: 13, fontWeight: 600,
+                        color: isDone ? 'var(--color-text-muted)' : 'var(--color-text)',
+                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                        textDecoration: isDone ? 'line-through' : 'none',
+                      }}>
+                        {task.title}
+                      </div>
+                      {!isDone && (
+                        <div style={{ display: 'flex', gap: 6, marginTop: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: 10, fontWeight: 600, color: getCategoryColor(task.category), background: `${getCategoryColor(task.category)}18`, padding: '1px 6px', borderRadius: 10 }}>
+                            {task.category}
+                          </span>
+                          {task.description && !dateInfo && (
+                            <span style={{ fontSize: 10, color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
+                              {task.description}
+                            </span>
+                          )}
+                          {dateInfo && (
+                            <span style={{ fontSize: 11, color: dateInfo.color, fontWeight: 600 }}>
+                              {dateInfo.label}
+                            </span>
+                          )}
+                        </div>
                       )}
-                      {dateInfo && (
-                        <span style={{ fontSize: 11, color: dateInfo.color, fontWeight: 600 }}>
-                          {dateInfo.label}
-                        </span>
-                      )}
-                    </div>
+                    </>
                   )}
                 </div>
-                {!isDone && (
+                {!isDone && editingTaskId !== task.id && (
                   <>
                     {/* Date picker */}
                     {editingDateId === task.id ? (
@@ -235,6 +288,32 @@ export function TaskList({ tasks, loading, userId, collapsedMax }: TaskListProps
                         In Progress
                       </span>
                     )}
+                    {/* Action buttons: Edit, Snooze, Complete */}
+                    <div className="task-row__actions" style={{
+                      display: 'flex', gap: 4, alignItems: 'center', flexShrink: 0,
+                    }}>
+                      <button
+                        onClick={() => startEditing(task)}
+                        title="Edit task"
+                        className="task-action-btn"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => snoozeTask(task)}
+                        title="Snooze (+1 day)"
+                        className="task-action-btn"
+                      >
+                        Snooze
+                      </button>
+                      <button
+                        onClick={() => toggleDone(task)}
+                        title="Mark complete"
+                        className="task-action-btn task-action-btn--complete"
+                      >
+                        Done
+                      </button>
+                    </div>
                   </>
                 )}
               </motion.div>
