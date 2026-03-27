@@ -269,51 +269,54 @@ export function ProfileStats({ profile, loading, tasks, userId }: ProfileStatsPr
       className="card-elevated"
       style={{ padding: '20px 24px' }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
-        {/* Unweighted GPA */}
-        <EditableStatPill
-          label="UW GPA" color={isDark() ? 'var(--color-stat-gpa, #5EEAD4)' : 'var(--color-primary)'}
-          value={loading ? null : profile?.gpa ?? null}
-          display={loading ? '—' : profile?.gpa?.toString() ?? '—'}
-          type="gpa"
-          onSave={v => updateProfile.mutate({ gpa: v ? parseFloat(v) : null })}
-        />
-        {/* Weighted GPA */}
-        <EditableStatPill
-          label="W GPA" color={isDark() ? 'var(--color-stat-gpa, #5EEAD4)' : 'var(--color-primary)'}
-          value={loading ? null : profile?.gpa_weighted ?? null}
-          display={loading ? '—' : profile?.gpa_weighted?.toString() ?? '—'}
-          type="gpa_weighted"
-          onSave={v => updateProfile.mutate({ gpa_weighted: v ? parseFloat(v) : null })}
-        />
-        {/* SAT */}
-        <EditableStatPill
-          label="SAT" color={isDark() ? 'var(--color-stat-sat, #FCD34D)' : '#d97706'}
-          value={loading ? null : profile?.sat ?? null}
-          display={loading ? '—' : profile?.sat?.toString() ?? '—'}
-          type="sat"
-          onSave={v => updateProfile.mutate({ sat: v ? parseInt(v) : null })}
-        />
-        {/* ACT */}
-        <EditableStatPill
-          label="ACT" color={isDark() ? 'var(--color-stat-act, #7DD3FC)' : '#0891b2'}
-          value={loading ? null : profile?.act_score ?? null}
-          display={loading ? '—' : profile?.act_score?.toString() ?? '—'}
-          type="act"
-          onSave={v => updateProfile.mutate({ act_score: v ? parseInt(v) : null })}
-        />
-        {/* Major */}
-        <EditableMajorPill
-          label="Major"
-          display={loading ? '—' : profile?.proposed_major ?? 'Not set'}
-          onSave={v => updateProfile.mutate({ proposed_major: v || null })}
-        />
+      {/* Row 1: Stats + Readiness ring */}
+      <div className="profile-stats__top">
+        <div className="profile-stats__pills">
+          {/* Unweighted GPA */}
+          <EditableStatPill
+            label="UW GPA" color={isDark() ? 'var(--color-stat-gpa, #5EEAD4)' : 'var(--color-primary)'}
+            value={loading ? null : profile?.gpa ?? null}
+            display={loading ? '—' : profile?.gpa?.toString() ?? '—'}
+            type="gpa"
+            onSave={v => updateProfile.mutate({ gpa: v ? parseFloat(v) : null })}
+          />
+          {/* Weighted GPA */}
+          <EditableStatPill
+            label="W GPA" color={isDark() ? 'var(--color-stat-gpa, #5EEAD4)' : 'var(--color-primary)'}
+            value={loading ? null : profile?.gpa_weighted ?? null}
+            display={loading ? '—' : profile?.gpa_weighted?.toString() ?? '—'}
+            type="gpa_weighted"
+            onSave={v => updateProfile.mutate({ gpa_weighted: v ? parseFloat(v) : null })}
+          />
+          {/* SAT */}
+          <EditableStatPill
+            label="SAT" color={isDark() ? 'var(--color-stat-sat, #FCD34D)' : '#d97706'}
+            value={loading ? null : profile?.sat ?? null}
+            display={loading ? '—' : profile?.sat?.toString() ?? '—'}
+            type="sat"
+            onSave={v => updateProfile.mutate({ sat: v ? parseInt(v) : null })}
+          />
+          {/* ACT */}
+          <EditableStatPill
+            label="ACT" color={isDark() ? 'var(--color-stat-act, #7DD3FC)' : '#0891b2'}
+            value={loading ? null : profile?.act_score ?? null}
+            display={loading ? '—' : profile?.act_score?.toString() ?? '—'}
+            type="act"
+            onSave={v => updateProfile.mutate({ act_score: v ? parseInt(v) : null })}
+          />
+          {/* Major */}
+          <EditableMajorPill
+            label="Major"
+            display={loading ? '—' : profile?.proposed_major ?? 'Not set'}
+            onSave={v => updateProfile.mutate({ proposed_major: v || null })}
+          />
+        </div>
 
         {/* Readiness ring */}
         <button
           onClick={() => setShowDetail(true)}
           title="View application readiness breakdown"
-          style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+          className="profile-stats__readiness"
         >
           <svg width="40" height="40" viewBox="0 0 40 40">
             <circle cx="20" cy="20" r={R} fill="none" stroke="var(--color-border)" strokeWidth="4" />
@@ -354,9 +357,11 @@ export function ProfileStats({ profile, loading, tasks, userId }: ProfileStatsPr
             </div>
           </div>
         </button>
+      </div>
 
-        {/* School chips */}
-        {!loading && (
+      {/* Row 2: School chips (own line so they don't crowd stats) */}
+      {!loading && (
+        <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--color-border)' }}>
           <SchoolChipsRow
             colleges={colleges}
             profile={profile}
@@ -364,8 +369,8 @@ export function ProfileStats({ profile, loading, tasks, userId }: ProfileStatsPr
             onUpdate={(id, name) => updateCollegeMut.mutate({ id, name })}
             onRemove={id => removeCollege.mutate(id)}
           />
-        )}
-      </div>
+        </div>
+      )}
 
       <AnimatePresence>
         {showDetail && (
@@ -570,7 +575,7 @@ function SchoolChipsRow({ colleges, profile, onAdd, onUpdate, onRemove }: {
   }, [profile, quickViewCache])
 
   return (
-    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginLeft: 'auto', alignItems: 'center', position: 'relative' }}>
+    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', position: 'relative' }}>
       {colleges.map(c => (
         <SchoolChipWithQuickView
           key={c.id}

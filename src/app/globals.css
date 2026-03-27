@@ -329,6 +329,23 @@ body {
     position: static !important;
   }
 
+  /* ── Profile Stats: stack on mobile ── */
+  .profile-stats__top {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  .profile-stats__pills {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 20px;
+  }
+  .profile-stats__readiness {
+    justify-content: center;
+    padding: 8px 0 0;
+    border-top: 1px solid var(--color-border);
+  }
+
   /* ── Generic 2-column grids → single column ── */
   .grid-2col,
   .profile-grid,
@@ -370,6 +387,31 @@ body {
 }
 .landing-pro-bg {
   background: linear-gradient(135deg, #1C1D24, #252730);
+}
+
+/* ── Profile Stats card layout ──────────────────────────────────────────── */
+.profile-stats__top {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.profile-stats__pills {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
+}
+.profile-stats__readiness {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
 }
 
 /* ── Skeleton loading ────────────────────────────────────────────────────── */
