@@ -107,6 +107,48 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // Grant referred user (current user) 7 extra days of Pro
+  const { data: referredSub } = await service
+    .from('subscriptions')
+    .select('status, tier, trial_end, current_period_end, stripe_subscription_id')
+    .eq('user_id', user.id)
+    .single()
+
+  if (referredSub) {
+    let referredUpdate: Record<string, unknown> = {}
+
+    if (referredSub.status === 'trialing') {
+      const base = referredSub.trial_end ? new Date(referredSub.trial_end) : new Date()
+      base.setDate(base.getDate() + 7)
+      referredUpdate = { trial_end: base.toISOString() }
+    } else if (referredSub.status === 'active') {
+      const base = referredSub.current_period_end
+        ? new Date(referredSub.current_period_end)
+        : new Date()
+      base.setDate(base.getDate() + 7)
+      referredUpdate = { current_period_end: base.toISOString() }
+    } else {
+      // canceled / free — reactivate with a 7-day trial
+      referredUpdate = {
+        tier: 'pro',
+        status: 'trialing',
+        trial_end: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      }
+    }
+
+    const { error: referredBonusError } = await service
+      .from('subscriptions')
+      .update(referredUpdate)
+      .eq('user_id', user.id)
+
+    if (!referredBonusError) {
+      await service
+        .from('referral_completions')
+        .update({ referred_bonus_applied: true })
+        .eq('referred_id', user.id)
+    }
+  }
+
   // Grant referrer XP for the referral
   await service
     .from('xp_ledger')
