@@ -1,90 +1,48 @@
 import { useMemo } from 'react'
 import { ACHIEVEMENTS, type Achievement, type AchievementContext } from '@/lib/achievements'
-import { useTasks } from './useTasks'
-import { useUserColleges } from './useUserColleges'
-import { useMilestones } from './useMilestones'
-import { useXp } from './useXp'
-import { useStreak } from './useStreak'
 import { useReadinessScore } from './useReadinessScore'
 import { useQuery } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 
+interface AchievementRpcResult {
+  tasks_completed: number
+  essay_actions: number
+  schools_compared: number
+  scholarships_tracked: number
+  strategy_generated: boolean
+  milestones_reached: number
+  total_xp: number
+  challenges_completed: number
+  streak: number
+}
+
 export function useAchievements(userId: string) {
-  const { data: tasks = [] } = useTasks(userId)
-  const { data: colleges = [] } = useUserColleges(userId)
-  const milestonesQuery = useMilestones(userId)
-  const xpData = useXp(userId)
-  const { streak } = useStreak(userId)
+  const supabase = createClient()
   const { total: readinessScore } = useReadinessScore(userId)
 
-  const supabase = createClient()
-
-  // Count essay actions from xp_ledger
-  const essayQuery = useQuery({
-    queryKey: ['essay-actions', userId],
+  const { data: rpc } = useQuery({
+    queryKey: ['achievement-context', userId],
     queryFn: async () => {
-      const { count } = await supabase
-        .from('xp_ledger')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_id', userId)
-        .in('action', ['essay_brainstorm', 'essay_critique'])
-      return count ?? 0
+      const { data, error } = await supabase.rpc('get_achievement_context')
+      if (error) throw error
+      return data as AchievementRpcResult
     },
     enabled: !!userId,
-  })
-
-  // Check if strategy was ever generated (via xp_ledger)
-  const strategyQuery = useQuery({
-    queryKey: ['strategy-generated', userId],
-    queryFn: async () => {
-      const { count } = await supabase
-        .from('xp_ledger')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_id', userId)
-        .eq('action', 'generate_strategy')
-      return (count ?? 0) > 0
-    },
-    enabled: !!userId,
-  })
-
-  // Count scholarships
-  const scholarshipQuery = useQuery({
-    queryKey: ['scholarship-count', userId],
-    queryFn: async () => {
-      const { count } = await supabase
-        .from('scholarships')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_id', userId)
-      return count ?? 0
-    },
-    enabled: !!userId,
-  })
-
-  // Count challenge completions (all-time, distinct days)
-  const challengeQuery = useQuery({
-    queryKey: ['challenge-completions-count', userId],
-    queryFn: async () => {
-      const { count } = await supabase
-        .from('challenge_completions')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_id', userId)
-      return count ?? 0
-    },
-    enabled: !!userId,
+    staleTime: 5 * 60 * 1000, // achievements change infrequently; 5 min stale
   })
 
   const ctx: AchievementContext = useMemo(() => ({
-    tasksCompleted: tasks.filter(t => t.status === 'Done').length,
-    essayActions: essayQuery.data ?? 0,
-    schoolsCompared: colleges.length,
-    scholarshipsTracked: scholarshipQuery.data ?? 0,
-    strategyGenerated: strategyQuery.data ?? false,
-    milestonesReached: milestonesQuery.data?.length ?? 0,
-    totalXp: xpData.totalXp,
-    streak,
+    tasksCompleted: rpc?.tasks_completed ?? 0,
+    essayActions: rpc?.essay_actions ?? 0,
+    schoolsCompared: rpc?.schools_compared ?? 0,
+    scholarshipsTracked: rpc?.scholarships_tracked ?? 0,
+    strategyGenerated: rpc?.strategy_generated ?? false,
+    milestonesReached: rpc?.milestones_reached ?? 0,
+    totalXp: rpc?.total_xp ?? 0,
+    streak: rpc?.streak ?? 0,
     readinessScore,
-    challengesCompleted: challengeQuery.data ?? 0,
-  }), [tasks, essayQuery.data, colleges.length, scholarshipQuery.data, strategyQuery.data, milestonesQuery.data?.length, xpData.totalXp, streak, readinessScore, challengeQuery.data])
+    challengesCompleted: rpc?.challenges_completed ?? 0,
+  }), [rpc, readinessScore])
 
   const earned: Achievement[] = useMemo(
     () => ACHIEVEMENTS.filter(a => a.check(ctx)),

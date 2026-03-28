@@ -97,6 +97,7 @@ export function useRecordXp(userId: string) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['xp', userId] })
+      queryClient.invalidateQueries({ queryKey: ['achievement-context', userId] })
     },
   })
 }
