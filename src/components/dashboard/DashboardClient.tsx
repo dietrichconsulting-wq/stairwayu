@@ -16,6 +16,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { showToast } from '@/components/CelebrationToast'
 import { WelcomeTour } from './WelcomeTour'
+import { Tooltip } from '@/components/ui/Tooltip'
 
 interface DashboardClientProps {
   userId: string
@@ -134,9 +135,9 @@ export function DashboardClient({ userId }: DashboardClientProps) {
   }
 
   const QUICK_ACTIONS = [
-    { label: 'Compare Schools', href: '/compare', icon: '⚖️' },
-    { label: 'Start Essay', href: '/essays', icon: '✍️' },
-    { label: 'Find Scholarships', href: '/scholarships', icon: '🏆' },
+    { label: 'Compare Schools', href: '/compare', icon: '⚖️', tip: 'Compare tuition, admit rates, and stats side-by-side for your saved schools.' },
+    { label: 'Start Essay', href: '/essays', icon: '✍️', tip: 'Draft and refine your college essays with AI-powered feedback.' },
+    { label: 'Find Scholarships', href: '/scholarships', icon: '🏆', tip: 'Discover scholarships matched to your profile and major.' },
   ]
 
   return (
@@ -174,6 +175,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
             {profileLoading ? '…' : `Welcome back, ${profile?.display_name?.split(' ')[0] || 'Student'} 👋`}
           </h1>
           {!streakLoading && streak > 0 && (
+            <Tooltip text="Your login streak. Visit the dashboard each day to keep it going and earn bonus XP." position="bottom">
             <motion.div
               initial={{ scale: 0.6, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -200,6 +202,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
               <span style={{ fontSize: 16, lineHeight: 1 }}>🔥</span>
               {streak}-day streak
             </motion.div>
+            </Tooltip>
           )}
         </div>
         <p style={{ fontSize: 14, color: 'var(--color-text-muted)', marginTop: 4 }}>
@@ -232,9 +235,11 @@ export function DashboardClient({ userId }: DashboardClientProps) {
               {allDone ? '\u{1F389}' : nextMilestone?.icon}
             </span>
             <div style={{ flex: 1, minWidth: 0 }}>
+              <Tooltip text="Your next milestone on the college application journey. Click to see the full roadmap." position="right">
               <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-primary)', marginBottom: 2 }}>
                 {allDone ? 'Journey Complete' : `${nextMilestone?.phase} phase`}
               </div>
+              </Tooltip>
               <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>
                 {allDone
                   ? 'All milestones reached \u2014 congratulations!'
@@ -277,9 +282,11 @@ export function DashboardClient({ userId }: DashboardClientProps) {
           data-tour="readiness-score"
           style={{ padding: '24px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}
         >
+          <Tooltip text="Your overall readiness score across 5 dimensions: profile completeness, tasks done, milestones reached, scholarships found, and daily momentum." position="right" maxWidth={260}>
           <h2 style={{ fontSize: 15, fontWeight: 800, color: 'var(--color-text)', margin: 0, alignSelf: 'flex-start' }}>
             Journey Progress
           </h2>
+          </Tooltip>
 
           {scoreLoading ? (
             <div className="skeleton" style={{ width: ringSize, height: ringSize, borderRadius: '50%' }} />
@@ -316,18 +323,18 @@ export function DashboardClient({ userId }: DashboardClientProps) {
           {!scoreLoading && dimensions && (
             <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 6 }}>
               {([
-                { key: 'profile' as const, label: 'Profile' },
-                { key: 'tasks' as const, label: 'Tasks' },
-                { key: 'milestones' as const, label: 'Milestones' },
-                { key: 'scholarships' as const, label: 'Scholarships' },
-                { key: 'momentum' as const, label: 'Momentum' },
-              ]).map(({ key, label }) => {
+                { key: 'profile' as const, label: 'Profile', tip: 'Points earned by filling in your GPA, test scores, major, home state, and grad year.' },
+                { key: 'tasks' as const, label: 'Tasks', tip: 'Points for completing to-do items like requesting transcripts and writing essays.' },
+                { key: 'milestones' as const, label: 'Milestones', tip: 'Key checkpoints on your journey, from building a school list to submitting apps.' },
+                { key: 'scholarships' as const, label: 'Scholarships', tip: 'Points for saving and applying to scholarships.' },
+                { key: 'momentum' as const, label: 'Momentum', tip: 'Bonus points for staying active — login streaks and recent activity.' },
+              ]).map(({ key, label, tip }) => {
                 const dim = dimensions[key]
                 const pct = dim.max > 0 ? (dim.score / dim.max) * 100 : 0
                 return (
                   <div key={key}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: 2 }}>
-                      <span>{label}</span>
+                      <Tooltip text={tip} position="left" maxWidth={200}><span>{label}</span></Tooltip>
                       <span>{dim.score}/{dim.max}</span>
                     </div>
                     <div style={{ height: 4, background: 'var(--color-border)', borderRadius: 99, overflow: 'hidden' }}>
@@ -374,9 +381,9 @@ export function DashboardClient({ userId }: DashboardClientProps) {
         marginTop: 20,
         flexWrap: 'wrap',
       }}>
-        {QUICK_ACTIONS.map(({ label, href, icon }) => (
+        {QUICK_ACTIONS.map(({ label, href, icon, tip }) => (
+          <Tooltip key={href} text={tip} position="bottom">
           <Link
-            key={href}
             href={href}
             style={{
               flex: '1 1 0',
@@ -407,6 +414,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
             <span style={{ fontSize: 16 }}>{icon}</span>
             {label}
           </Link>
+          </Tooltip>
         ))}
       </div>
 

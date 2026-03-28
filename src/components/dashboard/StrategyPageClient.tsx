@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { MajorSelect } from '@/components/MajorSelect'
 import { useRecordXp } from '@/hooks/useXp'
 import confetti from 'canvas-confetti'
+import { Tooltip } from '@/components/ui/Tooltip'
 
 const CLIMATE_OPTIONS = [
   '', 'Mountains', 'Beach / Coastal', 'Sunny / Southwest',
@@ -166,7 +167,7 @@ export function StrategyPageClient({ profile, colleges, userId }: StrategyPageCl
     act: profile?.act_score?.toString() ?? '',
     major: profile?.proposed_major ?? '',
     budget: '',
-    climate: '',
+    climate: [] as string[],
   })
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<StrategyResult | null>(profile?.strategy_result ?? null)
@@ -268,17 +269,36 @@ export function StrategyPageClient({ profile, colleges, userId }: StrategyPageCl
               </div>
               <Field label="Annual Budget ($)" type="number" min="0" placeholder="30000" value={form.budget} onChange={v => setForm(f => ({ ...f, budget: v }))} />
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <label style={labelStyle}>Climate <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
-                <select value={form.climate} onChange={e => setForm(f => ({ ...f, climate: e.target.value }))} style={inputStyle}>
-                  {CLIMATE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt || 'Any climate'}</option>)}
-                </select>
+                <label style={labelStyle}>Region <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional, select multiple)</span></label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '8px 12px', borderRadius: 8, border: '1.5px solid var(--color-border)', background: 'var(--color-column)' }}>
+                  {CLIMATE_OPTIONS.filter(Boolean).map(opt => (
+                    <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--color-text)', cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={form.climate.includes(opt)}
+                        onChange={e => {
+                          setForm(f => ({
+                            ...f,
+                            climate: e.target.checked
+                              ? [...f.climate, opt]
+                              : f.climate.filter(c => c !== opt),
+                          }))
+                        }}
+                        style={{ accentColor: 'var(--color-primary)' }}
+                      />
+                      {opt}
+                    </label>
+                  ))}
+                </div>
               </div>
 
             {error && <div style={{ color: '#EF4444', fontSize: 13, marginTop: 14 }}>{error}</div>}
 
+            <Tooltip text="Generate a 3-tier application strategy (reach, target & safety schools) personalized to your stats and preferences." position="top" maxWidth={260}>
             <button onClick={handleGenerate} disabled={loading} style={{ background: loading ? 'var(--color-text-muted)' : 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: 10, padding: '12px 28px', fontWeight: 700, fontSize: 14, cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: 8, marginTop: 18, width: '100%', justifyContent: 'center' }}>
               {loading ? <><span className="strategy-spinner" /> Generating…</> : <>✨ Generate Strategy</>}
             </button>
+            </Tooltip>
             </div>
           </div>
         </div>
@@ -368,6 +388,12 @@ export function StrategyPageClient({ profile, colleges, userId }: StrategyPageCl
   )
 }
 
+const TIER_TIPS: Record<Tier, string> = {
+  reach: 'Dream schools where your stats are below the average admitted student. Worth applying — upsets happen!',
+  target: 'Schools where your profile is a solid match. You have a realistic shot at admission.',
+  safety: 'Schools where your stats exceed the typical admitted student. Very likely to get in.',
+}
+
 function TierSection({ tier, schools, collegeNames, onAdd }: {
   tier: Tier
   schools: School[]
@@ -380,7 +406,9 @@ function TierSection({ tier, schools, collegeNames, onAdd }: {
     <div style={{ marginBottom: 24 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
         <span style={{ fontSize: 20 }}>{cfg.emoji}</span>
+        <Tooltip text={TIER_TIPS[tier]} position="right" maxWidth={240}>
         <h3 style={{ fontWeight: 700, fontSize: 16, color: cfg.color, margin: 0 }}>{cfg.label}</h3>
+        </Tooltip>
         <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>{schools.length} schools</span>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -487,13 +515,13 @@ function SchoolCard({ school, tier, index, collegeNames, onAdd }: {
             {school.sat25 && school.sat75 && (
               <span>
                 <span style={{ fontWeight: 600 }}>SAT range:</span> {school.sat25}–{school.sat75}
-                <span className="strat-real-badge">live</span>
+                <Tooltip text="Live data from the U.S. Department of Education College Scorecard." position="top"><span className="strat-real-badge">live</span></Tooltip>
               </span>
             )}
             {school.actMidpoint != null && (
               <span>
                 <span style={{ fontWeight: 600 }}>ACT midpoint:</span> {school.actMidpoint}
-                <span className="strat-real-badge">live</span>
+                <Tooltip text="Live data from the U.S. Department of Education College Scorecard." position="top"><span className="strat-real-badge">live</span></Tooltip>
               </span>
             )}
           </div>
@@ -529,7 +557,7 @@ function Stat({ label, value, color, real }: { label: string; value: string; col
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 60 }}>
       <span style={{ fontSize: 13, fontWeight: 700, color: color || 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 3 }}>
         {value}
-        {real && <span className="strat-real-badge">live</span>}
+        {real && <Tooltip text="Pulled from the U.S. Department of Education College Scorecard — real, verified data." position="top" maxWidth={220}><span className="strat-real-badge">live</span></Tooltip>}
       </span>
       <span style={{ fontSize: 10, color: 'var(--color-text-muted)', marginTop: 1 }}>{label}</span>
     </div>

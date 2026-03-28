@@ -34,7 +34,7 @@ export async function generateStrategy({ gpa, gpaWeighted, sat, act, major, budg
 
   // Sanitize all user-supplied inputs
   const safeMajor = sShort(major) || 'Undecided';
-  const safeClimate = sShort(climate);
+  const safeClimate = Array.isArray(climate) ? climate.map(c => sShort(c)).filter(Boolean).join(', ') : sShort(climate);
   const safeBudget = sNum(budget, '');
 
   const budgetNote = safeBudget
@@ -42,7 +42,7 @@ export async function generateStrategy({ gpa, gpaWeighted, sat, act, major, budg
     : 'No specific budget constraint.';
 
   const climateNote = safeClimate
-    ? `Preferred campus climate/region: ${safeClimate}. Prioritize schools in that environment but include strong options elsewhere.`
+    ? `Preferred campus climate/regions: ${safeClimate}. Prioritize schools in these areas but include strong options elsewhere.`
     : 'No climate preference.';
 
   const userSchoolsList = (userSchools || []).filter(Boolean);

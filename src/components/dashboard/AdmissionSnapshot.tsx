@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Profile, UserCollege } from '@/lib/types/database'
 import Link from 'next/link'
+import { Tooltip } from '@/components/ui/Tooltip'
 
 interface Insight {
   factor: 'sat' | 'act' | 'gpa' | 'selectivity' | 'test_optional'
@@ -199,14 +200,18 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <div>
+          <Tooltip text="Personalized admission odds for each school based on your GPA, test scores, and real admit-rate data." position="bottom" maxWidth={260}>
           <h2 style={{ fontSize: 15, fontWeight: 800, margin: 0 }}>Admission Snapshot</h2>
+          </Tooltip>
           <p style={{ fontSize: 12, color: 'var(--color-text-muted)', margin: '2px 0 0' }}>
             AI-generated estimates based on your GPA, SAT/ACT & school admit rates
           </p>
         </div>
+        <Tooltip text="Generate a 3-tier application strategy (reach, target & safety) with these schools." position="left" maxWidth={220}>
         <Link href="/strategy" style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-primary)', textDecoration: 'none' }}>
           Full strategy →
         </Link>
+        </Tooltip>
       </div>
 
       {fetching && (
@@ -255,6 +260,7 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
                   <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3, maxWidth: 180 }}>
                     {r.schoolName}
                   </div>
+                  <Tooltip text={label === 'Safety' ? 'Your stats exceed the average — very likely to get in.' : label === 'Target' ? 'Your profile is a solid match — realistic shot.' : 'A stretch — your stats are below average, but worth trying.'} position="left">
                   <span style={{
                     fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 20,
                     background: bgColor, color: softColor, border: `1px solid ${borderColor}`,
@@ -262,12 +268,13 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
                   }}>
                     {label}
                   </span>
+                  </Tooltip>
                 </div>
 
                 {/* Chance bar */}
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 5 }}>
-                    <span style={{ fontSize: 11, color: 'var(--color-text-muted)', fontWeight: 600 }}>Your chance</span>
+                    <Tooltip text="Estimated admission probability based on your GPA, test scores, and this school's historical admit rate." position="bottom" maxWidth={240}><span style={{ fontSize: 11, color: 'var(--color-text-muted)', fontWeight: 600 }}>Your chance</span></Tooltip>
                     <span style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text)' }}>~{r.chance}%</span>
                   </div>
                   <div style={{ height: 6, background: 'var(--color-border)', borderRadius: 99, overflow: 'hidden' }}>
@@ -409,8 +416,15 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
   )
 }
 
+const SNAPSHOT_STAT_TIPS: Record<string, string> = {
+  'SAT Range': 'Middle 50% SAT scores (25th–75th percentile) of admitted students.',
+  'ACT Midpoint': 'Midpoint ACT composite score of admitted students.',
+  'Avg Net Price': 'Average annual cost after financial aid. Source: U.S. Dept. of Education.',
+}
+
 function SnapshotStat({ label, value }: { label: string; value: string }) {
-  return (
+  const tip = SNAPSHOT_STAT_TIPS[label] || (label.includes('Tuition') ? 'Published tuition rate. Actual cost may be lower after aid.' : undefined)
+  const inner = (
     <div style={{ flex: 1, minWidth: 80 }}>
       <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>
         {label}
@@ -420,4 +434,6 @@ function SnapshotStat({ label, value }: { label: string; value: string }) {
       </div>
     </div>
   )
+  if (tip) return <Tooltip text={tip} position="top">{inner}</Tooltip>
+  return inner
 }

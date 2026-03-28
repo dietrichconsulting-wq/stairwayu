@@ -10,6 +10,7 @@ import { CollegeSelect } from '@/components/CollegeSelect'
 import { useReadinessScore } from '@/hooks/useReadinessScore'
 import type { ReadinessScore } from '@/hooks/useReadinessScore'
 import Link from 'next/link'
+import { Tooltip } from '@/components/ui/Tooltip'
 
 interface ProfileStatsProps {
   profile: Profile | null | undefined
@@ -279,6 +280,7 @@ export function ProfileStats({ profile, loading, tasks, userId }: ProfileStatsPr
             display={loading ? '—' : profile?.gpa?.toString() ?? '—'}
             type="gpa"
             onSave={v => updateProfile.mutate({ gpa: v ? parseFloat(v) : null })}
+            tooltip="Your unweighted GPA on a 4.0 scale. Click to edit."
           />
           {/* Weighted GPA */}
           <EditableStatPill
@@ -287,6 +289,7 @@ export function ProfileStats({ profile, loading, tasks, userId }: ProfileStatsPr
             display={loading ? '—' : profile?.gpa_weighted?.toString() ?? '—'}
             type="gpa_weighted"
             onSave={v => updateProfile.mutate({ gpa_weighted: v ? parseFloat(v) : null })}
+            tooltip="Your weighted GPA on a 5.0 scale (honors/AP classes count higher). Click to edit."
           />
           {/* SAT */}
           <EditableStatPill
@@ -295,6 +298,7 @@ export function ProfileStats({ profile, loading, tasks, userId }: ProfileStatsPr
             display={loading ? '—' : profile?.sat?.toString() ?? '—'}
             type="sat"
             onSave={v => updateProfile.mutate({ sat: v ? parseInt(v) : null })}
+            tooltip="Your SAT composite score (400–1600). Used for admission estimates. Click to edit."
           />
           {/* ACT */}
           <EditableStatPill
@@ -303,19 +307,21 @@ export function ProfileStats({ profile, loading, tasks, userId }: ProfileStatsPr
             display={loading ? '—' : profile?.act_score?.toString() ?? '—'}
             type="act"
             onSave={v => updateProfile.mutate({ act_score: v ? parseInt(v) : null })}
+            tooltip="Your ACT composite score (1–36). Used for admission estimates. Click to edit."
           />
           {/* Major */}
           <EditableMajorPill
             label="Major"
             display={loading ? '—' : profile?.proposed_major ?? 'Not set'}
             onSave={v => updateProfile.mutate({ proposed_major: v || null })}
+            tooltip="Your intended college major. Affects school recommendations and strategy."
           />
         </div>
 
         {/* Readiness ring */}
+        <Tooltip text="Your overall application readiness score. Tracks profile, tasks, milestones, scholarships & momentum. Click for a full breakdown." position="bottom">
         <button
           onClick={() => setShowDetail(true)}
-          title="View application readiness breakdown"
           className="profile-stats__readiness"
         >
           <svg width="40" height="40" viewBox="0 0 40 40">
@@ -357,6 +363,7 @@ export function ProfileStats({ profile, loading, tasks, userId }: ProfileStatsPr
             </div>
           </div>
         </button>
+        </Tooltip>
       </div>
 
       {/* Row 2: School chips (own line so they don't crowd stats) */}
@@ -381,10 +388,11 @@ export function ProfileStats({ profile, loading, tasks, userId }: ProfileStatsPr
   )
 }
 
-function EditableStatPill({ label, color, display, onSave, type }: {
+function EditableStatPill({ label, color, display, onSave, type, tooltip }: {
   label: string; color: string; value: number | null
   display: string; type: 'gpa' | 'gpa_weighted' | 'sat' | 'act'
   onSave: (v: string) => void
+  tooltip?: string
 }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState('')
@@ -423,9 +431,11 @@ function EditableStatPill({ label, color, display, onSave, type }: {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', position: 'relative' }}>
-      <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>
-        {label}
-      </span>
+      <Tooltip text={tooltip || `Click to edit ${label}`} position="top">
+        <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>
+          {label}
+        </span>
+      </Tooltip>
       {editing ? (
         <input
           ref={inputRef}
@@ -446,7 +456,6 @@ function EditableStatPill({ label, color, display, onSave, type }: {
       ) : (
         <button
           onClick={startEdit}
-          title={`Click to edit ${label}`}
           style={{
             fontSize: 20, fontWeight: 800, color, lineHeight: 1,
             background: 'none', border: 'none', padding: 0, cursor: 'text',
@@ -461,8 +470,9 @@ function EditableStatPill({ label, color, display, onSave, type }: {
   )
 }
 
-function EditableMajorPill({ label, display, onSave }: {
+function EditableMajorPill({ label, display, onSave, tooltip }: {
   label: string; display: string; onSave: (v: string) => void
+  tooltip?: string
 }) {
   const color = '#059669'
   const [editing, setEditing] = useState(false)
@@ -480,9 +490,11 @@ function EditableMajorPill({ label, display, onSave }: {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', position: 'relative' }}>
-      <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>
-        {label}
-      </span>
+      <Tooltip text={tooltip || `Click to edit ${label}`} position="top">
+        <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>
+          {label}
+        </span>
+      </Tooltip>
       {editing ? (
         <div style={{ width: 200 }}>
           <MajorSelect
@@ -607,6 +619,7 @@ function SchoolChipsRow({ colleges, profile, onAdd, onUpdate, onRemove }: {
           />
         </div>
       ) : (
+        <Tooltip text="Search and add a college to your list to see admission odds and compare schools." position="bottom">
         <button
           onClick={() => setAddingSchool(true)}
           style={{
@@ -617,10 +630,12 @@ function SchoolChipsRow({ colleges, profile, onAdd, onUpdate, onRemove }: {
         >
           + Add College
         </button>
+        </Tooltip>
       )}
 
       {/* Compare link */}
       {colleges.length >= 2 && (
+        <Tooltip text="Side-by-side comparison of tuition, admit rates, SAT ranges, and more for your saved schools." position="bottom">
         <Link
           href="/compare"
           style={{
@@ -630,6 +645,7 @@ function SchoolChipsRow({ colleges, profile, onAdd, onUpdate, onRemove }: {
         >
           Compare →
         </Link>
+        </Tooltip>
       )}
     </div>
   )
@@ -849,8 +865,16 @@ function SchoolChipWithQuickView({ college, homeState, isActive, quickViewData, 
   )
 }
 
+const QUICK_STAT_TIPS: Record<string, string> = {
+  'Admit Rate': 'Overall acceptance rate for all applicants at this school.',
+  'SAT Range': 'Middle 50% SAT score range (25th to 75th percentile) of admitted students.',
+  'ACT Midpoint': 'Midpoint ACT score of admitted students.',
+  'Avg Net Price': 'Average cost after financial aid. Source: U.S. Dept. of Education.',
+}
+
 function QuickStat({ label, value }: { label: string; value: string }) {
-  return (
+  const tip = QUICK_STAT_TIPS[label] || Object.entries(QUICK_STAT_TIPS).find(([k]) => label.startsWith(k.split(' ')[0]))?.[1]
+  const inner = (
     <div>
       <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>
         {label}
@@ -860,4 +884,6 @@ function QuickStat({ label, value }: { label: string; value: string }) {
       </div>
     </div>
   )
+  if (tip) return <Tooltip text={tip} position="top">{inner}</Tooltip>
+  return inner
 }

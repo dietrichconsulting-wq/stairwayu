@@ -9,17 +9,18 @@ import type { User } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useXp } from '@/hooks/useXp'
+import { Tooltip } from '@/components/ui/Tooltip'
 
 const NAV_ITEMS = [
-  { href: '/dashboard',      icon: '⊞',  label: 'Dashboard' },
-  { href: '/journey',        icon: '🗺️',  label: 'Your Journey' },
-  { href: '/strategy',       icon: '⚡',  label: 'Strategy' },
-  { href: '/compare',        icon: '⚖️',  label: 'Compare' },
-  { href: '/find-major',     icon: '🧭', label: 'Find Your Major' },
-  { href: '/essays',         icon: '✍️',  label: 'Essays' },
-  { href: '/scholarships',   icon: '🏆',  label: 'Scholarships' },
-  { href: '/finance',        icon: '💵',  label: 'Finance Plan' },
-  { href: '/profile',        icon: '👤',  label: 'Profile' },
+  { href: '/dashboard',      icon: '⊞',  label: 'Dashboard',        tip: 'Your home base — stats, progress, and next steps at a glance.' },
+  { href: '/journey',        icon: '🗺️',  label: 'Your Journey',     tip: 'Step-by-step milestones from freshman year through submission.' },
+  { href: '/strategy',       icon: '⚡',  label: 'Strategy',         tip: 'Generate a 3-tier application strategy with these schools.' },
+  { href: '/compare',        icon: '⚖️',  label: 'Compare',          tip: 'Side-by-side comparison of your saved schools.' },
+  { href: '/find-major',     icon: '🧭', label: 'Find Your Major',  tip: 'Explore majors that match your interests and strengths.' },
+  { href: '/essays',         icon: '✍️',  label: 'Essays',           tip: 'Draft and polish your college essays with AI feedback.' },
+  { href: '/scholarships',   icon: '🏆',  label: 'Scholarships',     tip: 'Discover scholarships matched to your profile.' },
+  { href: '/finance',        icon: '💵',  label: 'Finance Plan',     tip: 'Plan how to pay for college — aid, loans, and family contribution.' },
+  { href: '/profile',        icon: '👤',  label: 'Profile',          tip: 'Edit your academic stats, preferences, and account settings.' },
 ]
 
 interface SidebarProps {
@@ -135,7 +136,8 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
           }
           const active = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
           return (
-            <Link key={item.href} href={item.href} className={`sidebar__nav-item ${active ? 'sidebar__nav-item--active' : ''}`} data-tour={tourAttr[item.href]}>
+            <Tooltip key={item.href} text={item.tip} position="right" delay={500}>
+            <Link href={item.href} className={`sidebar__nav-item ${active ? 'sidebar__nav-item--active' : ''}`} data-tour={tourAttr[item.href]}>
               {active && (
                 <motion.div
                   layoutId="sidebar-active-bg"
@@ -146,6 +148,7 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
               <span style={{ fontSize: 15, position: 'relative' }}>{item.icon}</span>
               <span style={{ position: 'relative' }}>{item.label}</span>
             </Link>
+            </Tooltip>
           )
         })}
       </div>
@@ -184,6 +187,7 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
 
         {/* XP Level badge + progress */}
         {!xpLoading && (
+          <Tooltip text="Earn XP by completing tasks, generating strategies, and logging in daily. Level up to track your progress." position="right" maxWidth={240}>
           <div style={{
             display: 'flex', alignItems: 'center', gap: 8,
             padding: '6px 10px', borderRadius: 8, marginBottom: 10,
@@ -196,7 +200,6 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
                 fontSize: 11, fontWeight: 800, color: '#fff',
                 background: LEVEL_COLORS[level - 1] ?? LEVEL_COLORS[0],
               }}
-              title={`${totalXp} XP total`}
             >
               {level}
             </div>
@@ -219,6 +222,7 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
               )}
             </div>
           </div>
+          </Tooltip>
         )}
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'space-between' }}>
@@ -230,13 +234,14 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
               {user.email}
             </div>
           </div>
+          <Tooltip text="Sign out of your account." position="top">
           <button
             onClick={handleSignOut}
-            title="Sign out"
             style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: 'var(--color-text-muted)', padding: '4px', borderRadius: 6, flexShrink: 0 }}
           >
             ↩
           </button>
+          </Tooltip>
         </div>
       </div>
     </>
