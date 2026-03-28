@@ -26,19 +26,24 @@ export function CollegeSelect({ value, onChange, placeholder = 'Search for a col
   const [search, setSearch] = useState('')
   const [results, setResults] = useState<CollegeResult[]>([])
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(null)
+  const lastQueryRef = useRef('')
 
   const fetchResults = useCallback(async (query: string) => {
-    if (query.length < 2) { setResults([]); return }
+    if (query.length < 2) { setResults([]); setError(false); return }
+    lastQueryRef.current = query
     setLoading(true)
+    setError(false)
     try {
       const res = await fetch(`/api/colleges/search?q=${encodeURIComponent(query)}`)
       const data = await res.json()
       setResults(data)
     } catch {
       setResults([])
+      setError(true)
     } finally {
       setLoading(false)
     }
@@ -107,6 +112,17 @@ export function CollegeSelect({ value, onChange, placeholder = 'Search for a col
           {loading ? (
             <div style={{ padding: '12px 14px', fontSize: 13, color: 'var(--color-text-muted)' }}>
               Searching…
+            </div>
+          ) : error ? (
+            <div style={{ padding: '12px 14px', fontSize: 13, color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ color: '#EF4444' }}>Search failed</span>
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); fetchResults(lastQueryRef.current) }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700, color: 'var(--color-primary)', padding: 0 }}
+              >
+                Retry
+              </button>
             </div>
           ) : results.length === 0 && search.length >= 2 ? (
             <div style={{ padding: '12px 14px', fontSize: 13, color: 'var(--color-text-muted)' }}>

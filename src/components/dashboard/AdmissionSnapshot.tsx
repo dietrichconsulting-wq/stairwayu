@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Profile, UserCollege } from '@/lib/types/database'
 import Link from 'next/link'
@@ -88,6 +88,7 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
 
   useEffect(() => {
     if (!profile || loading || !fetchKey || fetchKey === lastFetchKey || schools.length === 0) return
+    const controller = new AbortController()
     setFetching(true)
     fetch('/api/colleges/chances', {
       method: 'POST',
@@ -100,6 +101,7 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
         proposed_major: profile.proposed_major,
         schools,
       }),
+      signal: controller.signal,
     })
       .then(r => r.json())
       .then(data => {
@@ -108,8 +110,9 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
         setLastFetchKey(fetchKey)
         try { sessionStorage.setItem(SNAPSHOT_KEY, JSON.stringify({ key: fetchKey, data: freshResults })) } catch { /* ignore */ }
       })
-      .catch(() => setLastFetchKey(fetchKey))
-      .finally(() => setFetching(false))
+      .catch((err) => { if (err.name !== 'AbortError') setLastFetchKey(fetchKey) })
+      .finally(() => { if (!controller.signal.aborted) setFetching(false) })
+    return () => controller.abort()
   }, [fetchKey, loading]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) {

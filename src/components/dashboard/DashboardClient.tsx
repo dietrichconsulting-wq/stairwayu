@@ -61,14 +61,16 @@ export function DashboardClient({ userId }: DashboardClientProps) {
   }, [updateProfile])
 
   const [referralToast, setReferralToast] = useState<string | null>(null)
+  const [referralError, setReferralError] = useState(false)
   const fulfillAttempted = useRef(false)
+  const referralCodeRef = useRef<string | null>(null)
 
-  useEffect(() => {
-    if (fulfillAttempted.current) return
-    fulfillAttempted.current = true
-
-    let code: string | null = null
-    try { code = localStorage.getItem('stairwayu_ref') } catch {}
+  const fulfillReferral = useCallback(() => {
+    let code = referralCodeRef.current
+    if (code === null) {
+      try { code = localStorage.getItem('stairwayu_ref') } catch {}
+      referralCodeRef.current = code
+    }
 
     // Also check if the profile was just created (within last 5 minutes)
     const isNewUser = profile?.created_at
@@ -77,6 +79,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
 
     if (!code && !isNewUser) return
 
+    setReferralError(false)
     fetch('/api/referral/fulfill', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -93,7 +96,14 @@ export function DashboardClient({ userId }: DashboardClientProps) {
           try { localStorage.removeItem('stairwayu_ref') } catch {}
         }
       })
-      .catch(() => {})
+      .catch(() => setReferralError(true))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    if (fulfillAttempted.current) return
+    fulfillAttempted.current = true
+    fulfillReferral()
   // Only run once on mount — intentionally omitting profile from deps
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -145,6 +155,34 @@ export function DashboardClient({ userId }: DashboardClientProps) {
 
   return (
     <div style={{ maxWidth: 900, width: '100%' }}>
+      {/* Referral error banner */}
+      {referralError && (
+        <div style={{
+          background: 'rgba(239,68,68,0.08)',
+          border: '1.5px solid rgba(239,68,68,0.25)',
+          borderRadius: 12,
+          padding: '12px 16px',
+          marginBottom: 20,
+          fontSize: 13,
+          color: 'var(--color-text)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 8,
+        }}>
+          <span>Couldn&apos;t process your referral link.</span>
+          <button
+            onClick={() => { fulfillAttempted.current = false; fulfillReferral() }}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              fontSize: 13, fontWeight: 700, color: '#EF4444', padding: 0, flexShrink: 0,
+            }}
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
       {/* Referral welcome toast */}
       {referralToast && (
         <div style={{
