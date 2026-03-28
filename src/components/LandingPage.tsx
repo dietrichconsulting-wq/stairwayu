@@ -45,13 +45,10 @@ const STATS = [
   { value: '100%', label: 'Personalized to you' },
 ]
 
-function ProCard() {
+function PricingCard() {
   const [plan, setPlan] = useState<'monthly' | 'annual'>('annual')
   return (
     <div className="landing-pro-bg relative px-10 py-12">
-      <div className="absolute top-5 right-5 rounded-sm bg-amber-400 px-2.5 py-1 text-[10px] font-extrabold tracking-[0.1em] text-amber-900">
-        MOST POPULAR
-      </div>
       <div className="mb-4 text-[11px] font-extrabold uppercase tracking-[0.15em] text-white/60">Full Access</div>
 
       {/* Billing toggle */}
@@ -272,24 +269,8 @@ export function LandingPage() {
               Simple pricing.<br />No surprises.
             </h2>
           </div>
-          <div className="grid grid-cols-1 gap-0.5 md:grid-cols-2">
-            {/* Free */}
-            <div className="bg-slate-800 px-10 py-12">
-              <div className="mb-5 text-[11px] font-extrabold uppercase tracking-[0.15em] text-white/40">Free</div>
-              <div className="mb-1 text-[52px] font-black tracking-tight text-white">$0</div>
-              <div className="mb-9 text-[13px] text-white/40">Forever</div>
-              {['Journey roadmap', 'Task tracker', 'College search', 'Basic profile'].map(f => (
-                <div key={f} className="mb-3.5 flex items-center gap-3">
-                  <div className="flex size-[18px] shrink-0 items-center justify-center rounded-full bg-slate-700 text-[10px] text-slate-400">✓</div>
-                  <span className="text-sm text-white/65">{f}</span>
-                </div>
-              ))}
-              <Link href="/signup" className="mt-9 block rounded border-[1.5px] border-white/20 bg-transparent px-3.5 py-3.5 text-center text-[13px] font-bold uppercase tracking-[0.05em] text-white no-underline">
-                Get Started
-              </Link>
-            </div>
-            {/* Pro */}
-            <ProCard />
+          <div className="mx-auto max-w-[460px]">
+            <PricingCard />
           </div>
         </div>
       </section>
