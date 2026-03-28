@@ -279,6 +279,29 @@ function TierSection({ tier, schools, collegeNames, onAdd }: {
   )
 }
 
+function MatchRing({ chance, color, size = 48 }: { chance: number; color: string; size?: number }) {
+  const r = (size - 6) / 2
+  const circ = 2 * Math.PI * r
+  const offset = circ - (chance / 100) * circ
+  return (
+    <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="currentColor" strokeWidth={3} opacity={0.12} />
+        <motion.circle
+          cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={3}
+          strokeLinecap="round" strokeDasharray={circ}
+          initial={{ strokeDashoffset: circ }}
+          animate={{ strokeDashoffset: offset }}
+          transition={{ delay: 0.4, duration: 0.8, ease: 'easeOut' }}
+        />
+      </svg>
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <span style={{ fontSize: size * 0.28, fontWeight: 800, color, lineHeight: 1 }}>{chance}%</span>
+      </div>
+    </div>
+  )
+}
+
 function SchoolCard({ school, tier, index, collegeNames, onAdd }: {
   school: School
   tier: Tier
@@ -289,8 +312,14 @@ function SchoolCard({ school, tier, index, collegeNames, onAdd }: {
   const cfg = getTierConfig()[tier]
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [flipped, setFlipped] = useState(false)
 
   const alreadyAdded = collegeNames.includes(school.name)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setFlipped(true), index * 120 + 200)
+    return () => clearTimeout(timer)
+  }, [index])
 
   async function handleAdd() {
     setSaving(true)
@@ -301,66 +330,84 @@ function SchoolCard({ school, tier, index, collegeNames, onAdd }: {
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.07 + 0.1 }}
-      style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, borderRadius: 12, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 6 }}
-    >
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
-        <div>
-          <div style={{ fontWeight: 700, fontSize: 14 }}>{school.name}</div>
-          {(school.city || school.state) && <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 2 }}>{[school.city, school.state].filter(Boolean).join(', ')}</div>}
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-          {school.programStrength && (
-            <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 20, background: cfg.color, color: '#fff', whiteSpace: 'nowrap' }}>
-              {school.programStrength}
-            </span>
+    <div className="school-card-perspective" style={{ perspective: 800 }}>
+      <motion.div
+        className={`school-card-flip${tier === 'reach' ? ' school-card-shimmer' : ''}`}
+        initial={{ rotateY: -90, opacity: 0 }}
+        animate={flipped ? { rotateY: 0, opacity: 1 } : { rotateY: -90, opacity: 0 }}
+        transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+        style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, borderRadius: 14, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 6, transformStyle: 'preserve-3d' }}
+      >
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+          {/* Match score ring */}
+          {school.yourChance != null && (
+            <MatchRing chance={school.yourChance} color={cfg.color} />
           )}
-          {/* Add to Dashboard button */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 14 }}>{school.name}</div>
+                {(school.city || school.state) && <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 2 }}>{[school.city, school.state].filter(Boolean).join(', ')}</div>}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                {school.programStrength && (
+                  <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 20, background: cfg.color, color: '#fff', whiteSpace: 'nowrap' }}>
+                    {school.programStrength}
+                  </span>
+                )}
+              </div>
+            </div>
+            {school.yourChance != null && (
+              <div style={{ fontSize: 10, color: 'var(--color-text-muted)', marginTop: 1 }}>Match Score</div>
+            )}
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 2 }}>
+          {school.admitRate != null && <Stat label="Admit Rate" value={`${school.admitRate}%`} />}
+          {school.netCost != null && <Stat label="Net Cost/yr" value={`$${(school.netCost / 1000).toFixed(0)}k`} real={school._dataSources?.scorecard} />}
+          {school.gradRate != null && <Stat label="Grad Rate" value={`${school.gradRate}%`} real />}
+          {school.usNewsRankDisplay && <Stat label="US News" value={school.usNewsRankDisplay} real />}
+          {school.medianEarnings10yr != null && <Stat label="Earnings 10yr" value={`$${(school.medianEarnings10yr / 1000).toFixed(0)}k`} real />}
+        </div>
+        {(school.sat25 && school.sat75 || school.actMidpoint) && (
+          <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 4, display: 'flex', gap: 12 }}>
+            {school.sat25 && school.sat75 && (
+              <span>
+                <span style={{ fontWeight: 600 }}>SAT range:</span> {school.sat25}–{school.sat75}
+                <span className="strat-real-badge">live</span>
+              </span>
+            )}
+            {school.actMidpoint != null && (
+              <span>
+                <span style={{ fontWeight: 600 }}>ACT midpoint:</span> {school.actMidpoint}
+                <span className="strat-real-badge">live</span>
+              </span>
+            )}
+          </div>
+        )}
+        {school.whyFit && (
+          <div style={{ fontSize: 12, color: 'var(--color-text-muted)', fontStyle: 'italic', marginTop: 4, lineHeight: 1.4 }}>
+            &ldquo;{school.whyFit}&rdquo;
+          </div>
+        )}
+        {/* Save to collection */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 2 }}>
           {saved ? (
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#059669', whiteSpace: 'nowrap' }}>✓ Added!</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#059669', whiteSpace: 'nowrap' }}>✓ Collected!</span>
           ) : alreadyAdded ? (
-            <span style={{ fontSize: 11, color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>On dashboard</span>
+            <span style={{ fontSize: 11, color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>In your collection</span>
           ) : (
             <button
               onClick={handleAdd}
               disabled={saving}
-              style={{ fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 8, border: '1.5px solid var(--color-border)', background: 'var(--color-column)', color: 'var(--color-text)', cursor: saving ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap' }}
+              style={{ fontSize: 11, fontWeight: 700, padding: '5px 12px', borderRadius: 8, border: '1.5px solid var(--color-border)', background: 'var(--color-column)', color: 'var(--color-text)', cursor: saving ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap' }}
             >
-              {saving ? 'Adding…' : '+ Add to Dashboard'}
+              {saving ? 'Saving…' : '♥ Save to Collection'}
             </button>
           )}
         </div>
-      </div>
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 2 }}>
-        {school.yourChance != null && <Stat label="Your Chance" value={`${school.yourChance}%`} color={cfg.color} />}
-        {school.admitRate != null && <Stat label="Admit Rate" value={`${school.admitRate}%`} />}
-        {school.netCost != null && <Stat label="Net Cost/yr" value={`$${(school.netCost / 1000).toFixed(0)}k`} real={school._dataSources?.scorecard} />}
-        {school.gradRate != null && <Stat label="Grad Rate" value={`${school.gradRate}%`} real />}
-        {school.usNewsRankDisplay && <Stat label="US News" value={school.usNewsRankDisplay} real />}
-        {school.medianEarnings10yr != null && <Stat label="Earnings 10yr" value={`$${(school.medianEarnings10yr / 1000).toFixed(0)}k`} real />}
-      </div>
-      {(school.sat25 && school.sat75 || school.actMidpoint) && (
-        <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 4, display: 'flex', gap: 12 }}>
-          {school.sat25 && school.sat75 && (
-            <span>
-              <span style={{ fontWeight: 600 }}>SAT range:</span> {school.sat25}–{school.sat75}
-              <span className="strat-real-badge">live</span>
-            </span>
-          )}
-          {school.actMidpoint != null && (
-            <span>
-              <span style={{ fontWeight: 600 }}>ACT midpoint:</span> {school.actMidpoint}
-              <span className="strat-real-badge">live</span>
-            </span>
-          )}
-        </div>
-      )}
-      {school.whyFit && (
-        <div style={{ fontSize: 12, color: 'var(--color-text-muted)', fontStyle: 'italic', marginTop: 4, lineHeight: 1.4 }}>
-          &ldquo;{school.whyFit}&rdquo;
-        </div>
-      )}
-    </motion.div>
+      </motion.div>
+    </div>
   )
 }
 

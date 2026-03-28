@@ -586,6 +586,50 @@ body {
   filter: drop-shadow(0 0 10px rgba(37,99,235,0.2));
 }
 
+/* ── School card: trading-card shimmer for reach tier ────────────────────── */
+@keyframes shimmer-border {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.school-card-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.school-card-shimmer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(252, 165, 165, 0.5) 25%,
+    rgba(251, 191, 36, 0.6) 50%,
+    rgba(252, 165, 165, 0.5) 75%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer-border 3s linear infinite;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+[data-theme="dark"] .school-card-shimmer::before {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(252, 165, 165, 0.35) 25%,
+    rgba(253, 230, 138, 0.45) 50%,
+    rgba(252, 165, 165, 0.35) 75%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer-border 3s linear infinite;
+}
+
 /* ── Strategy empty state ────────────────────────────────────────────────── */
 @keyframes float-bob {
   0%, 100% { transform: translateY(0); }
