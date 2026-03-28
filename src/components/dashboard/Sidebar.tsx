@@ -160,8 +160,8 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
           >
             <span style={{ fontSize: 14 }}>🎁</span>
             <div>
-              <div>Invite Friends</div>
-              <div style={{ fontSize: 10, fontWeight: 400, color: 'var(--color-text-muted)' }}>Share &amp; both get 2 wks free</div>
+              <div>Suggest to a Friend</div>
+              <div style={{ fontSize: 10, fontWeight: 400, color: 'var(--color-text-muted)' }}>Earn 50 XP + 7 days free</div>
             </div>
           </Link>
         )}

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { XP_REWARDS } from '@/hooks/useXp'
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient()
@@ -64,22 +65,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to record referral' }, { status: 500 })
   }
 
-  // Apply bonus to referred friend (current user): extend their trial to 14 days
-  const { error: referredBonusError } = await service
-    .from('subscriptions')
-    .update({
-      trial_end: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-    })
-    .eq('user_id', user.id)
-
-  if (!referredBonusError) {
-    await service
-      .from('referral_completions')
-      .update({ referred_bonus_applied: true })
-      .eq('referred_id', user.id)
-  }
-
-  // Apply bonus to referrer: extend by 14 days based on their current status
+  // Grant referrer 7 extra days based on their current subscription status
   const { data: referrerSub } = await service
     .from('subscriptions')
     .select('status, tier, trial_end, current_period_end, stripe_subscription_id')
@@ -91,23 +77,20 @@ export async function POST(req: NextRequest) {
 
     if (referrerSub.status === 'trialing') {
       const base = referrerSub.trial_end ? new Date(referrerSub.trial_end) : new Date()
-      base.setDate(base.getDate() + 14)
+      base.setDate(base.getDate() + 7)
       referrerUpdate = { trial_end: base.toISOString() }
     } else if (referrerSub.status === 'active') {
-      // TODO (v2): sync Stripe subscription period — for paid subscribers, extend
-      // current_period_end via stripe.subscriptions.update(stripe_subscription_id, { trial_end })
-      // or apply a Stripe credit. For now, only the local DB field is extended.
       const base = referrerSub.current_period_end
         ? new Date(referrerSub.current_period_end)
         : new Date()
-      base.setDate(base.getDate() + 14)
+      base.setDate(base.getDate() + 7)
       referrerUpdate = { current_period_end: base.toISOString() }
     } else {
-      // canceled / free — reactivate with a 14-day trial
+      // canceled / free — reactivate with a 7-day trial
       referrerUpdate = {
         tier: 'pro',
         status: 'trialing',
-        trial_end: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+        trial_end: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       }
     }
 
@@ -124,6 +107,19 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // Grant referrer XP for the referral
+  await service
+    .from('xp_ledger')
+    .upsert(
+      {
+        user_id: referral.referrer_id,
+        action: 'refer_friend',
+        xp: XP_REWARDS.refer_friend,
+        ref_id: user.id,
+      },
+      { onConflict: 'user_id,action,ref_id' },
+    )
+
   // Fetch referrer's first name for the welcome message
   const { data: referrerProfile } = await service
     .from('profiles')
@@ -136,6 +132,5 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({
     success: true,
     referrer_name: referrerFirstName,
-    bonus_days: 14,
   })
 }

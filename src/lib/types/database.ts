@@ -132,6 +132,7 @@ export type XpAction =
   | 'essay_critique'
   | 'add_scholarship'
   | 'add_college'
+  | 'refer_friend'
 
 export interface XpEvent {
   id: string

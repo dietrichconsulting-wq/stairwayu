@@ -335,13 +335,13 @@ export function ProfilePageClient({ userId }: { userId: string }) {
         </button>
       </div>
 
-      {/* Refer a Friend */}
+      {/* Suggest to a Friend */}
       <div id="referrals" className="card-elevated" style={{ padding: '28px 28px 32px', marginBottom: 24 }}>
         <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span>🎁</span> Invite Friends
+          <span>🎁</span> Suggest to a Friend
         </h2>
         <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 20 }}>
-          You both get 2 extra weeks free.
+          Earn <strong>50 XP</strong> and <strong>7 extra days free</strong> for every friend who signs up.
         </p>
 
         {referralLoading ? (
@@ -381,7 +381,7 @@ export function ProfilePageClient({ userId }: { userId: string }) {
                   onClick={() => {
                     navigator.share?.({
                       title: 'Stairway U',
-                      text: `I'm using Stairway U to plan my college apps — try it free for 2 weeks with my link: ${referralLink}`,
+                      text: `I'm using Stairway U to plan my college apps — check it out: ${referralLink}`,
                       url: referralLink,
                     }).catch(() => {})
                   }}
@@ -398,8 +398,8 @@ export function ProfilePageClient({ userId }: { userId: string }) {
             </div>
             <p style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
               {referralCount === 0
-                ? 'Know someone who needs this? Share the link and help them out.'
-                : `You've referred ${referralCount} friend${referralCount === 1 ? '' : 's'} 🎉`}
+                ? 'Know someone applying to college? Share the link and earn XP.'
+                : `You've referred ${referralCount} friend${referralCount === 1 ? '' : 's'} — ${referralCount * 50} XP earned 🎉`}
             </p>
           </>
         ) : (

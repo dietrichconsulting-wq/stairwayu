@@ -11,6 +11,7 @@ export const XP_REWARDS: Record<XpAction, number> = {
   essay_critique: 25,
   add_scholarship: 15,
   add_college: 10,
+  refer_friend: 50,
 }
 
 // ── Level thresholds ──

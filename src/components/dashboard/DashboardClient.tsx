@@ -65,7 +65,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
       .then(r => r.ok ? r.json() : null)
       .then(data => {
         if (data?.success && !data?.already_fulfilled) {
-          setReferralToast(`🎉 Welcome! You got 14 days free, thanks to ${data.referrer_name}'s invite.`)
+          setReferralToast(`🎉 Welcome! You were invited by ${data.referrer_name}.`)
           try { localStorage.removeItem('stairwayu_ref') } catch {}
           setTimeout(() => setReferralToast(null), 6000)
         } else if (data?.success) {

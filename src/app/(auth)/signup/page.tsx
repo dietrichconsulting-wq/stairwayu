@@ -84,7 +84,7 @@ export default function SignupPage() {
             gap: 8,
           }}>
             <span style={{ fontSize: 16 }}>🎉</span>
-            <span>You were invited! You&apos;ll get a <strong>14-day free trial</strong> (instead of 7).</span>
+            <span>You were invited by a friend! Welcome to Stairway U.</span>
           </div>
         )}
 
