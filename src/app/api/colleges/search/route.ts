@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { searchSchema, parseBody } from '@/lib/validations'
 
 const FIELDS = 'id,school.name,school.city,school.state,latest.cost.attendance.academic_year,latest.cost.tuition.in_state,latest.cost.tuition.out_of_state,latest.student.size'
 
@@ -74,8 +75,9 @@ const BOOST_IDS: Record<string, number[]> = {
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
-  const q = searchParams.get('q')
-  if (!q || q.length < 2) return NextResponse.json([])
+  const parsed = parseBody(searchSchema, Object.fromEntries(searchParams.entries()))
+  if ('error' in parsed) return NextResponse.json([])
+  const q = parsed.data.q
 
   const key = process.env.COLLEGE_SCORECARD_API_KEY
   const base = 'https://api.data.gov/ed/collegescorecard/v1/schools'

@@ -1,12 +1,15 @@
 import { NextResponse } from 'next/server'
 import { computeChances } from '@/lib/services/admissionChance'
+import { chancesSchema, parseBody } from '@/lib/validations'
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json()
-    const { gpa, gpa_weighted, sat, act, proposed_major, schools } = body
+    const raw = await req.json()
+    const parsed = parseBody(chancesSchema, raw)
+    if ('error' in parsed) return parsed.error
+    const { gpa, gpa_weighted, sat, act, proposed_major, schools } = parsed.data
 
-    if (!schools || schools.length === 0) {
+    if (schools.length === 0) {
       return NextResponse.json({ results: [] })
     }
 

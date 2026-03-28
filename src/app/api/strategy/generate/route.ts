@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { generateStrategy } from '@/lib/services/collegeStrategy'
 import { requirePro } from '@/lib/subscription'
 import { checkAiRateLimit } from '@/lib/rateLimit'
+import { strategySchema, parseBody } from '@/lib/validations'
 
 export async function POST(req: Request) {
   try {
@@ -24,8 +25,10 @@ export async function POST(req: Request) {
     const rateLimited = await checkAiRateLimit(user.id)
     if (rateLimited) return rateLimited
 
-    const body = await req.json()
-    const result = await generateStrategy(body)
+    const raw = await req.json()
+    const parsed = parseBody(strategySchema, raw)
+    if ('error' in parsed) return parsed.error
+    const result = await generateStrategy(parsed.data as Parameters<typeof generateStrategy>[0])
 
     // Persist so it survives logout/login
     await supabase.from('profiles').update({

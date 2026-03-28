@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { checkAiRateLimit } from '@/lib/rateLimit'
 import { sShort, sMedium, sNum, userBlock } from '@/lib/promptSanitize'
+import { brainstormSchema, parseBody } from '@/lib/validations'
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
@@ -28,8 +29,11 @@ export async function POST(req: Request) {
     const rateLimited = await checkAiRateLimit(user.id)
     if (rateLimited) return rateLimited
 
-    const body = await req.json()
-    const { action, school: rawSchool, essayType: rawEssayType, major: rawMajor, gpa, gpa_weighted, sat, answers } = body
+    const raw = await req.json()
+    const parsed = parseBody(brainstormSchema, raw)
+    if ('error' in parsed) return parsed.error
+    const { action, school: rawSchool, essayType: rawEssayType, major: rawMajor, gpa, gpa_weighted, sat } = parsed.data
+    const answers = 'answers' in parsed.data ? parsed.data.answers : undefined
 
     // Sanitize user-supplied strings
     const school = sShort(rawSchool)

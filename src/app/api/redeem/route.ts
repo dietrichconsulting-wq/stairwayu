@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { redeemSchema, parseBody } from '@/lib/validations'
 
 const VALID_CODES: Record<string, { days: number; repeatable?: boolean }> = {
   'stairway tester': { days: 7 },
@@ -12,8 +13,10 @@ export async function POST(req: Request) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
 
-  const { code } = await req.json()
-  const normalized = (code ?? '').trim().toLowerCase()
+  const raw = await req.json()
+  const parsed = parseBody(redeemSchema, raw)
+  if ('error' in parsed) return parsed.error
+  const normalized = parsed.data.code.trim().toLowerCase()
   const promo = VALID_CODES[normalized]
 
   if (!promo) {

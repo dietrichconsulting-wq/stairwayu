@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { checkAiRateLimit } from '@/lib/rateLimit'
 import { sShort, sLong, sNum, userBlock } from '@/lib/promptSanitize'
+import { critiqueSchema, parseBody } from '@/lib/validations'
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
@@ -28,11 +29,10 @@ export async function POST(req: Request) {
     const rateLimited = await checkAiRateLimit(user.id)
     if (rateLimited) return rateLimited
 
-    const { school: rawSchool, essayType: rawEssayType, major: rawMajor, gpa, gpa_weighted, sat, draft: rawDraft } = await req.json()
-
-    if (!rawDraft || String(rawDraft).trim().length < 50) {
-      return NextResponse.json({ error: 'Draft is too short to critique.' }, { status: 400 })
-    }
+    const raw = await req.json()
+    const parsed = parseBody(critiqueSchema, raw)
+    if ('error' in parsed) return parsed.error
+    const { school: rawSchool, essayType: rawEssayType, major: rawMajor, gpa, gpa_weighted, sat, draft: rawDraft } = parsed.data
 
     // Sanitize
     const school = sShort(rawSchool)

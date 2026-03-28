@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { requirePro } from '@/lib/subscription'
 import { findScholarships } from '@/lib/services/scholarshipFinder'
 import { checkAiRateLimit } from '@/lib/rateLimit'
+import { scholarshipsSchema, parseBody } from '@/lib/validations'
 
 export async function POST(req: Request) {
   try {
@@ -24,8 +25,10 @@ export async function POST(req: Request) {
         const rateLimited = await checkAiRateLimit(user.id)
         if (rateLimited) return rateLimited
 
-    const body = await req.json()
-    const results = await findScholarships(body)
+    const raw = await req.json()
+    const parsed = parseBody(scholarshipsSchema, raw)
+    if ('error' in parsed) return parsed.error
+    const results = await findScholarships(parsed.data)
     return NextResponse.json(results)
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown error'

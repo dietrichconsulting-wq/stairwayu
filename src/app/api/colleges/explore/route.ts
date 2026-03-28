@@ -1,7 +1,7 @@
-// @ts-nocheck
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { mapRichResult, RICH_FIELDS } from '@/lib/services/collegeScorecard'
+import { exploreSchema, parseBody } from '@/lib/validations'
 
 const BASE_URL = 'https://api.data.gov/ed/collegescorecard/v1/schools.json'
 const API_KEY = process.env.COLLEGE_SCORECARD_API_KEY
@@ -19,13 +19,10 @@ export async function GET(req: Request) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { searchParams } = new URL(req.url)
-  const satMin = searchParams.get('satMin')
-  const satMax = searchParams.get('satMax')
-  const regions = searchParams.get('regions') // comma-separated region IDs
-  const page = parseInt(searchParams.get('page') || '0')
-  const perPage = Math.min(parseInt(searchParams.get('perPage') || '30'), 60)
-  const sort = searchParams.get('sort') || 'sat'
-  const sortDir = searchParams.get('sortDir') || 'desc'
+  const rawParams = Object.fromEntries(searchParams.entries())
+  const parsed = parseBody(exploreSchema, rawParams)
+  if ('error' in parsed) return parsed.error
+  const { satMin, satMax, regions, page, perPage, sort, sortDir } = parsed.data
 
   if (!API_KEY) return NextResponse.json({ error: 'API key not configured' }, { status: 500 })
 
@@ -40,8 +37,8 @@ export async function GET(req: Request) {
 
   // SAT range filter
   if (satMin || satMax) {
-    const min = satMin || '400'
-    const max = satMax || '1600'
+    const min = satMin ?? 400
+    const max = satMax ?? 1600
     params.set('latest.admissions.sat_scores.average.overall__range', `${min}..${max}`)
   }
 

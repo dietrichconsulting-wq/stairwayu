@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { referralFulfillSchema, parseBody } from '@/lib/validations'
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient()
@@ -20,9 +21,11 @@ export async function POST(req: NextRequest) {
   }
 
   // Get referral code: prefer user metadata, fall back to request body
-  const body = await req.json().catch(() => ({}))
+  const raw = await req.json().catch(() => ({}))
+  const parsed = parseBody(referralFulfillSchema, raw)
+  if ('error' in parsed) return parsed.error
   const metaCode = user.user_metadata?.referral_code as string | undefined
-  const code: string | undefined = metaCode || body.code
+  const code: string | undefined = metaCode || parsed.data.code
 
   if (!code) {
     return NextResponse.json({ error: 'No referral code' }, { status: 400 })

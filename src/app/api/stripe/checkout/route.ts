@@ -17,6 +17,7 @@
 import { NextResponse } from 'next/server'
 import { getStripe } from '@/lib/stripe/client'
 import { createClient } from '@/lib/supabase/server'
+import { checkoutSchema, parseBody } from '@/lib/validations'
 
 export async function POST(req: Request) {
   try {
@@ -25,8 +26,10 @@ export async function POST(req: Request) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const body = await req.json().catch(() => ({}))
-    const plan = body.plan === 'annual' ? 'annual' : 'monthly'
+    const raw = await req.json().catch(() => ({}))
+    const parsed = parseBody(checkoutSchema, raw)
+    if ('error' in parsed) return parsed.error
+    const { plan } = parsed.data
 
     // Get or create Stripe customer
     const { data: subscription } = await supabase
