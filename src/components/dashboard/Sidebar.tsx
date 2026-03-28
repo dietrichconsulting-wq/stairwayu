@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import type { Profile, Subscription } from '@/lib/types/database'
 import type { User } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/client'
@@ -53,6 +53,38 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
       document.body.style.overflow = ''
     }
   }, [mobileOpen])
+
+  // Swipe-to-close for mobile drawer
+  const touchStartX = useRef(0)
+  const touchCurrentX = useRef(0)
+  const drawerRef = useRef<HTMLElement>(null)
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX
+    touchCurrentX.current = e.touches[0].clientX
+  }, [])
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    touchCurrentX.current = e.touches[0].clientX
+    const delta = touchCurrentX.current - touchStartX.current
+    // Only allow dragging left (negative delta)
+    if (delta < 0 && drawerRef.current) {
+      drawerRef.current.style.transform = `translateX(${delta}px)`
+      drawerRef.current.style.transition = 'none'
+    }
+  }, [])
+
+  const handleTouchEnd = useCallback(() => {
+    const delta = touchCurrentX.current - touchStartX.current
+    if (drawerRef.current) {
+      drawerRef.current.style.transform = ''
+      drawerRef.current.style.transition = ''
+    }
+    // Close if swiped left more than 80px
+    if (delta < -80) {
+      setMobileOpen(false)
+    }
+  }, [])
 
   async function handleSignOut() {
     await supabase.auth.signOut()
@@ -185,11 +217,15 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
             />
             {/* Drawer */}
             <motion.nav
+              ref={drawerRef}
               className="sidebar sidebar--mobile"
               initial={{ x: '-100%' }}
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'spring', stiffness: 350, damping: 35 }}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
             >
               {navContent}
             </motion.nav>
