@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import { getDailyChallenges, type ChallengeDefinition } from '@/lib/challenges'
-import { XP_REWARDS } from './useXp'
 
 function todayStr() {
   return new Date().toISOString().slice(0, 10)
@@ -40,10 +39,10 @@ export function useDailyChallenges(userId: string) {
       if (compError) throw compError
 
       // Award XP (deduped by challenge_key + date)
-      await supabase.from('xp_ledger').upsert(
-        { user_id: userId, action: 'complete_challenge' as const, xp: XP_REWARDS.complete_challenge, ref_id: `${challengeKey}_${today}` },
-        { onConflict: 'user_id,action,ref_id' },
-      )
+      await supabase.rpc('record_xp', {
+        p_action: 'complete_challenge',
+        p_ref_id: `${challengeKey}_${today}`,
+      })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['challenge_completions', userId, today] })

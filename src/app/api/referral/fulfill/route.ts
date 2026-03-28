@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
-import { XP_REWARDS } from '@/hooks/useXp'
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient()
@@ -149,14 +148,15 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Grant referrer XP for the referral
+  // Grant referrer XP for the referral (service client bypasses RLS,
+  // so we still do a direct upsert here — XP amount is server-controlled)
   await service
     .from('xp_ledger')
     .upsert(
       {
         user_id: referral.referrer_id,
         action: 'refer_friend',
-        xp: XP_REWARDS.refer_friend,
+        xp: 50,
         ref_id: user.id,
       },
       { onConflict: 'user_id,action,ref_id' },

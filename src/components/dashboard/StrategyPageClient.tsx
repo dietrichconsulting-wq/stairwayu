@@ -200,7 +200,7 @@ export function StrategyPageClient({ profile, colleges, userId }: StrategyPageCl
       const data = await res.json()
       setResult(data)
       setFreshResult(true)
-      recordXp.mutate({ action: 'generate_strategy' })
+      recordXp.mutate({ action: 'generate_strategy', refId: `strategy_${userId}` })
       // Celebrate first-ever strategy generation with a big confetti burst
       if (isFirstGeneration.current) {
         isFirstGeneration.current = false

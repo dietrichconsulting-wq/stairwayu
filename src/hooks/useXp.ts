@@ -92,14 +92,11 @@ export function useRecordXp(userId: string) {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ action, refId }: { action: XpAction; refId?: string }) => {
-      const xp = XP_REWARDS[action]
-      const { error } = await supabase
-        .from('xp_ledger')
-        .upsert(
-          { user_id: userId, action, xp, ref_id: refId ?? null },
-          { onConflict: 'user_id,action,ref_id' },
-        )
+    mutationFn: async ({ action, refId }: { action: XpAction; refId: string }) => {
+      const { error } = await supabase.rpc('record_xp', {
+        p_action: action,
+        p_ref_id: refId,
+      })
       if (error) throw error
     },
     onSuccess: () => {

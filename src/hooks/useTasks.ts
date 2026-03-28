@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import type { Task, TaskStatus } from '@/lib/types/database'
-import { XP_REWARDS } from './useXp'
 
 export function useTasks(userId: string) {
   const supabase = createClient()
@@ -40,10 +39,7 @@ export function useUpdateTaskStatus(userId: string) {
 
       // Award XP for completing a task (deduped by ref_id)
       if (status === 'Done') {
-        await supabase.from('xp_ledger').upsert(
-          { user_id: userId, action: 'complete_task', xp: XP_REWARDS.complete_task, ref_id: taskId },
-          { onConflict: 'user_id,action,ref_id' },
-        )
+        await supabase.rpc('record_xp', { p_action: 'complete_task', p_ref_id: taskId })
       }
 
       return data
