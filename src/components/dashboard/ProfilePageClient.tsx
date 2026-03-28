@@ -9,6 +9,7 @@ import { MajorSelect } from '@/components/MajorSelect'
 import { CollegeSelect } from '@/components/CollegeSelect'
 import { createClient } from '@/lib/supabase/client'
 import type { UserCollege } from '@/lib/types/database'
+import { useAchievements } from '@/hooks/useAchievements'
 
 const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY']
 
@@ -22,6 +23,7 @@ export function ProfilePageClient({ userId }: { userId: string }) {
   const updateProfile = useUpdateProfile(userId)
   const seedTasks = useSeedTasks(userId)
   const [saved, setSaved] = useState(false)
+  const { earned, locked, total: achievementTotal } = useAchievements(userId)
 
   const [form, setForm] = useState({
     display_name: '', gpa: '', gpa_weighted: '', sat: '', act_score: '', proposed_major: '', home_state: '',
@@ -199,6 +201,51 @@ export function ProfilePageClient({ userId }: { userId: string }) {
             <label style={labelStyle}>Intended Major</label>
             <MajorSelect value={form.proposed_major} onChange={v => setForm(f => ({ ...f, proposed_major: v }))} />
           </div>
+        </div>
+      </div>
+
+      {/* Achievements */}
+      <div className="card-elevated" style={{ padding: '28px 28px 32px', marginBottom: 24 }}>
+        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Achievements</h2>
+        <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 20 }}>
+          {earned.length} of {achievementTotal} unlocked
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10 }}>
+          {earned.map(a => (
+            <motion.div
+              key={a.key}
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              style={{
+                background: 'color-mix(in srgb, var(--color-primary) 8%, var(--color-column))',
+                border: '1.5px solid color-mix(in srgb, var(--color-primary) 25%, var(--color-border))',
+                borderRadius: 12,
+                padding: '14px 12px',
+                textAlign: 'center',
+              }}
+            >
+              <div style={{ fontSize: 28, lineHeight: 1, marginBottom: 6 }}>{a.emoji}</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{a.label}</div>
+              <div style={{ fontSize: 10, color: 'var(--color-text-muted)', marginTop: 2, lineHeight: 1.3 }}>{a.description}</div>
+            </motion.div>
+          ))}
+          {locked.map(a => (
+            <div
+              key={a.key}
+              style={{
+                background: 'var(--color-column)',
+                border: '1.5px solid var(--color-border)',
+                borderRadius: 12,
+                padding: '14px 12px',
+                textAlign: 'center',
+                opacity: 0.45,
+              }}
+            >
+              <div style={{ fontSize: 28, lineHeight: 1, marginBottom: 6, filter: 'grayscale(1)' }}>{a.emoji}</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-muted)' }}>{a.label}</div>
+              <div style={{ fontSize: 10, color: 'var(--color-text-muted)', marginTop: 2, lineHeight: 1.3 }}>{a.description}</div>
+            </div>
+          ))}
         </div>
       </div>
 

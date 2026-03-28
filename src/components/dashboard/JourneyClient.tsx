@@ -1,8 +1,10 @@
 'use client'
 
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useMilestones, useMarkMilestone, type MilestoneRecord } from '@/hooks/useMilestones'
 import { MILESTONES } from '@/lib/milestones'
+import { PhaseUnlockOverlay } from './PhaseUnlockOverlay'
 
 const isDark = () => document.documentElement.getAttribute('data-theme') === 'dark'
 const getPhases = () => isDark() ? [
@@ -20,10 +22,44 @@ const getPhases = () => isDark() ? [
 export function JourneyClient({ userId }: { userId: string }) {
   const milestonesQuery = useMilestones(userId)
   const milestones: MilestoneRecord[] = milestonesQuery.data ?? []
-  const markMilestone = useMarkMilestone(userId)
+  const markMilestoneMutation = useMarkMilestone(userId)
+
+  const [unlockedPhase, setUnlockedPhase] = useState<string | null>(null)
+  const dismissOverlay = useCallback(() => setUnlockedPhase(null), [])
+
+  // Track previous reached count to detect new completions
+  const prevReachedRef = useRef<Set<string> | null>(null)
 
   const milestoneKeys = milestones.map(m => m.milestone_key)
   const reached = new Set(milestoneKeys)
+
+  // Detect phase completion on milestone changes
+  useEffect(() => {
+    if (!prevReachedRef.current) {
+      prevReachedRef.current = new Set(reached)
+      return
+    }
+    const prev = prevReachedRef.current
+    // Check if any phase just became fully complete
+    const PHASES = ['Prep', 'Research', 'Apply', 'Final']
+    for (const phase of PHASES) {
+      const phaseItems = MILESTONES.filter(m => m.phase === phase)
+      const wasComplete = phaseItems.every(m => prev.has(m.key))
+      const isComplete = phaseItems.every(m => reached.has(m.key))
+      if (!wasComplete && isComplete) {
+        setUnlockedPhase(phase)
+        break
+      }
+    }
+    prevReachedRef.current = new Set(reached)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [milestoneKeys.join(',')])
+
+  // Wrap markMilestone to use the mutation
+  const markMilestone = {
+    ...markMilestoneMutation,
+    mutate: markMilestoneMutation.mutate,
+  }
   const firstUnreached = MILESTONES.findIndex(m => !reached.has(m.key))
   const pct = Math.round((reached.size / MILESTONES.length) * 100)
 
@@ -37,6 +73,7 @@ export function JourneyClient({ userId }: { userId: string }) {
 
   return (
     <div className="journey-layout" style={{ display: 'flex', gap: 36, alignItems: 'flex-start' }}>
+      <PhaseUnlockOverlay phase={unlockedPhase} onDismiss={dismissOverlay} />
 
       {/* ── Left: milestone list ── */}
       <div className="journey-layout__list" style={{ flex: '0 0 400px', minWidth: 0 }}>

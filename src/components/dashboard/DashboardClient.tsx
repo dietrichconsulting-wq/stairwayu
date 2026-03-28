@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useProfile } from '@/hooks/useProfile'
 import { useUserColleges } from '@/hooks/useUserColleges'
 import { useTasks } from '@/hooks/useTasks'
@@ -14,6 +14,7 @@ import { useUpdateProfile } from '@/hooks/useProfile'
 import { useStreak } from '@/hooks/useStreak'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
+import { showToast } from '@/components/CelebrationToast'
 
 interface DashboardClientProps {
   userId: string
@@ -76,6 +77,32 @@ export function DashboardClient({ userId }: DashboardClientProps) {
   // Only run once on mount — intentionally omitting profile from deps
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // ── Progress toasts (once per session per threshold) ──
+  const progressToastFired = useRef(new Set<number>())
+  const milestonePct = useMemo(() => {
+    if (milestonesQuery.isLoading) return null
+    return Math.round((reachedKeys.size / MILESTONES.length) * 100)
+  }, [reachedKeys.size, milestonesQuery.isLoading])
+
+  useEffect(() => {
+    if (scoreLoading || milestonePct === null) return
+    const thresholds = [
+      { score: 25, msg: "You're 25% ready — great start! Keep the momentum going.", emoji: '🌱' },
+      { score: 40, msg: "40% readiness — you're ahead of most students at this stage!", emoji: '📈' },
+      { score: 60, msg: "60% through your journey — further than most students get!", emoji: '🔥' },
+      { score: 75, msg: "75% ready — the finish line is in sight!", emoji: '🚀' },
+      { score: 90, msg: "90% readiness — you're almost fully prepared!", emoji: '🌟' },
+    ]
+    for (const t of thresholds) {
+      if (readinessTotal >= t.score && !progressToastFired.current.has(t.score)) {
+        progressToastFired.current.add(t.score)
+        // Delay so it doesn't compete with page load animations
+        setTimeout(() => showToast({ message: t.msg, emoji: t.emoji, duration: 5000 }), 1500)
+        break // Only show one toast per load
+      }
+    }
+  }, [readinessTotal, scoreLoading, milestonePct])
 
   // Journey ring helpers
   const ringSize = 120

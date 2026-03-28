@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MajorSelect } from '@/components/MajorSelect'
 import { useRecordXp } from '@/hooks/useXp'
+import confetti from 'canvas-confetti'
 
 const CLIMATE_OPTIONS = [
   '', 'Mountains', 'Beach / Coastal', 'Sunny / Southwest',
@@ -79,6 +80,7 @@ export function StrategyPageClient({ profile, colleges, userId }: StrategyPageCl
   const [error, setError] = useState('')
   const [formOpen, setFormOpen] = useState(true)
   const resultsRef = useRef<HTMLDivElement>(null)
+  const isFirstGeneration = useRef(!profile?.strategy_generated_at)
 
   const isMobile = useCallback(() => window.matchMedia('(max-width: 768px)').matches, [])
 
@@ -103,6 +105,18 @@ export function StrategyPageClient({ profile, colleges, userId }: StrategyPageCl
       const data = await res.json()
       setResult(data)
       recordXp.mutate({ action: 'generate_strategy' })
+      // Celebrate first-ever strategy generation with a big confetti burst
+      if (isFirstGeneration.current) {
+        isFirstGeneration.current = false
+        const end = Date.now() + 1500
+        const colors = ['#5EEAD4', '#FCD34D', '#86EFAC', '#FCA5A5', '#7DD3FC']
+        const frame = () => {
+          confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0, y: 0.7 }, colors })
+          confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1, y: 0.7 }, colors })
+          if (Date.now() < end) requestAnimationFrame(frame)
+        }
+        frame()
+      }
       if (isMobile()) {
         setFormOpen(false)
         setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)

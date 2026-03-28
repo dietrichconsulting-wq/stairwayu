@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'
 import { Sidebar } from '@/components/dashboard/Sidebar'
 import { TrialBanner } from '@/components/dashboard/TrialBanner'
 import { AuthHashHandler } from '@/components/dashboard/AuthHashHandler'
+import { CelebrationToastContainer } from '@/components/CelebrationToast'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -48,6 +49,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <AuthHashHandler />
         <TrialBanner status={subscription?.status ?? null} trialEnd={subscription?.trial_end ?? null} tier={subscription?.tier ?? null} />
         {children}
+        <CelebrationToastContainer />
       </main>
     </div>
   )
