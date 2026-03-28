@@ -127,9 +127,15 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
 
       <div className="sidebar__nav">
         {NAV_ITEMS.map(item => {
+          const tourAttr: Record<string, string> = {
+            '/journey': 'nav-journey',
+            '/strategy': 'nav-strategy',
+            '/essays': 'nav-essays',
+            '/scholarships': 'nav-scholarships',
+          }
           const active = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
           return (
-            <Link key={item.href} href={item.href} className={`sidebar__nav-item ${active ? 'sidebar__nav-item--active' : ''}`}>
+            <Link key={item.href} href={item.href} className={`sidebar__nav-item ${active ? 'sidebar__nav-item--active' : ''}`} data-tour={tourAttr[item.href]}>
               {active && (
                 <motion.div
                   layoutId="sidebar-active-bg"

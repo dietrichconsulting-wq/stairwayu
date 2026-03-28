@@ -25,6 +25,7 @@ export interface Profile {
   extracurriculars: string | null
   career_interests: string | null
   onboarding_complete: boolean
+  walkthrough_complete: boolean
   created_at: string
   updated_at: string
 }

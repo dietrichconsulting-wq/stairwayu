@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useProfile } from '@/hooks/useProfile'
 import { useUserColleges } from '@/hooks/useUserColleges'
 import { useTasks } from '@/hooks/useTasks'
@@ -15,6 +15,7 @@ import { useStreak } from '@/hooks/useStreak'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { showToast } from '@/components/CelebrationToast'
+import { WelcomeTour } from './WelcomeTour'
 
 interface DashboardClientProps {
   userId: string
@@ -39,6 +40,21 @@ export function DashboardClient({ userId }: DashboardClientProps) {
     if (score <= 85) return "You're crushing it — almost everything is dialed in."
     return "You're basically ready to hit submit. Let's go. 🎯"
   }
+
+  // ── Welcome tour ──
+  const [showTour, setShowTour] = useState(false)
+
+  useEffect(() => {
+    if (!profileLoading && profile && profile.onboarding_complete && !profile.walkthrough_complete) {
+      const timer = setTimeout(() => setShowTour(true), 1500)
+      return () => clearTimeout(timer)
+    }
+  }, [profileLoading, profile])
+
+  const handleTourComplete = useCallback(() => {
+    setShowTour(false)
+    updateProfile.mutate({ walkthrough_complete: true })
+  }, [updateProfile])
 
   const [referralToast, setReferralToast] = useState<string | null>(null)
   const fulfillAttempted = useRef(false)
@@ -195,7 +211,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
       {milestonesQuery.isLoading ? (
         <div className="skeleton" style={{ height: 68, borderRadius: 14, marginBottom: 20 }} />
       ) : (
-        <Link href="/journey" style={{ textDecoration: 'none', display: 'block', marginBottom: 20 }}>
+        <Link href="/journey" data-tour="whats-next" style={{ textDecoration: 'none', display: 'block', marginBottom: 20 }}>
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -258,6 +274,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
           className="card-elevated journey-progress-card"
+          data-tour="readiness-score"
           style={{ padding: '24px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}
         >
           <h2 style={{ fontSize: 15, fontWeight: 800, color: 'var(--color-text)', margin: 0, alignSelf: 'flex-start' }}>
@@ -351,7 +368,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
       </div>
 
       {/* ── Section 3: Quick Actions ── */}
-      <div style={{
+      <div data-tour="quick-actions" style={{
         display: 'flex',
         gap: 12,
         marginTop: 20,
@@ -397,6 +414,9 @@ export function DashboardClient({ userId }: DashboardClientProps) {
       <div style={{ marginTop: 20 }}>
         <TaskList tasks={tasks} loading={tasksLoading} userId={userId} collapsedMax={5} />
       </div>
+
+      {/* ── Welcome tour (fires once after onboarding) ── */}
+      {showTour && <WelcomeTour onComplete={handleTourComplete} />}
     </div>
   )
 }
