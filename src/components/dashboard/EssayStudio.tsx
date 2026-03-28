@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useRecordXp } from '@/hooks/useXp'
 
 const ESSAY_TYPES = [
   'Common App Personal Statement',
@@ -24,6 +25,7 @@ interface Profile {
 interface EssayStudioProps {
   profile: Profile | null
   colleges: string[] // college names from user_colleges
+  userId: string
 }
 
 type Tab = 'brainstorm' | 'critique'
@@ -54,7 +56,8 @@ interface Critique {
   schoolFit: string
 }
 
-export function EssayStudio({ profile, colleges }: EssayStudioProps) {
+export function EssayStudio({ profile, colleges, userId }: EssayStudioProps) {
+  const recordXp = useRecordXp(userId)
   const [tab, setTab] = useState<Tab>('brainstorm')
 
   const schools = colleges
@@ -92,11 +95,11 @@ export function EssayStudio({ profile, colleges }: EssayStudioProps) {
       <AnimatePresence mode="wait">
         {tab === 'brainstorm' ? (
           <motion.div key="brainstorm" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-            <BrainstormTab schools={schools} profile={profile} />
+            <BrainstormTab schools={schools} profile={profile} onXp={(action, refId) => recordXp.mutate({ action, refId })} />
           </motion.div>
         ) : (
           <motion.div key="critique" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-            <CritiqueTab schools={schools} profile={profile} />
+            <CritiqueTab schools={schools} profile={profile} onXp={(action, refId) => recordXp.mutate({ action, refId })} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -106,7 +109,7 @@ export function EssayStudio({ profile, colleges }: EssayStudioProps) {
 
 // ─── Brainstorm Tab ───────────────────────────────────────────────────────────
 
-function BrainstormTab({ schools, profile }: { schools: string[]; profile: Profile | null }) {
+function BrainstormTab({ schools, profile, onXp }: { schools: string[]; profile: Profile | null; onXp: (action: 'essay_brainstorm', refId: string) => void }) {
   const [school, setSchool] = useState(schools[0] || '')
   const [essayType, setEssayType] = useState(ESSAY_TYPES[0])
   const [step, setStep] = useState<BrainstormStep>('setup')
@@ -170,6 +173,7 @@ function BrainstormTab({ schools, profile }: { schools: string[]; profile: Profi
       const data = await res.json()
       setPrompts(data.prompts)
       setStep('prompts')
+      onXp('essay_brainstorm', `${school}:${essayType}`)
     } catch {
       setError('Failed to generate prompts. Try again.')
     } finally {
@@ -309,7 +313,7 @@ function BrainstormTab({ schools, profile }: { schools: string[]; profile: Profi
 
 // ─── Critique Tab ─────────────────────────────────────────────────────────────
 
-function CritiqueTab({ schools, profile }: { schools: string[]; profile: Profile | null }) {
+function CritiqueTab({ schools, profile, onXp }: { schools: string[]; profile: Profile | null; onXp: (action: 'essay_critique', refId: string) => void }) {
   const [school, setSchool] = useState(schools[0] || '')
   const [essayType, setEssayType] = useState(ESSAY_TYPES[0])
   const [draft, setDraft] = useState('')
@@ -344,6 +348,7 @@ function CritiqueTab({ schools, profile }: { schools: string[]; profile: Profile
       const data = await res.json()
       setCritique(data.critique)
       setWordCount(data.wordCount)
+      onXp('essay_critique', `${school}:${essayType}`)
     } catch {
       setError('Failed to critique essay. Try again.')
     } finally {

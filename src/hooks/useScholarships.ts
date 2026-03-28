@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import type { Scholarship, ScholarshipStage } from '@/lib/types/database'
+import { XP_REWARDS } from './useXp'
 
 export function useScholarships(userId: string) {
   const supabase = createClient()
@@ -30,9 +31,19 @@ export function useCreateScholarship(userId: string) {
         .select()
         .single()
       if (error) throw error
+
+      // Award XP for adding a scholarship (deduped by id)
+      await supabase.from('xp_ledger').upsert(
+        { user_id: userId, action: 'add_scholarship', xp: XP_REWARDS.add_scholarship, ref_id: data.id },
+        { onConflict: 'user_id,action,ref_id' },
+      )
+
       return data
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['scholarships', userId] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['scholarships', userId] })
+      queryClient.invalidateQueries({ queryKey: ['xp', userId] })
+    },
   })
 }
 

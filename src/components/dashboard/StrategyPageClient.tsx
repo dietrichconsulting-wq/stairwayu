@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MajorSelect } from '@/components/MajorSelect'
+import { useRecordXp } from '@/hooks/useXp'
 
 const CLIMATE_OPTIONS = [
   '', 'Mountains', 'Beach / Coastal', 'Sunny / Southwest',
@@ -62,6 +63,7 @@ interface StrategyPageClientProps {
 }
 
 export function StrategyPageClient({ profile, colleges, userId }: StrategyPageClientProps) {
+  const recordXp = useRecordXp(userId)
   const [collegeNames, setCollegeNames] = useState<string[]>(colleges)
   const [form, setForm] = useState({
     gpa: profile?.gpa?.toString() ?? '',
@@ -100,6 +102,7 @@ export function StrategyPageClient({ profile, colleges, userId }: StrategyPageCl
       }
       const data = await res.json()
       setResult(data)
+      recordXp.mutate({ action: 'generate_strategy' })
       if (isMobile()) {
         setFormOpen(false)
         setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)

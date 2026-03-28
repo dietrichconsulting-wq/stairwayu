@@ -23,5 +23,5 @@ export default async function EssaysPage() {
 
   const collegeNames = (colleges ?? []).map((c: { college_name: string }) => c.college_name)
 
-  return <EssayStudio profile={profile} colleges={collegeNames} />
+  return <EssayStudio profile={profile} colleges={collegeNames} userId={user.id} />
 }

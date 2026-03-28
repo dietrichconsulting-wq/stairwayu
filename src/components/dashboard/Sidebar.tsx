@@ -8,6 +8,7 @@ import type { Profile, Subscription } from '@/lib/types/database'
 import type { User } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { useXp } from '@/hooks/useXp'
 
 const NAV_ITEMS = [
   { href: '/dashboard',      icon: '⊞',  label: 'Dashboard' },
@@ -27,11 +28,25 @@ interface SidebarProps {
   subscription: Pick<Subscription, 'tier' | 'status' | 'billing_interval'> | null
 }
 
+const LEVEL_COLORS = [
+  '#94A3B8', // Lv 1 – slate
+  '#94A3B8', // Lv 2 – slate
+  '#38BDF8', // Lv 3 – sky
+  '#38BDF8', // Lv 4 – sky
+  '#A78BFA', // Lv 5 – violet
+  '#A78BFA', // Lv 6 – violet
+  '#FBBF24', // Lv 7 – amber
+  '#FBBF24', // Lv 8 – amber
+  '#F87171', // Lv 9 – red
+  '#F87171', // Lv 10 – red
+]
+
 export function Sidebar({ user, profile, subscription }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const { level, totalXp, xpIntoLevel, xpForNextLevel, isMaxLevel, isLoading: xpLoading } = useXp(user.id)
 
   // Close drawer on route change
   useEffect(() => {
@@ -158,6 +173,45 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
               : subscription?.billing_interval === 'year'
               ? '✨ Annual'
               : '✨ Monthly'}
+          </div>
+        )}
+
+        {/* XP Level badge + progress */}
+        {!xpLoading && (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            padding: '6px 10px', borderRadius: 8, marginBottom: 10,
+            background: 'color-mix(in srgb, var(--color-border) 40%, transparent)',
+          }}>
+            <div
+              style={{
+                width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 11, fontWeight: 800, color: '#fff',
+                background: LEVEL_COLORS[level - 1] ?? LEVEL_COLORS[0],
+              }}
+              title={`${totalXp} XP total`}
+            >
+              {level}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text)', marginBottom: 2 }}>
+                Level {level} · {totalXp} XP
+              </div>
+              {!isMaxLevel && xpForNextLevel != null && (
+                <div style={{ height: 3, background: 'var(--color-border)', borderRadius: 99, overflow: 'hidden' }}>
+                  <div style={{
+                    height: '100%', borderRadius: 99,
+                    background: LEVEL_COLORS[level - 1] ?? LEVEL_COLORS[0],
+                    width: `${Math.min(100, (xpIntoLevel / xpForNextLevel) * 100)}%`,
+                    transition: 'width 0.4s ease-out',
+                  }} />
+                </div>
+              )}
+              {isMaxLevel && (
+                <div style={{ fontSize: 9, color: 'var(--color-text-muted)', fontWeight: 600 }}>MAX LEVEL</div>
+              )}
+            </div>
           </div>
         )}
 

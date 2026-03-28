@@ -11,6 +11,7 @@ import { ProfileStats } from './ProfileStats'
 import { AdmissionSnapshot } from './AdmissionSnapshot'
 import { TaskList } from './TaskList'
 import { useUpdateProfile } from '@/hooks/useProfile'
+import { useStreak } from '@/hooks/useStreak'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 
@@ -24,6 +25,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
   const updateProfile = useUpdateProfile(userId)
   const { data: tasks = [], isLoading: tasksLoading } = useTasks(userId)
   const { total: readinessTotal, dimensions, topActions, isLoading: scoreLoading } = useReadinessScore(userId)
+  const { streak, isLoading: streakLoading } = useStreak(userId)
   const milestonesQuery = useMilestones(userId)
   const reachedKeys = new Set((milestonesQuery.data ?? []).map((m: { milestone_key: string }) => m.milestone_key))
   const nextMilestone = MILESTONES.find(m => !reachedKeys.has(m.key)) ?? null
@@ -124,9 +126,39 @@ export function DashboardClient({ userId }: DashboardClientProps) {
 
       {/* Header */}
       <div style={{ marginBottom: 28 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text)', margin: 0 }}>
-          {profileLoading ? '…' : `Welcome back, ${profile?.display_name?.split(' ')[0] || 'Student'} 👋`}
-        </h1>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+          <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text)', margin: 0 }}>
+            {profileLoading ? '…' : `Welcome back, ${profile?.display_name?.split(' ')[0] || 'Student'} 👋`}
+          </h1>
+          {!streakLoading && streak > 0 && (
+            <motion.div
+              initial={{ scale: 0.6, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 20, delay: 0.2 }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '6px 14px',
+                borderRadius: 99,
+                background: streak >= 7
+                  ? 'linear-gradient(135deg, #F59E0B, #EF4444)'
+                  : streak >= 3
+                    ? 'linear-gradient(135deg, #F59E0B, #F97316)'
+                    : 'color-mix(in srgb, var(--color-primary) 12%, var(--color-card))',
+                border: streak >= 3 ? 'none' : '1.5px solid var(--color-border)',
+                color: streak >= 3 ? '#fff' : 'var(--color-text)',
+                fontSize: 13,
+                fontWeight: 800,
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+              }}
+            >
+              <span style={{ fontSize: 16, lineHeight: 1 }}>🔥</span>
+              {streak}-day streak
+            </motion.div>
+          )}
+        </div>
         <p style={{ fontSize: 14, color: 'var(--color-text-muted)', marginTop: 4 }}>
           {scoreLoading ? 'Change your GPA, SAT, major, and schools to check your chance of getting in.' : getSubtitle(readinessTotal)}
         </p>

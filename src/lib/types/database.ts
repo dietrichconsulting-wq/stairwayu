@@ -117,6 +117,31 @@ export interface ReferralCompletion {
   created_at: string
 }
 
+export interface DailyActivity {
+  id: string
+  user_id: string
+  activity_date: string
+  created_at: string
+}
+
+export type XpAction =
+  | 'complete_task'
+  | 'mark_milestone'
+  | 'generate_strategy'
+  | 'essay_brainstorm'
+  | 'essay_critique'
+  | 'add_scholarship'
+  | 'add_college'
+
+export interface XpEvent {
+  id: string
+  user_id: string
+  action: XpAction
+  xp: number
+  ref_id: string | null
+  created_at: string
+}
+
 // Required for Supabase typed client — minimal inline version
 export type Database = {
   public: {
@@ -130,6 +155,8 @@ export type Database = {
       email_preferences: { Row: EmailPreferences; Insert: Partial<EmailPreferences>; Update: Partial<EmailPreferences> }
       referrals: { Row: Referral; Insert: Partial<Referral>; Update: Partial<Referral> }
       referral_completions: { Row: ReferralCompletion; Insert: Partial<ReferralCompletion>; Update: Partial<ReferralCompletion> }
+      daily_activity: { Row: DailyActivity; Insert: Partial<DailyActivity>; Update: Partial<DailyActivity> }
+      xp_ledger: { Row: XpEvent; Insert: Partial<XpEvent>; Update: Partial<XpEvent> }
     }
     Views: Record<string, never>
     Functions: Record<string, never>

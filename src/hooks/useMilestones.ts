@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
+import { XP_REWARDS } from './useXp'
 
 export interface MilestoneRecord {
   milestone_key: string
@@ -34,10 +35,16 @@ export function useMarkMilestone(userId: string) {
       } else {
         // Mark
         await supabase.from('progress').insert({ user_id: userId, milestone_key: key, reached_at: new Date().toISOString() })
+        // Award XP (deduped by milestone key)
+        await supabase.from('xp_ledger').upsert(
+          { user_id: userId, action: 'mark_milestone', xp: XP_REWARDS.mark_milestone, ref_id: key },
+          { onConflict: 'user_id,action,ref_id' },
+        )
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['milestones', userId] })
+      queryClient.invalidateQueries({ queryKey: ['xp', userId] })
     },
   })
 }
