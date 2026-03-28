@@ -18,6 +18,16 @@ export async function POST(req: Request) {
 
   const supabase = await createServiceClient()
 
+  // Deduplicate: skip if we've already processed this event
+  const { error: dupError } = await supabase
+    .from('stripe_webhook_events')
+    .insert({ event_id: event.id })
+
+  if (dupError?.code === '23505') {
+    // Unique violation — already processed
+    return NextResponse.json({ received: true })
+  }
+
   switch (event.type) {
     case 'checkout.session.completed': {
       const session = event.data.object as Stripe.Checkout.Session
