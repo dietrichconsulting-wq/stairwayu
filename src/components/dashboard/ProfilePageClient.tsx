@@ -398,7 +398,7 @@ export function ProfilePageClient({ userId }: { userId: string }) {
             </div>
             <p style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
               {referralCount === 0
-                ? 'Know someone applying to college? Share the link and earn XP.'
+                ? 'Know someone applying to college? Share the link and earn XP + 7 free days.'
                 : `You've referred ${referralCount} friend${referralCount === 1 ? '' : 's'} — ${referralCount * 50} XP earned 🎉`}
             </p>
           </>
