@@ -125,6 +125,13 @@ export default function SignupPage() {
           Already have an account?{' '}
           <Link href="/login" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>Sign in</Link>
         </p>
+
+        <p style={{ textAlign: 'center', fontSize: 11, color: 'var(--color-text-muted)', marginTop: 12, opacity: 0.6 }}>
+          By signing up you agree to our{' '}
+          <Link href="/terms" style={{ color: 'var(--color-text-muted)', textDecoration: 'underline' }}>Terms</Link>
+          {' and '}
+          <Link href="/privacy" style={{ color: 'var(--color-text-muted)', textDecoration: 'underline' }}>Privacy Policy</Link>.
+        </p>
       </div>
     </div>
   )

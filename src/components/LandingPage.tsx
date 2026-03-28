@@ -301,13 +301,13 @@ export function LandingPage() {
         <div className="mx-auto flex max-w-[1100px] flex-wrap items-center justify-between gap-4">
           <div className="text-base font-black tracking-tight text-white">Stairway U</div>
           <div className="flex gap-7">
-            {[{ label: 'Sign In', href: '/login' }, { label: 'Sign Up', href: '/signup' }, { label: 'Pricing', href: '/upgrade' }].map(l => (
+            {[{ label: 'Sign In', href: '/login' }, { label: 'Sign Up', href: '/signup' }, { label: 'Pricing', href: '/upgrade' }, { label: 'Terms', href: '/terms' }, { label: 'Privacy', href: '/privacy' }].map(l => (
               <Link key={l.href} href={l.href} className="text-[13px] font-medium tracking-[0.03em] text-white/35 no-underline">
                 {l.label}
               </Link>
             ))}
           </div>
-          <div className="text-xs text-white/20">© 2025 Stairway U</div>
+          <div className="text-xs text-white/20">© 2026 Stairway U</div>
         </div>
       </footer>
 

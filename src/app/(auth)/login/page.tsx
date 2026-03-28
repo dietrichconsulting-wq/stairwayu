@@ -129,6 +129,12 @@ function LoginContent() {
           Don&apos;t have an account?{' '}
           <Link href="/signup" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>Sign up</Link>
         </p>
+
+        <p style={{ textAlign: 'center', fontSize: 11, color: 'var(--color-text-muted)', marginTop: 16, opacity: 0.6 }}>
+          <Link href="/terms" style={{ color: 'var(--color-text-muted)', textDecoration: 'none' }}>Terms</Link>
+          {' · '}
+          <Link href="/privacy" style={{ color: 'var(--color-text-muted)', textDecoration: 'none' }}>Privacy</Link>
+        </p>
       </div>
     </div>
   )
