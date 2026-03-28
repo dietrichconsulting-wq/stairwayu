@@ -67,32 +67,46 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to record referral' }, { status: 500 })
   }
 
-  // Grant referrer 7 extra days based on their current subscription status
+  // Grant referrer bonus days, capped at 30 days total from referrals
+  const MAX_REFERRAL_BONUS_DAYS = 30
+  const DAYS_PER_REFERRAL = 7
+
+  // Count how many referral bonuses already applied for this referrer
+  const { count: appliedCount } = await service
+    .from('referral_completions')
+    .select('id', { count: 'exact', head: true })
+    .eq('referrer_id', referral.referrer_id)
+    .eq('referrer_bonus_applied', true)
+
+  const usedDays = (appliedCount ?? 0) * DAYS_PER_REFERRAL
+  const remainingDays = Math.max(0, MAX_REFERRAL_BONUS_DAYS - usedDays)
+  const bonusDays = Math.min(DAYS_PER_REFERRAL, remainingDays)
+
   const { data: referrerSub } = await service
     .from('subscriptions')
     .select('status, tier, trial_end, current_period_end, stripe_subscription_id')
     .eq('user_id', referral.referrer_id)
     .single()
 
-  if (referrerSub) {
+  if (referrerSub && bonusDays > 0) {
     let referrerUpdate: Record<string, unknown> = {}
 
     if (referrerSub.status === 'trialing') {
       const base = referrerSub.trial_end ? new Date(referrerSub.trial_end) : new Date()
-      base.setDate(base.getDate() + 7)
+      base.setDate(base.getDate() + bonusDays)
       referrerUpdate = { trial_end: base.toISOString() }
     } else if (referrerSub.status === 'active') {
       const base = referrerSub.current_period_end
         ? new Date(referrerSub.current_period_end)
         : new Date()
-      base.setDate(base.getDate() + 7)
+      base.setDate(base.getDate() + bonusDays)
       referrerUpdate = { current_period_end: base.toISOString() }
     } else {
-      // canceled / free — reactivate with a 7-day trial
+      // canceled / free — reactivate with a bonus-day trial
       referrerUpdate = {
         tier: 'pro',
         status: 'trialing',
-        trial_end: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        trial_end: new Date(Date.now() + bonusDays * 24 * 60 * 60 * 1000).toISOString(),
       }
     }
 
