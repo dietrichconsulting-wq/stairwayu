@@ -35,15 +35,21 @@ interface SchoolResult {
   medianEarnings10yr: number | null
   regionId: number | null
   enrollment: number | null
+  tuitionInState: number | null
+  tuitionOutOfState: number | null
 }
 
-type SortOption = 'chance' | 'net_cost' | 'grad_rate' | 'earnings'
+type SortOption = 'chance' | 'net_cost' | 'grad_rate' | 'earnings' | 'acceptance' | 'size' | 'tuition_in' | 'tuition_out'
 
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: 'chance', label: 'Match Score' },
   { value: 'net_cost', label: 'Net Cost (Low to High)' },
   { value: 'grad_rate', label: 'Grad Rate' },
   { value: 'earnings', label: 'Earnings (10yr)' },
+  { value: 'acceptance', label: 'Acceptance Rate' },
+  { value: 'size', label: 'School Size' },
+  { value: 'tuition_in', label: 'Tuition (In-State)' },
+  { value: 'tuition_out', label: 'Tuition (Out-of-State)' },
 ]
 
 const TIER_TIPS: Record<Tier, string> = {
@@ -135,6 +141,14 @@ export function ScoreBandBrowser({ profile, collegeNames: initialColleges, userI
           return (b.gradRate4yr ?? 0) - (a.gradRate4yr ?? 0)
         case 'earnings':
           return (b.medianEarnings10yr ?? 0) - (a.medianEarnings10yr ?? 0)
+        case 'acceptance':
+          return (a.admissionRate ?? 999) - (b.admissionRate ?? 999)
+        case 'size':
+          return (b.enrollment ?? 0) - (a.enrollment ?? 0)
+        case 'tuition_in':
+          return (a.tuitionInState ?? 999999) - (b.tuitionInState ?? 999999)
+        case 'tuition_out':
+          return (a.tuitionOutOfState ?? 999999) - (b.tuitionOutOfState ?? 999999)
         default:
           return 0
       }
@@ -337,6 +351,7 @@ function BandCard({ school, tier, index, alreadySaved, onSave }: {
     admissionRate: number | null; avgSAT: number | null; sat25: number | null; sat75: number | null
     avgNetPrice: number | null; gradRate4yr: number | null; medianEarnings10yr: number | null
     chance: number | null; enrollment: number | null
+    tuitionInState: number | null; tuitionOutOfState: number | null
   }
   tier: Tier
   index: number
