@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { requirePro } from '@/lib/subscription'
 import { findScholarships } from '@/lib/services/scholarshipFinder'
+import { checkAiRateLimit } from '@/lib/rateLimit'
 
 export async function POST(req: Request) {
   try {
@@ -18,6 +19,10 @@ export async function POST(req: Request) {
                           upgrade_url: '/upgrade',
                 }, { status: 403 })
         }
+
+        // Rate limit
+        const rateLimited = await checkAiRateLimit(user.id)
+        if (rateLimited) return rateLimited
 
     const body = await req.json()
     const results = await findScholarships(body)
