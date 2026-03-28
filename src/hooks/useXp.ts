@@ -62,13 +62,9 @@ export function useXp(userId: string): XpData {
   const query = useQuery({
     queryKey: ['xp', userId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('xp_ledger')
-        .select('xp')
-        .eq('user_id', userId)
-
+      const { data, error } = await supabase.rpc('get_total_xp')
       if (error) throw error
-      return (data ?? []).reduce((sum: number, r: { xp: number }) => sum + r.xp, 0)
+      return (data as number) ?? 0
     },
     enabled: !!userId,
   })
