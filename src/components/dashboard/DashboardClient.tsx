@@ -48,6 +48,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
 
   useEffect(() => {
     if (!profileLoading && profile && profile.onboarding_complete && !profile.walkthrough_complete) {
+      try { if (localStorage.getItem('stairwayu_tour_done')) return } catch {}
       const timer = setTimeout(() => setShowTour(true), 1500)
       return () => clearTimeout(timer)
     }
@@ -55,6 +56,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
 
   const handleTourComplete = useCallback(() => {
     setShowTour(false)
+    try { localStorage.setItem('stairwayu_tour_done', '1') } catch {}
     updateProfile.mutate({ walkthrough_complete: true })
   }, [updateProfile])
 
