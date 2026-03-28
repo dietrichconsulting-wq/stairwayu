@@ -371,6 +371,17 @@ body {
     display: none !important;
   }
 
+  /* ── Finance form: collapsible on mobile ── */
+  .finance-form-wrapper {
+    position: static !important;
+  }
+  .finance-form-toggle {
+    display: flex !important;
+  }
+  .finance-form-collapsed {
+    display: none !important;
+  }
+
   /* ── Scholarships form: stack multi-column rows ── */
   .scholarship-form-row {
     grid-template-columns: 1fr !important;

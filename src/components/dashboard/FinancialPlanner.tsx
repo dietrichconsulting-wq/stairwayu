@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { CollegeSelect } from '@/components/CollegeSelect'
 import type { CollegeResult } from '@/components/CollegeSelect'
@@ -155,6 +155,19 @@ export function FinancialPlanner({ savedColleges = [] }: FinancialPlannerProps) 
   const loanDelta = whatIf.gap - calc.gap
   const paymentDelta = whatIf.payment - calc.payment
 
+  // Collapsible form on mobile (same pattern as Strategy)
+  const [formOpen, setFormOpen] = useState(true)
+  const resultsRef = useRef<HTMLDivElement>(null)
+  const hasResults = calc.totalCost > 0
+
+  // Auto-collapse form on mobile after first meaningful interaction
+  useEffect(() => {
+    if (hasResults && window.innerWidth <= 768) {
+      setFormOpen(false)
+      setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
+    }
+  }, [selectedCollege])
+
   return (
     <div style={{ maxWidth: 1200 }}>
       <h1 style={{ fontSize: 26, fontWeight: 800, marginBottom: 6 }}>Finance Plan 💵</h1>
@@ -165,7 +178,19 @@ export function FinancialPlanner({ savedColleges = [] }: FinancialPlannerProps) 
       <div className="finance-layout" style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: 24, alignItems: 'flex-start' }}>
 
         {/* ── Inputs ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className="finance-form-wrapper" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* Mobile toggle header */}
+          <button
+            className="finance-form-toggle"
+            onClick={() => setFormOpen(o => !o)}
+            style={{ display: 'none', width: '100%', background: 'var(--color-column)', border: '1.5px solid var(--color-border)', borderRadius: 10, padding: '12px 16px', cursor: 'pointer', color: 'var(--color-text)', alignItems: 'center', justifyContent: 'space-between' }}
+          >
+            <span style={{ fontWeight: 700, fontSize: 14 }}>
+              {selectedCollege ? 'Edit Inputs' : 'Your Inputs'}
+            </span>
+            <span style={{ fontSize: 18, transition: 'transform 0.2s', transform: formOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>▾</span>
+          </button>
+          <div className={formOpen ? 'finance-form-body' : 'finance-form-body finance-form-collapsed'} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="card-elevated" style={{ padding: '22px 24px' }}>
             <SectionHeader>College Costs</SectionHeader>
@@ -241,10 +266,11 @@ export function FinancialPlanner({ savedColleges = [] }: FinancialPlannerProps) 
             <Field label="Expected aid / scholarships / year" prefix="$" value={inputs.annualAid} onChange={v => set('annualAid', v)} placeholder="10000" hint="Grants, merit aid, scholarships" />
             <Field label="Household income" prefix="$" value={inputs.annualIncome} onChange={v => set('annualIncome', v)} placeholder="120000" hint="Used for context only" />
           </motion.div>
+          </div>{/* /finance-form-body */}
         </div>
 
         {/* ── Results + What-if ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div ref={resultsRef} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
           {/* Summary cards */}
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
