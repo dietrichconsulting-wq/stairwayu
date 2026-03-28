@@ -27,7 +27,7 @@ function getModel() {
  * Generate a tiered college strategy list.
  * Returns { reach: [], target: [], safety: [], rationale: string }
  */
-export async function generateStrategy({ gpa, gpaWeighted, sat, major, budget, climate, schools: userSchools }) {
+export async function generateStrategy({ gpa, gpaWeighted, sat, act, major, budget, climate, schools: userSchools }) {
   const gemini = getModel();
   if (!gemini) throw new Error('Gemini API key not configured');
 
@@ -45,12 +45,12 @@ export async function generateStrategy({ gpa, gpaWeighted, sat, major, budget, c
   // ── Step 0: Pre-compute tiers for user's schools using the same logistic ─
   //    model the dashboard uses. This guarantees alignment.
   let preAssigned = []; // { name, tier, yourChance, admitRate }
-  if (userSchoolsList.length && (sat || gpa)) {
+  if (userSchoolsList.length && (sat || act || gpa)) {
     const chanceResults = await computeChances({
       gpa: parseFloat(gpa) || null,
       gpa_weighted: parseFloat(gpaWeighted) || null,
       sat: parseInt(sat) || null,
-      act: null,
+      act: parseInt(act) || null,
       schools: userSchoolsList.map(name => ({ name, id: '' })),
     });
     preAssigned = chanceResults.map(r => ({
@@ -83,7 +83,8 @@ export async function generateStrategy({ gpa, gpaWeighted, sat, major, budget, c
 STUDENT PROFILE:
 - Unweighted GPA (4.0 scale): ${gpa || 'Not provided'}
 - Weighted GPA (5.0 scale): ${gpaWeighted || 'Not provided'}
-- SAT: ${sat}
+- SAT: ${sat || 'Not provided'}
+- ACT: ${act || 'Not provided'}
 - Intended Major: ${major}
 - ${budgetNote}
 - ${climateNote}
@@ -188,6 +189,7 @@ Respond ONLY with valid JSON, no markdown:
   //    Scorecard data. Gemini NEVER determines chances — only the deterministic
   //    model does, guaranteeing alignment with the dashboard Admission Snapshot.
   const studentSAT = parseInt(sat) || null;
+  const studentACT = parseInt(act) || null;
   const studentGPA = parseFloat(gpa) || null;
   const studentGPAWeighted = parseFloat(gpaWeighted) || null;
 
@@ -201,13 +203,14 @@ Respond ONLY with valid JSON, no markdown:
     const isPreAssigned = i < preAssigned.length;
     let modelChance = isPreAssigned ? ai.yourChance : null;
     if (!isPreAssigned && real.admitRate != null) {
-      modelChance = calculateChance(studentSAT, studentGPA, {
+      const chanceResult = calculateChance(studentSAT, studentGPA, {
         admissionRate: real.admitRate,
         avgSAT: real.avgSAT ?? null,
         sat25: real.sat25 ?? null,
         sat75: real.sat75 ?? null,
         actMidpoint: real.actMidpoint ?? null,
-      }, null, studentGPAWeighted);
+      }, studentACT, studentGPAWeighted);
+      modelChance = chanceResult?.chance ?? null;
     }
     // Derive tier from model chance (same thresholds as dashboard)
     const computedTier = modelChance != null
