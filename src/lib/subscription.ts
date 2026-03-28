@@ -24,6 +24,7 @@ export async function getSubscription(userId: string): Promise<SubscriptionInfo>
 
   const now = new Date()
   const trialEnd = sub.trial_end ? new Date(sub.trial_end) : null
+  const trialExpired = sub.status === 'trialing' && trialEnd !== null && trialEnd <= now
   const isTrialing = sub.status === 'trialing' && trialEnd !== null && trialEnd > now
   const isActiveSub = sub.status === 'active' && sub.stripe_subscription_id !== null
   const isPro = isTrialing || isActiveSub
@@ -33,13 +34,8 @@ export async function getSubscription(userId: string): Promise<SubscriptionInfo>
     trialDaysLeft = Math.max(0, Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
   }
 
-  // If trial expired, downgrade tier in DB
-  if (sub.status === 'trialing' && trialEnd && trialEnd <= now && sub.tier === 'pro') {
-    await supabase
-      .from('subscriptions')
-      .update({ tier: 'free', status: 'canceled' })
-      .eq('user_id', userId)
-    return { isPro: false, isTrialing: false, trialDaysLeft: 0, tier: 'free', status: 'canceled', trialEnd: sub.trial_end }
+  if (trialExpired) {
+    return { isPro: false, isTrialing: false, trialDaysLeft: 0, tier: 'free', status: sub.status, trialEnd: sub.trial_end }
   }
 
   return {
@@ -50,6 +46,30 @@ export async function getSubscription(userId: string): Promise<SubscriptionInfo>
     status: sub.status,
     trialEnd: sub.trial_end,
   }
+}
+
+/** Downgrades expired trials to free tier. Call from a server action, API route, or cron — not from reads. */
+export async function downgradeExpiredTrial(userId: string): Promise<boolean> {
+  const supabase = await createClient()
+
+  const { data: sub } = await supabase
+    .from('subscriptions')
+    .select('status, trial_end, tier')
+    .eq('user_id', userId)
+    .single()
+
+  if (!sub) return false
+
+  const trialEnd = sub.trial_end ? new Date(sub.trial_end) : null
+  if (sub.status === 'trialing' && trialEnd && trialEnd <= new Date() && sub.tier === 'pro') {
+    await supabase
+      .from('subscriptions')
+      .update({ tier: 'free', status: 'canceled' })
+      .eq('user_id', userId)
+    return true
+  }
+
+  return false
 }
 
 export async function requirePro(userId: string): Promise<{ allowed: boolean; subscription: SubscriptionInfo }> {
