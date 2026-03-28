@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState, useEffect } from 'react'
 
 const FEATURES = [
@@ -133,10 +134,13 @@ export function LandingPage() {
 
       {/* ── HERO ── */}
       <section className="relative h-screen min-h-[600px] overflow-hidden">
-        <img
+        <Image
           src="https://images.unsplash.com/photo-1523580846011-d3a5bc25702b?w=1920&q=85"
           alt="High school seniors at college campus"
-          className="absolute inset-0 size-full object-cover object-[center_30%]"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-[center_30%]"
         />
         <div className="landing-hero-overlay absolute inset-0" />
 
@@ -182,10 +186,12 @@ export function LandingPage() {
         <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-1">
           {FEATURES.map(f => (
             <div key={f.label} className="group relative aspect-[4/3] cursor-pointer overflow-hidden bg-slate-900">
-              <img
+              <Image
                 src={f.img}
                 alt={f.label}
-                className="size-full object-cover opacity-75 transition-transform duration-[600ms] ease-out group-hover:scale-[1.04]"
+                fill
+                sizes="(min-width: 600px) 50vw, 100vw"
+                className="object-cover opacity-75 transition-transform duration-[600ms] ease-out group-hover:scale-[1.04]"
               />
               <div className={`absolute inset-0 ${f.light ? 'landing-feature-gradient-light' : 'landing-feature-gradient-dark'}`} />
               <div className="absolute inset-x-0 bottom-0 p-[clamp(16px,3vw,32px)] px-[clamp(16px,3vw,36px)]">
@@ -206,10 +212,12 @@ export function LandingPage() {
 
       {/* ── FULL-BLEED SECOND HERO — Journey Tracker ── */}
       <section className="relative h-[70vh] min-h-[480px] overflow-hidden">
-        <img
+        <Image
           src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=1920&q=85"
           alt="Graduation ceremony"
-          className="absolute inset-0 size-full object-cover object-[center_40%]"
+          fill
+          sizes="100vw"
+          className="object-cover object-[center_40%]"
         />
         <div className="landing-journey-overlay absolute inset-0" />
         <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
@@ -277,10 +285,12 @@ export function LandingPage() {
 
       {/* ── FINAL CTA ── */}
       <section className="relative h-[50vh] min-h-[360px] overflow-hidden">
-        <img
+        <Image
           src="https://images.unsplash.com/photo-1592280771190-3e2e4d571952?w=1920&q=85"
           alt="College campus"
-          className="absolute inset-0 size-full object-cover object-[center_60%]"
+          fill
+          sizes="100vw"
+          className="object-cover object-[center_60%]"
         />
         <div className="landing-cta-overlay absolute inset-0" />
         <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
