@@ -127,7 +127,8 @@ export function ComparePageClient({ profile, colleges }: ComparePageClientProps)
           borderRadius: 10,
           padding: '12px 16px',
           maxWidth: 420,
-          flexShrink: 0,
+          minWidth: 0,
+          flexShrink: 1,
         }}>
           <h4 style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 6px' }}>
             How We Calculate
@@ -141,7 +142,7 @@ export function ComparePageClient({ profile, colleges }: ComparePageClientProps)
       </div>
 
       {/* Step indicators */}
-      <div style={{ display: 'flex', gap: 0, marginBottom: 20 }}>
+      <div className="compare-steps" style={{ display: 'flex', gap: 0, marginBottom: 20, flexWrap: 'wrap' }}>
         {[
           { n: '1', label: 'Enter 2–5 schools below', done: readyToCompare },
           { n: '2', label: 'Click Compare', done: results.length > 0 },
@@ -174,14 +175,14 @@ export function ComparePageClient({ profile, colleges }: ComparePageClientProps)
           Step 1 — Select schools to compare (2–5)
         </div>
 
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
+        <div className="compare-schools-row" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
           {schools.map((s, i) => (
-            <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'center', minWidth: 0 }}>
               <CollegeSelect
                 value={s}
                 onChange={v => setSchools(prev => prev.map((old, j) => j === i ? v : old))}
                 placeholder={`School ${i + 1}`}
-                style={{ width: 240 }}
+                style={{ width: '100%', maxWidth: 240, minWidth: 0 }}
                 inputStyle={{ padding: '9px 12px', fontSize: 13 }}
               />
               {schools.length > 2 && (
@@ -265,6 +266,7 @@ export function ComparePageClient({ profile, colleges }: ComparePageClientProps)
           marginBottom: 12, padding: '10px 16px',
           background: 'rgba(255,255,255,0.04)', borderRadius: 10,
           border: '1px solid rgba(255,255,255,0.08)',
+          flexWrap: 'wrap',
         }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} style={{ flexShrink: 0, color: 'var(--color-text-muted)' }}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -292,7 +294,7 @@ export function ComparePageClient({ profile, colleges }: ComparePageClientProps)
       {results.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="card-elevated" style={{ padding: '24px 28px' }}>
           <div style={{ overflowX: 'auto', margin: '0 -28px', padding: '0 28px' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 520 }}>
+          <table className="compare-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 420 }}>
             <thead>
               <tr>
                 <th style={{ textAlign: 'left', padding: '8px 12px', fontWeight: 700, color: 'var(--color-text-muted)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Metric</th>

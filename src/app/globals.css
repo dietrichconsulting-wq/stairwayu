@@ -383,6 +383,29 @@ body {
   .task-row {
     flex-wrap: wrap;
   }
+
+  /* ── Compare page: responsive fixes ── */
+  .compare-schools-row {
+    flex-direction: column;
+  }
+  .compare-schools-row > div {
+    width: 100%;
+  }
+  .compare-schools-row > div > *:first-child {
+    max-width: 100% !important;
+  }
+  .compare-steps {
+    gap: 6px !important;
+  }
+  .compare-table {
+    min-width: 0 !important;
+    font-size: 12px !important;
+  }
+  .compare-table th,
+  .compare-table td {
+    padding: 8px 6px !important;
+    min-width: 0 !important;
+  }
 }
 
 /* ── Landing page gradients ─────────────────────────────────────────────── */
