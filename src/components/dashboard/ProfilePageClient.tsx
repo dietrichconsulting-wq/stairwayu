@@ -250,7 +250,7 @@ export function ProfilePageClient({ userId }: { userId: string }) {
       </div>
 
       <div className="card-elevated" style={{ padding: '28px 28px 32px', marginBottom: 24 }}>
-        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20 }}>Target Schools</h2>
+        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20 }}>Schools That Want You</h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {colleges.map((college, i) => (
             <CollegeRow
@@ -398,7 +398,7 @@ export function ProfilePageClient({ userId }: { userId: string }) {
             </div>
             <p style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
               {referralCount === 0
-                ? 'No referrals yet — share your link to get started!'
+                ? 'Know someone who needs this? Share the link and help them out.'
                 : `You've referred ${referralCount} friend${referralCount === 1 ? '' : 's'} 🎉`}
             </p>
           </>

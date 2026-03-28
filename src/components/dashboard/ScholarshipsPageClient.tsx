@@ -390,9 +390,9 @@ export function ScholarshipsPageClient({ userId, profile }: Props) {
           {suggestions.length === 0 && !searching && (
             <div className="card-elevated" style={{ padding: '36px 28px', textAlign: 'center', border: '1.5px dashed var(--color-border)' }}>
               <div style={{ fontSize: 36, marginBottom: 12 }}>🔍</div>
-              <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 6 }}>Your matches will appear here</div>
+              <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 6 }}>Let's find you some free money 💰</div>
               <div style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
-                Fill in your profile above and click Find My Scholarships to get matched with verified scholarships from our curated database.
+                Fill in your details above and hit Find My Scholarships — we'll match you with real scholarships you actually qualify for.
               </div>
             </div>
           )}
@@ -484,7 +484,7 @@ export function ScholarshipsPageClient({ userId, profile }: Props) {
                       </motion.div>
                     ))}
                     {items.length === 0 && (
-                      <div style={{ fontSize: 12, color: 'var(--color-text-muted)', textAlign: 'center', padding: '12px 0', fontStyle: 'italic' }}>Empty</div>
+                      <div style={{ fontSize: 12, color: 'var(--color-text-muted)', textAlign: 'center', padding: '12px 0', fontStyle: 'italic' }}>Nothing here yet</div>
                     )}
                   </div>
                 </div>
@@ -494,7 +494,7 @@ export function ScholarshipsPageClient({ userId, profile }: Props) {
 
           {scholarships.length === 0 && (
             <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--color-text-muted)', fontSize: 13 }}>
-              No scholarships yet.{' '}
+              No scholarships saved yet — let's find you some free money.{' '}
               <button onClick={() => setTab('find')} style={{ background: 'none', border: 'none', color: 'var(--color-primary)', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>
                 Find scholarships →
               </button>

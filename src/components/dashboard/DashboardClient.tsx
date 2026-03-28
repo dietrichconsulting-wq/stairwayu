@@ -33,11 +33,11 @@ export function DashboardClient({ userId }: DashboardClientProps) {
   const allDone = reachedKeys.size === MILESTONES.length
 
   function getSubtitle(score: number) {
-    if (score <= 15) return "Let's get started — fill in your profile to begin."
-    if (score <= 35) return 'Good start! Keep completing tasks to build momentum.'
-    if (score <= 60) return "Making progress! You're on track for application season."
-    if (score <= 85) return 'Looking strong! Stay focused on your remaining milestones.'
-    return "Almost there! You're well-prepared for decision day."
+    if (score <= 15) return "Let's get started — your future self will thank you."
+    if (score <= 35) return "You're picking up speed — colleges are gonna notice."
+    if (score <= 60) return "You're ahead of most applicants right now. Keep going."
+    if (score <= 85) return "You're crushing it — almost everything is dialed in."
+    return "You're basically ready to hit submit. Let's go. 🎯"
   }
 
   const [referralToast, setReferralToast] = useState<string | null>(null)
@@ -88,11 +88,11 @@ export function DashboardClient({ userId }: DashboardClientProps) {
   useEffect(() => {
     if (scoreLoading || milestonePct === null) return
     const thresholds = [
-      { score: 25, msg: "You're 25% ready — great start! Keep the momentum going.", emoji: '🌱' },
-      { score: 40, msg: "40% readiness — you're ahead of most students at this stage!", emoji: '📈' },
-      { score: 60, msg: "60% through your journey — further than most students get!", emoji: '🔥' },
-      { score: 75, msg: "75% ready — the finish line is in sight!", emoji: '🚀' },
-      { score: 90, msg: "90% readiness — you're almost fully prepared!", emoji: '🌟' },
+      { score: 25, msg: "You just passed 25% — you're already ahead of most students.", emoji: '🌱' },
+      { score: 40, msg: "40% and climbing — your odds just went up ↑", emoji: '📈' },
+      { score: 60, msg: "60% done — you're outpacing most applicants right now.", emoji: '🔥' },
+      { score: 75, msg: "75% — you're in the home stretch. Almost there.", emoji: '🚀' },
+      { score: 90, msg: "90% ready — colleges are going to love this application.", emoji: '🌟' },
     ]
     for (const t of thresholds) {
       if (readinessTotal >= t.score && !progressToastFired.current.has(t.score)) {

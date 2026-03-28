@@ -142,10 +142,10 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
       >
         <div style={{ fontSize: 32, marginBottom: 8 }}>🎓</div>
         <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>
-          No schools added yet
+          Your school list is empty
         </div>
         <div style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 16, maxWidth: 360, marginLeft: 'auto', marginRight: 'auto' }}>
-          Add your target schools to see personalized admission chances and build your application strategy.
+          Add schools and we'll show you exactly where you stand — real admission odds, personalized to you.
         </div>
         <Link
           href="/profile"
