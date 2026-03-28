@@ -23,6 +23,27 @@ export const TOUR_STEPS: TourStep[] = [
     placement: 'bottom',
   },
   {
+    target: 'nav-explore',
+    title: 'Explore Schools',
+    description:
+      'Slide your SAT and GPA to instantly discover matching schools. Try Stretch mode to see what studying harder unlocks, or hit Surprise Me to find hidden gems.',
+    placement: 'right',
+  },
+  {
+    target: 'nav-score-bands',
+    title: 'Score Bands',
+    description:
+      'See schools grouped into Reach, Target, and Safety tiers based on your actual stats. Sort by cost, grad rate, or earnings to find the best fit.',
+    placement: 'right',
+  },
+  {
+    target: 'daily-challenges',
+    title: 'Daily Challenges',
+    description:
+      'Complete 3 fresh challenges each day to earn XP and discover schools you never thought to look at. Explore new regions, try different scores, and build a balanced list.',
+    placement: 'bottom',
+  },
+  {
     target: 'nav-strategy',
     title: 'AI Strategy',
     description:

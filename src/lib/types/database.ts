@@ -134,6 +134,9 @@ export type XpAction =
   | 'add_scholarship'
   | 'add_college'
   | 'refer_friend'
+  | 'complete_challenge'
+  | 'explore_interact'
+  | 'surprise_me'
 
 export interface XpEvent {
   id: string
@@ -141,6 +144,15 @@ export interface XpEvent {
   action: XpAction
   xp: number
   ref_id: string | null
+  created_at: string
+}
+
+export interface ChallengeCompletion {
+  id: string
+  user_id: string
+  challenge_key: string
+  challenge_date: string
+  completed_at: string
   created_at: string
 }
 
@@ -159,6 +171,7 @@ export type Database = {
       referral_completions: { Row: ReferralCompletion; Insert: Partial<ReferralCompletion>; Update: Partial<ReferralCompletion> }
       daily_activity: { Row: DailyActivity; Insert: Partial<DailyActivity>; Update: Partial<DailyActivity> }
       xp_ledger: { Row: XpEvent; Insert: Partial<XpEvent>; Update: Partial<XpEvent> }
+      challenge_completions: { Row: ChallengeCompletion; Insert: Partial<ChallengeCompletion>; Update: Partial<ChallengeCompletion> }
     }
     Views: Record<string, never>
     Functions: Record<string, never>

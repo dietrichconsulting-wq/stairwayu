@@ -60,6 +60,19 @@ export function useAchievements(userId: string) {
     enabled: !!userId,
   })
 
+  // Count challenge completions (all-time, distinct days)
+  const challengeQuery = useQuery({
+    queryKey: ['challenge-completions-count', userId],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from('challenge_completions')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', userId)
+      return count ?? 0
+    },
+    enabled: !!userId,
+  })
+
   const ctx: AchievementContext = useMemo(() => ({
     tasksCompleted: tasks.filter(t => t.status === 'Done').length,
     essayActions: essayQuery.data ?? 0,
@@ -70,7 +83,8 @@ export function useAchievements(userId: string) {
     totalXp: xpData.totalXp,
     streak,
     readinessScore,
-  }), [tasks, essayQuery.data, colleges.length, scholarshipQuery.data, strategyQuery.data, milestonesQuery.data?.length, xpData.totalXp, streak, readinessScore])
+    challengesCompleted: challengeQuery.data ?? 0,
+  }), [tasks, essayQuery.data, colleges.length, scholarshipQuery.data, strategyQuery.data, milestonesQuery.data?.length, xpData.totalXp, streak, readinessScore, challengeQuery.data])
 
   const earned: Achievement[] = useMemo(
     () => ACHIEVEMENTS.filter(a => a.check(ctx)),

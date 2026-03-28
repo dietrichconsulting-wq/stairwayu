@@ -16,6 +16,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { showToast } from '@/components/CelebrationToast'
 import { WelcomeTour } from './WelcomeTour'
+import { DailyChallenges } from './DailyChallenges'
 import { Tooltip } from '@/components/ui/Tooltip'
 
 interface DashboardClientProps {
@@ -256,6 +257,9 @@ export function DashboardClient({ userId }: DashboardClientProps) {
         </Link>
       )
       }
+
+      {/* ── Daily Challenges ── */}
+      <DailyChallenges userId={userId} />
 
       {/* ── Section 1: Profile Stats ── */}
       <ProfileStats profile={profile} loading={profileLoading} tasks={tasks} userId={userId} />

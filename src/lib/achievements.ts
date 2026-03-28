@@ -26,6 +26,8 @@ export interface AchievementContext {
   streak: number
   /** Readiness score */
   readinessScore: number
+  /** Number of daily challenges completed (all-time) */
+  challengesCompleted: number
 }
 
 export const ACHIEVEMENTS: Achievement[] = [
@@ -112,5 +114,19 @@ export const ACHIEVEMENTS: Achievement[] = [
     emoji: '🎒',
     description: 'Added 10 schools to compare',
     check: ctx => ctx.schoolsCompared >= 10,
+  },
+  {
+    key: 'challenge_first',
+    label: 'Challenge Accepted',
+    emoji: '🎲',
+    description: 'Completed your first daily challenge',
+    check: ctx => ctx.challengesCompleted >= 1,
+  },
+  {
+    key: 'challenge_streak_5',
+    label: 'Challenge Champion',
+    emoji: '🏅',
+    description: 'Completed daily challenges on 5 different days',
+    check: ctx => ctx.challengesCompleted >= 5,
   },
 ]

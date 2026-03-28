@@ -12,6 +12,9 @@ export const XP_REWARDS: Record<XpAction, number> = {
   add_scholarship: 15,
   add_college: 10,
   refer_friend: 50,
+  complete_challenge: 20,
+  explore_interact: 5,
+  surprise_me: 5,
 }
 
 // ── Level thresholds ──

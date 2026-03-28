@@ -56,7 +56,9 @@ const SEARCH_FIELDS = [
   'latest.cost.tuition.out_of_state',
 ].join(',');
 
-function mapRichResult(r) {
+export { RICH_FIELDS }
+
+export function mapRichResult(r) {
   if (!r) return null;
 
   const isPublic = r['school.type'] === 1;

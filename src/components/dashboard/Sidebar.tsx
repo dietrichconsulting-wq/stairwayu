@@ -15,6 +15,8 @@ const NAV_ITEMS = [
   { href: '/dashboard',      icon: '⊞',  label: 'Dashboard',        tip: 'Your home base — stats, progress, and next steps at a glance.' },
   { href: '/journey',        icon: '🗺️',  label: 'Your Journey',     tip: 'Step-by-step milestones from freshman year through submission.' },
   { href: '/strategy',       icon: '⚡',  label: 'Strategy',         tip: 'Generate a 3-tier application strategy with these schools.' },
+  { href: '/explore',         icon: '🎚️',  label: 'Explore',           tip: 'Slide your stats and discover matching schools instantly.' },
+  { href: '/score-bands',    icon: '📊',  label: 'Score Bands',      tip: 'Browse schools grouped by your admission chance tier.' },
   { href: '/compare',        icon: '⚖️',  label: 'Compare',          tip: 'Side-by-side comparison of your saved schools.' },
   { href: '/find-major',     icon: '🧭', label: 'Find Your Major',  tip: 'Explore majors that match your interests and strengths.' },
   { href: '/essays',         icon: '✍️',  label: 'Essays',           tip: 'Draft and polish your college essays with AI feedback.' },
@@ -130,6 +132,8 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
         {NAV_ITEMS.map(item => {
           const tourAttr: Record<string, string> = {
             '/journey': 'nav-journey',
+            '/explore': 'nav-explore',
+            '/score-bands': 'nav-score-bands',
             '/strategy': 'nav-strategy',
             '/essays': 'nav-essays',
             '/scholarships': 'nav-scholarships',
