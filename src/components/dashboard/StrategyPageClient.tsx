@@ -217,11 +217,20 @@ export function StrategyPageClient({ profile, colleges, userId }: StrategyPageCl
                 ))}
               </motion.div>
             ) : (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 300, color: 'var(--color-text-muted)', fontSize: 14, textAlign: 'center', padding: 40 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 300, textAlign: 'center', padding: 40 }}>
                 <div>
-                  <div style={{ fontSize: 40, marginBottom: 12 }}>⚡</div>
-                  <div style={{ fontWeight: 600, marginBottom: 4 }}>Your school list will appear here</div>
-                  <div style={{ fontSize: 12 }}>Fill in your profile and hit Generate Strategy</div>
+                  <div className="strategy-empty-icon" style={{ fontSize: 56, marginBottom: 16, lineHeight: 1 }}>🚀</div>
+                  <div style={{ fontWeight: 800, fontSize: 18, marginBottom: 6, color: 'var(--color-text)' }}>
+                    Build your dream school list
+                  </div>
+                  <div style={{ fontSize: 13, color: 'var(--color-text-muted)', lineHeight: 1.5, maxWidth: 280, margin: '0 auto' }}>
+                    Fill in your stats and hit <strong style={{ color: 'var(--color-primary)' }}>Generate Strategy</strong> to get a personalized reach, target &amp; safety list
+                  </div>
+                  <div className="strategy-empty-dots" style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 20 }}>
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#EF4444', opacity: 0.7 }} />
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#FBBF24', opacity: 0.7 }} />
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#22C55E', opacity: 0.7 }} />
+                  </div>
                 </div>
               </div>
             )}

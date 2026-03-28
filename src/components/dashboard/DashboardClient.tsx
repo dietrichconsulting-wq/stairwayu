@@ -230,7 +230,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="card-elevated"
+          className="card-elevated journey-progress-card"
           style={{ padding: '24px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}
         >
           <h2 style={{ fontSize: 15, fontWeight: 800, color: 'var(--color-text)', margin: 0, alignSelf: 'flex-start' }}>
@@ -240,7 +240,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
           {scoreLoading ? (
             <div className="skeleton" style={{ width: ringSize, height: ringSize, borderRadius: '50%' }} />
           ) : (
-            <div style={{ position: 'relative', width: ringSize, height: ringSize }}>
+            <div className="journey-ring-wrap" style={{ position: 'relative', width: ringSize, height: ringSize }}>
               <svg width={ringSize} height={ringSize} style={{ transform: 'rotate(-90deg)' }}>
                 <circle
                   cx={ringSize / 2} cy={ringSize / 2} r={ringRadius}
