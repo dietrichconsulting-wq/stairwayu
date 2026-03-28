@@ -155,5 +155,41 @@ export const INTEREST_TAGS: InterestTag[] = [
       { title: "Nutritionist", salary: "$66,450", growth: "+7%", description: "Advise people on what to eat in order to lead a healthy lifestyle.", majors: ["Nutrition", "Health Sciences", "Kinesiology"] },
       { title: "Coach", salary: "$44,890", growth: "+9%", description: "Teach amateur or professional athletes the skills they need to succeed.", majors: ["Sports Management", "Kinesiology", "Education"] }
     ]
+  },
+  {
+    id: "literature",
+    label: "Literature",
+    emoji: "📚",
+    careers: [
+      { title: "Editor", salary: "$73,080", growth: "+5%", description: "Review, rewrite, and edit content for books, journals, and digital publications.", majors: ["English", "Liberal Arts", "Journalism", "Communications"] },
+      { title: "Literary Agent", salary: "$78,000", growth: "+4%", description: "Represent authors and negotiate publishing contracts on their behalf.", majors: ["English", "Communications", "Business Administration"] },
+      { title: "Professor of Literature", salary: "$83,480", growth: "+8%", description: "Teach and conduct research in literary analysis, theory, and criticism at the university level.", majors: ["English", "Comparative Literature", "Liberal Arts", "Philosophy"] },
+      { title: "Librarian", salary: "$61,190", growth: "+5%", description: "Curate collections, assist patrons with research, and manage library programs and services.", majors: ["English", "Liberal Arts", "History", "Information Systems"] },
+      { title: "Technical Writer", salary: "$78,060", growth: "+7%", description: "Create clear documentation, manuals, and guides for complex products and processes.", majors: ["English", "Communications", "Journalism", "Computer Science"] }
+    ]
+  },
+  {
+    id: "history",
+    label: "History",
+    emoji: "🏛️",
+    careers: [
+      { title: "Historian", salary: "$68,930", growth: "+3%", description: "Research, analyze, and interpret the past through primary sources and archives.", majors: ["History", "Anthropology", "Political Science", "African American Studies"] },
+      { title: "Museum Curator", salary: "$60,110", growth: "+12%", description: "Manage collections, design exhibits, and preserve cultural artifacts for public education.", majors: ["History", "Art & Design", "Anthropology", "Liberal Arts"] },
+      { title: "Archivist", salary: "$61,400", growth: "+9%", description: "Appraise, organize, and preserve historically valuable documents and records.", majors: ["History", "Liberal Arts", "Information Systems"] },
+      { title: "Foreign Service Officer", salary: "$105,000", growth: "+6%", description: "Represent national interests abroad through diplomacy, policy analysis, and cultural exchange.", majors: ["History", "International Relations", "Political Science", "Foreign Languages"] },
+      { title: "Documentary Filmmaker", salary: "$82,000", growth: "+7%", description: "Research and produce nonfiction films that explore historical events and social issues.", majors: ["History", "Film & Media Studies", "Journalism", "Communications"] }
+    ]
+  },
+  {
+    id: "languages",
+    label: "Languages",
+    emoji: "🌐",
+    careers: [
+      { title: "Translator", salary: "$57,090", growth: "+19%", description: "Convert written material from one language to another while preserving meaning and tone.", majors: ["Foreign Languages", "Spanish", "Linguistics", "Comparative Literature"] },
+      { title: "Interpreter", salary: "$62,510", growth: "+19%", description: "Facilitate real-time spoken communication between people who speak different languages.", majors: ["Foreign Languages", "Spanish", "Linguistics"] },
+      { title: "Linguist", salary: "$85,000", growth: "+6%", description: "Study the structure, history, and evolution of languages through scientific analysis.", majors: ["Linguistics", "Foreign Languages", "Anthropology", "Philosophy"] },
+      { title: "ESL Instructor", salary: "$59,720", growth: "+5%", description: "Teach English language skills to non-native speakers in academic and professional settings.", majors: ["Linguistics", "English", "Education", "Foreign Languages"] },
+      { title: "Localization Manager", salary: "$95,000", growth: "+10%", description: "Adapt products, content, and services for international markets and diverse audiences.", majors: ["Foreign Languages", "Linguistics", "Marketing", "Communications"] }
+    ]
   }
 ]
