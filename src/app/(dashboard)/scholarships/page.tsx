@@ -1,15 +1,10 @@
-export const dynamic = "force-dynamic"
-
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { ScholarshipsPageClient } from '@/components/dashboard/ScholarshipsPageClient'
+import { getAuthUser } from '@/lib/supabase/server'
 
 export default async function ScholarshipsPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { user, profile } = await getAuthUser()
   if (!user) redirect('/login')
-
-  const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
 
   return <ScholarshipsPageClient userId={user.id} profile={profile} />
 }

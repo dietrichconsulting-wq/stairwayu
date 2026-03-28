@@ -1,14 +1,12 @@
-export const dynamic = "force-dynamic"
-
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { FinancialPlanner } from '@/components/dashboard/FinancialPlanner'
+import { getAuthUser, createClient } from '@/lib/supabase/server'
 
 export default async function FinancePage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { user } = await getAuthUser()
   if (!user) redirect('/login')
 
+  const supabase = await createClient()
   const { data: colleges } = await supabase
     .from('user_colleges')
     .select('college_name')

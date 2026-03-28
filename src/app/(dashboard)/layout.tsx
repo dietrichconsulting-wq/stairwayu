@@ -1,30 +1,17 @@
 export const dynamic = "force-dynamic"
 export const fetchCache = "force-no-store"
 
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Sidebar } from '@/components/dashboard/Sidebar'
 import { TrialBanner } from '@/components/dashboard/TrialBanner'
 import { AuthHashHandler } from '@/components/dashboard/AuthHashHandler'
 import { CelebrationToastContainer } from '@/components/CelebrationToast'
+import { getAuthUser } from '@/lib/supabase/server'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { user, profile, subscription } = await getAuthUser()
 
   if (!user) redirect('/login')
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
-
-  const { data: subscription } = await supabase
-    .from('subscriptions')
-    .select('tier, status, trial_end, billing_interval')
-    .eq('user_id', user.id)
-    .single()
 
   // Block access if no active subscription or trial
   const isActive = subscription?.tier === 'pro' &&

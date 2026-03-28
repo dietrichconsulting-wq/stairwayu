@@ -1,20 +1,12 @@
-export const dynamic = "force-dynamic"
-
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { StrategyPageClient } from '@/components/dashboard/StrategyPageClient'
+import { getAuthUser, createClient } from '@/lib/supabase/server'
 
 export default async function StrategyPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { user, profile } = await getAuthUser()
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('gpa, gpa_weighted, sat, act_score, proposed_major, strategy_result, strategy_generated_at')
-    .eq('id', user.id)
-    .single()
-
+  const supabase = await createClient()
   const { data: colleges } = await supabase
     .from('user_colleges')
     .select('college_name')
