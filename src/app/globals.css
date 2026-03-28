@@ -115,6 +115,31 @@ body {
   box-shadow: var(--shadow-card-hover);
 }
 
+/* ── Skip-nav (accessibility) ────────────────────────────────────────────── */
+.skip-nav {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  z-index: 100000;
+  padding: 12px 24px;
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+  border-radius: 0 0 8px 0;
+}
+.skip-nav:focus {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: auto;
+  height: auto;
+}
+
 /* ── Sidebar layout ──────────────────────────────────────────────────────── */
 .sidebar-layout {
   display: flex;

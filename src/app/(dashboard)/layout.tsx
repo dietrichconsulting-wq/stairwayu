@@ -27,12 +27,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="sidebar-layout">
+      <a href="#main-content" className="skip-nav">Skip to main content</a>
       <Sidebar
         user={user}
         profile={profile}
         subscription={subscription}
       />
-      <main className="sidebar-layout__content">
+      <main id="main-content" className="sidebar-layout__content">
         <AuthHashHandler />
         <TrialBanner status={subscription?.status ?? null} trialEnd={subscription?.trial_end ?? null} tier={subscription?.tier ?? null} />
         {children}

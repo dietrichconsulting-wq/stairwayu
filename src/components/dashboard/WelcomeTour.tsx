@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { TOUR_STEPS } from './welcomeTourSteps'
 import type { TourStep } from './welcomeTourSteps'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 interface WelcomeTourProps {
   onComplete: () => void
@@ -28,6 +29,7 @@ export function WelcomeTour({ onComplete }: WelcomeTourProps) {
   const [viewportSize, setViewportSize] = useState({ w: 0, h: 0 })
   const [isMobile, setIsMobile] = useState(false)
   const tooltipRef = useRef<HTMLDivElement>(null)
+  const focusTrapRef = useFocusTrap<HTMLDivElement>()
   const [tooltipHeight, setTooltipHeight] = useState(180)
 
   const current: TourStep = TOUR_STEPS[step]
@@ -187,7 +189,7 @@ export function WelcomeTour({ onComplete }: WelcomeTourProps) {
   const isLast = step === TOUR_STEPS.length - 1
 
   const content = (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 10000 }}>
+    <div ref={focusTrapRef} role="dialog" aria-modal="true" aria-label="Welcome tour" tabIndex={-1} style={{ position: 'fixed', inset: 0, zIndex: 10000 }}>
       {/* Overlay with spotlight cutout */}
       <svg
         style={{ position: 'fixed', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}

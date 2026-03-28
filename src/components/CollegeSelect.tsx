@@ -27,10 +27,12 @@ export function CollegeSelect({ value, onChange, placeholder = 'Search for a col
   const [results, setResults] = useState<CollegeResult[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(false)
+  const [activeIndex, setActiveIndex] = useState(-1)
   const ref = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(null)
   const lastQueryRef = useRef('')
+  const listboxId = useRef(`college-listbox-${Math.random().toString(36).slice(2, 8)}`).current
 
   const fetchResults = useCallback(async (query: string) => {
     if (query.length < 2) { setResults([]); setError(false); return }
@@ -51,9 +53,30 @@ export function CollegeSelect({ value, onChange, placeholder = 'Search for a col
 
   function handleInput(val: string) {
     setSearch(val)
+    setActiveIndex(-1)
     if (!open) setOpen(true)
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => fetchResults(val), 300)
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (!open) return
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setActiveIndex(i => Math.min(i + 1, results.length - 1))
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setActiveIndex(i => Math.max(i - 1, 0))
+    } else if (e.key === 'Enter' && activeIndex >= 0 && results[activeIndex]) {
+      e.preventDefault()
+      onChange(results[activeIndex].name, results[activeIndex])
+      setOpen(false)
+      setSearch('')
+      inputRef.current?.blur()
+    } else if (e.key === 'Escape') {
+      setOpen(false)
+      setSearch('')
+    }
   }
 
   useEffect(() => {
@@ -88,14 +111,25 @@ export function CollegeSelect({ value, onChange, placeholder = 'Search for a col
       <input
         ref={inputRef}
         type="text"
+        role="combobox"
+        aria-expanded={open}
+        aria-controls={listboxId}
+        aria-activedescendant={activeIndex >= 0 ? `${listboxId}-opt-${activeIndex}` : undefined}
+        aria-autocomplete="list"
+        aria-label="Search for a college"
         value={open ? search : value}
         onChange={e => handleInput(e.target.value)}
         onFocus={() => { setOpen(true); setSearch(value); if (value.length >= 2) fetchResults(value) }}
+        onKeyDown={handleKeyDown}
         placeholder={value || placeholder}
         style={{ ...defaultInputStyle, ...customInputStyle }}
       />
       {open && (search.length >= 2 || results.length > 0) && (
-        <div style={{
+        <div
+          id={listboxId}
+          role="listbox"
+          aria-label="College search results"
+          style={{
           position: 'absolute',
           top: '100%',
           left: 0,
@@ -129,9 +163,12 @@ export function CollegeSelect({ value, onChange, placeholder = 'Search for a col
               No results — type the full name or try a different spelling
             </div>
           ) : (
-            results.map(r => (
+            results.map((r, idx) => (
               <button
                 key={r.id}
+                id={`${listboxId}-opt-${idx}`}
+                role="option"
+                aria-selected={idx === activeIndex}
                 type="button"
                 onClick={() => { onChange(r.name, r); setOpen(false); setSearch(''); inputRef.current?.blur() }}
                 style={{
@@ -139,14 +176,14 @@ export function CollegeSelect({ value, onChange, placeholder = 'Search for a col
                   width: '100%',
                   padding: '9px 14px',
                   border: 'none',
-                  background: r.name === value ? 'color-mix(in srgb, var(--color-primary) 12%, transparent)' : 'transparent',
+                  background: idx === activeIndex ? 'color-mix(in srgb, var(--color-primary) 12%, transparent)' : r.name === value ? 'color-mix(in srgb, var(--color-primary) 12%, transparent)' : 'transparent',
                   color: 'var(--color-text)',
                   fontSize: 13,
                   textAlign: 'left',
                   cursor: 'pointer',
                   lineHeight: 1.4,
                 }}
-                onMouseEnter={e => { (e.target as HTMLElement).style.background = 'color-mix(in srgb, var(--color-primary) 8%, transparent)' }}
+                onMouseEnter={e => { setActiveIndex(idx); (e.target as HTMLElement).style.background = 'color-mix(in srgb, var(--color-primary) 8%, transparent)' }}
                 onMouseLeave={e => { (e.target as HTMLElement).style.background = r.name === value ? 'color-mix(in srgb, var(--color-primary) 12%, transparent)' : 'transparent' }}
               >
                 <div style={{ fontWeight: 600 }}>{r.name}</div>

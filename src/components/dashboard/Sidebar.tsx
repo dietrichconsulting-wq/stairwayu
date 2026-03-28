@@ -141,7 +141,7 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
           const active = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
           return (
             <Tooltip key={item.href} text={item.tip} position="right" delay={500}>
-            <Link href={item.href} className={`sidebar__nav-item ${active ? 'sidebar__nav-item--active' : ''}`} data-tour={tourAttr[item.href]}>
+            <Link href={item.href} className={`sidebar__nav-item ${active ? 'sidebar__nav-item--active' : ''}`} aria-current={active ? 'page' : undefined} data-tour={tourAttr[item.href]}>
               {active && (
                 <motion.div
                   layoutId="sidebar-active-bg"
@@ -241,6 +241,7 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
           <Tooltip text="Sign out of your account." position="top">
           <button
             onClick={handleSignOut}
+            aria-label="Sign out"
             style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: 'var(--color-text-muted)', padding: '4px', borderRadius: 6, flexShrink: 0 }}
           >
             ↩
@@ -267,7 +268,7 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
       </div>
 
       {/* ── Desktop sidebar (always visible ≥768px) ── */}
-      <nav className="sidebar sidebar--desktop">
+      <nav className="sidebar sidebar--desktop" aria-label="Main navigation">
         {navContent}
       </nav>
 
@@ -288,6 +289,7 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
             <motion.nav
               ref={drawerRef}
               className="sidebar sidebar--mobile"
+              aria-label="Main navigation"
               initial={{ x: '-100%' }}
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}

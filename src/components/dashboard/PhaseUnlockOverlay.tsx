@@ -58,7 +58,12 @@ export function PhaseUnlockOverlay({ phase, onDismiss }: PhaseUnlockOverlayProps
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${phase} Phase Unlocked`}
           onClick={onDismiss}
+          onKeyDown={e => { if (e.key === 'Escape') onDismiss() }}
+          tabIndex={-1}
           style={{
             position: 'fixed', inset: 0, zIndex: 10000,
             background: 'rgba(0,0,0,0.6)',

@@ -35,7 +35,10 @@ export function CelebrationToastContainer() {
   }, [])
 
   return (
-    <div style={{
+    <div
+      role="status"
+      aria-live="polite"
+      style={{
       position: 'fixed', bottom: 24, right: 24, zIndex: 9999,
       display: 'flex', flexDirection: 'column', gap: 10,
       pointerEvents: 'none', maxWidth: 360,
@@ -61,6 +64,9 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 20, scale: 0.95 }}
       transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+      role="alert"
+      tabIndex={0}
+      aria-label={`${toast.message}. Press Enter to dismiss.`}
       style={{
         pointerEvents: 'auto',
         background: 'var(--color-card)',
@@ -74,6 +80,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
         cursor: 'pointer',
       }}
       onClick={() => onDismiss(toast.id)}
+      onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') onDismiss(toast.id) }}
     >
       {toast.emoji && <span style={{ fontSize: 22, lineHeight: 1, flexShrink: 0 }}>{toast.emoji}</span>}
       <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)', lineHeight: 1.4 }}>

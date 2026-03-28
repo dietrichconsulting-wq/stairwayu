@@ -13,8 +13,10 @@ interface MajorSelectProps {
 export function MajorSelect({ value, onChange, placeholder = 'Search or select a major…', style }: MajorSelectProps) {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
+  const [activeIndex, setActiveIndex] = useState(-1)
   const ref = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const listboxId = useRef(`major-listbox-${Math.random().toString(36).slice(2, 8)}`).current
 
   const filtered = search.trim()
     ? MAJORS.filter(m => m.toLowerCase().includes(search.toLowerCase()))
@@ -36,9 +38,22 @@ export function MajorSelect({ value, onChange, placeholder = 'Search or select a
       <input
         ref={inputRef}
         type="text"
+        role="combobox"
+        aria-expanded={open}
+        aria-controls={listboxId}
+        aria-activedescendant={activeIndex >= 0 ? `${listboxId}-opt-${activeIndex}` : undefined}
+        aria-autocomplete="list"
+        aria-label="Search or select a major"
         value={open ? search : value}
-        onChange={e => { setSearch(e.target.value); if (!open) setOpen(true) }}
+        onChange={e => { setSearch(e.target.value); setActiveIndex(-1); if (!open) setOpen(true) }}
         onFocus={() => { setOpen(true); setSearch('') }}
+        onKeyDown={e => {
+          if (!open) return
+          if (e.key === 'ArrowDown') { e.preventDefault(); setActiveIndex(i => Math.min(i + 1, filtered.length - 1)) }
+          else if (e.key === 'ArrowUp') { e.preventDefault(); setActiveIndex(i => Math.max(i - 1, 0)) }
+          else if (e.key === 'Enter' && activeIndex >= 0 && filtered[activeIndex]) { e.preventDefault(); onChange(filtered[activeIndex]); setOpen(false); setSearch(''); inputRef.current?.blur() }
+          else if (e.key === 'Escape') { setOpen(false); setSearch('') }
+        }}
         placeholder={value || placeholder}
         style={{
           padding: '10px 12px',
@@ -53,7 +68,11 @@ export function MajorSelect({ value, onChange, placeholder = 'Search or select a
         }}
       />
       {open && (
-        <div style={{
+        <div
+          id={listboxId}
+          role="listbox"
+          aria-label="Major search results"
+          style={{
           position: 'absolute',
           top: '100%',
           left: 0,
@@ -72,9 +91,12 @@ export function MajorSelect({ value, onChange, placeholder = 'Search or select a
               No matches — type to use a custom major
             </div>
           ) : (
-            filtered.map(m => (
+            filtered.map((m, idx) => (
               <button
                 key={m}
+                id={`${listboxId}-opt-${idx}`}
+                role="option"
+                aria-selected={idx === activeIndex}
                 type="button"
                 onClick={() => { onChange(m); setOpen(false); setSearch(''); inputRef.current?.blur() }}
                 style={{
@@ -82,14 +104,14 @@ export function MajorSelect({ value, onChange, placeholder = 'Search or select a
                   width: '100%',
                   padding: '8px 14px',
                   border: 'none',
-                  background: m === value ? 'color-mix(in srgb, var(--color-primary) 12%, transparent)' : 'transparent',
+                  background: idx === activeIndex ? 'color-mix(in srgb, var(--color-primary) 12%, transparent)' : m === value ? 'color-mix(in srgb, var(--color-primary) 12%, transparent)' : 'transparent',
                   color: m === value ? 'var(--color-primary)' : 'var(--color-text)',
                   fontSize: 13,
                   fontWeight: m === value ? 700 : 400,
                   textAlign: 'left',
                   cursor: 'pointer',
                 }}
-                onMouseEnter={e => { (e.target as HTMLElement).style.background = 'color-mix(in srgb, var(--color-primary) 8%, transparent)' }}
+                onMouseEnter={e => { setActiveIndex(idx); (e.target as HTMLElement).style.background = 'color-mix(in srgb, var(--color-primary) 8%, transparent)' }}
                 onMouseLeave={e => { (e.target as HTMLElement).style.background = m === value ? 'color-mix(in srgb, var(--color-primary) 12%, transparent)' : 'transparent' }}
               >
                 {m}

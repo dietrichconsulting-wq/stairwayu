@@ -9,6 +9,7 @@ import { MajorSelect } from '@/components/MajorSelect'
 import { CollegeSelect } from '@/components/CollegeSelect'
 import { useReadinessScore } from '@/hooks/useReadinessScore'
 import type { ReadinessScore } from '@/hooks/useReadinessScore'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import Link from 'next/link'
 import { Tooltip } from '@/components/ui/Tooltip'
 
@@ -61,6 +62,7 @@ function DimBar({ score, max, color }: { score: number; max: number; color: stri
 
 function ReadinessDetailPanel({ score, onClose }: { score: ReadinessScore; onClose: () => void }) {
   const panelRef = useRef<HTMLDivElement>(null)
+  const focusTrapRef = useFocusTrap<HTMLDivElement>()
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
@@ -108,6 +110,11 @@ function ReadinessDetailPanel({ score, onClose }: { score: ReadinessScore; onClo
 
   return (
     <div
+      ref={focusTrapRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Application Readiness breakdown"
+      tabIndex={-1}
       style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
@@ -142,6 +149,7 @@ function ReadinessDetailPanel({ score, onClose }: { score: ReadinessScore; onClo
           </div>
           <button
             onClick={onClose}
+            aria-label="Close readiness breakdown"
             style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: 'var(--color-text-muted)', padding: 4, lineHeight: 1 }}
           >
             ×

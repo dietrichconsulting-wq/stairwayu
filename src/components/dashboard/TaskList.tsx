@@ -196,6 +196,8 @@ export function TaskList({ tasks, loading, userId, collapsedMax }: TaskListProps
               >
                 <button
                   onClick={() => toggleDone(task)}
+                  aria-label={isDone ? `Mark "${task.title}" as active` : `Mark "${task.title}" as done`}
+                  aria-pressed={isDone}
                   style={{
                     width: 20, height: 20, borderRadius: '50%',
                     border: isDone ? '2px solid var(--color-success)' : '2px solid var(--color-border)',
