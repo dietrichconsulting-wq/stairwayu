@@ -140,12 +140,34 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
         className="card-elevated"
         style={{ padding: '28px 24px', textAlign: 'center' }}
       >
-        <div style={{ fontSize: 32, marginBottom: 8 }}>🎓</div>
+        {/* SVG: Empty campus with magnifying glass */}
+        <div style={{ marginBottom: 12 }}>
+          <svg width="100" height="80" viewBox="0 0 100 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+            {/* Campus building */}
+            <rect x="25" y="30" width="50" height="35" rx="3" fill="var(--color-column)" stroke="var(--color-border)" strokeWidth="1.5" />
+            <rect x="45" y="20" width="10" height="10" rx="1" fill="var(--color-column)" stroke="var(--color-border)" strokeWidth="1.5" />
+            {/* Windows */}
+            <rect x="32" y="38" width="8" height="8" rx="1.5" fill="var(--color-primary)" opacity="0.15" />
+            <rect x="46" y="38" width="8" height="8" rx="1.5" fill="var(--color-primary)" opacity="0.15" />
+            <rect x="60" y="38" width="8" height="8" rx="1.5" fill="var(--color-primary)" opacity="0.15" />
+            {/* Door */}
+            <rect x="44" y="52" width="12" height="13" rx="2" fill="var(--color-primary)" opacity="0.2" />
+            {/* Flag */}
+            <line x1="50" y1="12" x2="50" y2="20" stroke="var(--color-text-muted)" strokeWidth="1.5" opacity="0.4" />
+            <path d="M50 12 L58 15 L50 18" fill="var(--color-primary)" opacity="0.5" />
+            {/* Magnifying glass */}
+            <circle cx="78" cy="22" r="10" fill="none" stroke="var(--color-primary)" strokeWidth="2" opacity="0.4" />
+            <line x1="85" y1="29" x2="92" y2="36" stroke="var(--color-primary)" strokeWidth="2.5" strokeLinecap="round" opacity="0.4" />
+            <text x="75" y="25" fontSize="8" fill="var(--color-primary)" opacity="0.5" fontWeight="700">?</text>
+            {/* Dotted path */}
+            <path d="M10 68 Q30 58, 50 65 Q70 72, 90 60" stroke="var(--color-text-muted)" strokeWidth="1.5" strokeDasharray="4 3" opacity="0.25" fill="none" />
+          </svg>
+        </div>
         <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>
           Your school list is empty
         </div>
         <div style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 16, maxWidth: 360, marginLeft: 'auto', marginRight: 'auto' }}>
-          Add schools and we'll show you exactly where you stand — real admission odds, personalized to you.
+          Add schools and we&apos;ll show you exactly where you stand — real admission odds, personalized to you.
         </div>
         <Link
           href="/profile"

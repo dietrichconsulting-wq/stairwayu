@@ -63,6 +63,99 @@ interface StrategyPageClientProps {
   userId: string
 }
 
+const LOADING_STEPS = [
+  { text: 'Analyzing your profile…', icon: '🔍', duration: 2200 },
+  { text: 'Searching 3,000+ colleges…', icon: '🏛️', duration: 2800 },
+  { text: 'Matching programs to your major…', icon: '📚', duration: 2400 },
+  { text: 'Calculating admission odds…', icon: '📊', duration: 2600 },
+  { text: 'Building your personalized list…', icon: '✨', duration: 3000 },
+]
+
+function StrategyLoadingSteps() {
+  const [activeStep, setActiveStep] = useState(0)
+
+  useEffect(() => {
+    let timeout: ReturnType<typeof setTimeout>
+    function advance(step: number) {
+      if (step < LOADING_STEPS.length - 1) {
+        timeout = setTimeout(() => {
+          setActiveStep(step + 1)
+          advance(step + 1)
+        }, LOADING_STEPS[step].duration)
+      }
+    }
+    advance(0)
+    return () => clearTimeout(timeout)
+  }, [])
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 340, padding: 40 }}>
+      <div className="strategy-loading-pulse" style={{ width: 64, height: 64, borderRadius: '50%', background: 'color-mix(in srgb, var(--color-primary) 12%, transparent)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 28 }}>
+        <span style={{ fontSize: 28 }}>{LOADING_STEPS[activeStep].icon}</span>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 300 }}>
+        {LOADING_STEPS.map((step, i) => {
+          const state = i < activeStep ? 'done' : i === activeStep ? 'active' : 'pending'
+          return (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, x: -12 }}
+              animate={{ opacity: state === 'pending' ? 0.35 : 1, x: 0 }}
+              transition={{ delay: i * 0.1, duration: 0.3 }}
+              style={{ display: 'flex', alignItems: 'center', gap: 10 }}
+            >
+              <div style={{
+                width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 11, fontWeight: 700,
+                background: state === 'done' ? 'var(--color-success)' : state === 'active' ? 'var(--color-primary)' : 'var(--color-column)',
+                color: state === 'pending' ? 'var(--color-text-muted)' : '#fff',
+                transition: 'background 0.3s, color 0.3s',
+              }}>
+                {state === 'done' ? '✓' : state === 'active' ? <span className="strategy-spinner" style={{ width: 10, height: 10, borderWidth: 1.5 }} /> : i + 1}
+              </div>
+              <span style={{
+                fontSize: 13, fontWeight: state === 'active' ? 700 : 500,
+                color: state === 'active' ? 'var(--color-text)' : 'var(--color-text-muted)',
+                transition: 'color 0.3s, font-weight 0.3s',
+              }}>
+                {step.text}
+              </span>
+            </motion.div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function TypewriterText({ text, speed = 18 }: { text: string; speed?: number }) {
+  const [displayed, setDisplayed] = useState('')
+  const [done, setDone] = useState(false)
+
+  useEffect(() => {
+    let i = 0
+    setDisplayed('')
+    setDone(false)
+    const interval = setInterval(() => {
+      i++
+      setDisplayed(text.slice(0, i))
+      if (i >= text.length) {
+        clearInterval(interval)
+        setDone(true)
+      }
+    }, speed)
+    return () => clearInterval(interval)
+  }, [text, speed])
+
+  return (
+    <span>
+      {displayed}
+      {!done && <span className="typewriter-cursor">|</span>}
+    </span>
+  )
+}
+
 export function StrategyPageClient({ profile, colleges, userId }: StrategyPageClientProps) {
   const recordXp = useRecordXp(userId)
   const [collegeNames, setCollegeNames] = useState<string[]>(colleges)
@@ -77,6 +170,7 @@ export function StrategyPageClient({ profile, colleges, userId }: StrategyPageCl
   })
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<StrategyResult | null>(profile?.strategy_result ?? null)
+  const [freshResult, setFreshResult] = useState(false)
   const [error, setError] = useState('')
   const [formOpen, setFormOpen] = useState(true)
   const resultsRef = useRef<HTMLDivElement>(null)
@@ -104,6 +198,7 @@ export function StrategyPageClient({ profile, colleges, userId }: StrategyPageCl
       }
       const data = await res.json()
       setResult(data)
+      setFreshResult(true)
       recordXp.mutate({ action: 'generate_strategy' })
       // Celebrate first-ever strategy generation with a big confetti burst
       if (isFirstGeneration.current) {
@@ -192,29 +287,13 @@ export function StrategyPageClient({ profile, colleges, userId }: StrategyPageCl
         <div ref={resultsRef}>
           <AnimatePresence>
             {loading ? (
-              <div>
-                {/* Skeleton for rationale */}
-                <div className="skeleton" style={{ height: 48, borderRadius: 10, marginBottom: 24 }} />
-                {/* Skeleton tier sections */}
-                {['Reach', 'Target', 'Safety'].map(tier => (
-                  <div key={tier} style={{ marginBottom: 24 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                      <div className="skeleton" style={{ width: 20, height: 20, borderRadius: '50%' }} />
-                      <div className="skeleton" style={{ height: 18, width: 80, borderRadius: 6 }} />
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                      {[...Array(tier === 'Target' ? 3 : 2)].map((_, i) => (
-                        <div key={i} className="skeleton" style={{ height: 120, borderRadius: 12 }} />
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <StrategyLoadingSteps />
             ) : result ? (
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                 {result.rationale && (
                   <div style={{ background: 'color-mix(in srgb, var(--color-primary) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--color-primary) 18%, transparent)', borderRadius: 10, padding: '12px 16px', fontSize: 13, lineHeight: 1.6, marginBottom: 24 }}>
-                    <strong style={{ color: 'var(--color-primary)' }}>Strategy: </strong>{result.rationale}
+                    <strong style={{ color: 'var(--color-primary)' }}>Strategy: </strong>
+                    {freshResult ? <TypewriterText text={result.rationale} /> : result.rationale}
                   </div>
                 )}
                 {(['reach', 'target', 'safety'] as Tier[]).map(tier => (
@@ -231,19 +310,53 @@ export function StrategyPageClient({ profile, colleges, userId }: StrategyPageCl
                 ))}
               </motion.div>
             ) : (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 300, textAlign: 'center', padding: 40 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 340, textAlign: 'center', padding: 40 }}>
                 <div>
-                  <div className="strategy-empty-icon" style={{ fontSize: 56, marginBottom: 16, lineHeight: 1 }}>🚀</div>
+                  {/* SVG: Student with backpack looking at a map */}
+                  <div className="strategy-empty-icon" style={{ marginBottom: 20 }}>
+                    <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      {/* Map / path */}
+                      <path d="M20 85 Q40 70, 60 75 Q80 80, 100 65" stroke="var(--color-primary)" strokeWidth="2" strokeDasharray="6 4" opacity="0.4" fill="none" />
+                      <circle cx="20" cy="85" r="4" fill="#EF4444" opacity="0.7" />
+                      <circle cx="60" cy="75" r="4" fill="#FBBF24" opacity="0.7" />
+                      <circle cx="100" cy="65" r="4" fill="#22C55E" opacity="0.7" />
+                      {/* Character body */}
+                      <circle cx="42" cy="35" r="12" fill="var(--color-primary)" opacity="0.15" />
+                      <circle cx="42" cy="35" r="8" fill="var(--color-primary)" opacity="0.3" />
+                      {/* Head */}
+                      <circle cx="42" cy="28" r="6" fill="var(--color-text-muted)" opacity="0.5" />
+                      {/* Backpack */}
+                      <rect x="36" y="34" rx="3" width="12" height="16" fill="var(--color-primary)" opacity="0.25" />
+                      <rect x="38" y="37" rx="1.5" width="8" height="4" fill="var(--color-primary)" opacity="0.4" />
+                      {/* Legs */}
+                      <line x1="39" y1="50" x2="36" y2="62" stroke="var(--color-text-muted)" strokeWidth="2.5" strokeLinecap="round" opacity="0.35" />
+                      <line x1="45" y1="50" x2="48" y2="62" stroke="var(--color-text-muted)" strokeWidth="2.5" strokeLinecap="round" opacity="0.35" />
+                      {/* Map in hand */}
+                      <rect x="52" y="30" rx="2" width="18" height="14" fill="var(--color-card)" stroke="var(--color-border)" strokeWidth="1.5" />
+                      <line x1="55" y1="34" x2="67" y2="34" stroke="var(--color-primary)" strokeWidth="1" opacity="0.4" />
+                      <line x1="55" y1="37" x2="64" y2="37" stroke="var(--color-text-muted)" strokeWidth="1" opacity="0.3" />
+                      <line x1="55" y1="40" x2="62" y2="40" stroke="var(--color-text-muted)" strokeWidth="1" opacity="0.3" />
+                      {/* Destination flag */}
+                      <line x1="100" y1="52" x2="100" y2="65" stroke="var(--color-text-muted)" strokeWidth="1.5" opacity="0.4" />
+                      <path d="M100 52 L110 55.5 L100 59" fill="#22C55E" opacity="0.6" />
+                    </svg>
+                  </div>
                   <div style={{ fontWeight: 800, fontSize: 18, marginBottom: 6, color: 'var(--color-text)' }}>
                     Build your dream school list
                   </div>
                   <div style={{ fontSize: 13, color: 'var(--color-text-muted)', lineHeight: 1.5, maxWidth: 280, margin: '0 auto' }}>
                     Fill in your stats and hit <strong style={{ color: 'var(--color-primary)' }}>Generate Strategy</strong> to get a personalized reach, target &amp; safety list
                   </div>
-                  <div className="strategy-empty-dots" style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 20 }}>
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#EF4444', opacity: 0.7 }} />
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#FBBF24', opacity: 0.7 }} />
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#22C55E', opacity: 0.7 }} />
+                  <div className="strategy-empty-dots" style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 20 }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 600, color: '#EF4444', opacity: 0.8 }}>
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#EF4444' }} /> Reach
+                    </span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 600, color: '#FBBF24', opacity: 0.8 }}>
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#FBBF24' }} /> Target
+                    </span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 600, color: '#22C55E', opacity: 0.8 }}>
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#22C55E' }} /> Safety
+                    </span>
                   </div>
                 </div>
               </div>

@@ -187,7 +187,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
           )}
         </div>
         <p style={{ fontSize: 14, color: 'var(--color-text-muted)', marginTop: 4 }}>
-          {scoreLoading ? 'Change your GPA, SAT, major, and schools to check your chance of getting in.' : getSubtitle(readinessTotal)}
+          {scoreLoading ? 'Loading your progress…' : getSubtitle(readinessTotal)}
         </p>
       </div>
 

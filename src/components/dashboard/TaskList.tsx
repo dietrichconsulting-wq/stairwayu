@@ -322,8 +322,40 @@ export function TaskList({ tasks, loading, userId, collapsedMax }: TaskListProps
         </AnimatePresence>
 
         {filtered.length === 0 && (
-          <div style={{ textAlign: 'center', color: 'var(--color-text-muted)', fontSize: 14, padding: '32px 0' }}>
-            {filter === 'All' ? '🎉 All tasks done!' : `No ${filter} tasks`}
+          <div style={{ textAlign: 'center', padding: '36px 0' }}>
+            {filter === 'All' ? (
+              <>
+                <svg width="80" height="70" viewBox="0 0 80 70" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ margin: '0 auto 12px' }}>
+                  {/* Checklist */}
+                  <rect x="18" y="10" width="44" height="50" rx="5" fill="var(--color-column)" stroke="var(--color-border)" strokeWidth="1.5" />
+                  {/* Check lines */}
+                  <circle cx="28" cy="24" r="4" fill="#22C55E" opacity="0.6" />
+                  <path d="M26 24 L27.5 25.5 L30 22.5" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <line x1="36" y1="24" x2="54" y2="24" stroke="var(--color-text-muted)" strokeWidth="1.5" opacity="0.3" strokeLinecap="round" />
+                  <circle cx="28" cy="36" r="4" fill="#22C55E" opacity="0.6" />
+                  <path d="M26 36 L27.5 37.5 L30 34.5" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <line x1="36" y1="36" x2="50" y2="36" stroke="var(--color-text-muted)" strokeWidth="1.5" opacity="0.3" strokeLinecap="round" />
+                  <circle cx="28" cy="48" r="4" fill="#22C55E" opacity="0.6" />
+                  <path d="M26 48 L27.5 49.5 L30 46.5" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <line x1="36" y1="48" x2="52" y2="48" stroke="var(--color-text-muted)" strokeWidth="1.5" opacity="0.3" strokeLinecap="round" />
+                  {/* Star burst */}
+                  <circle cx="58" cy="14" r="8" fill="#FBBF24" opacity="0.15" />
+                  <text x="54.5" y="18" fontSize="12" fill="#FBBF24" opacity="0.8">⭐</text>
+                </svg>
+                <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>All tasks done!</div>
+                <div style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>You&apos;re on top of everything. Add a new task or take a well-earned break.</div>
+              </>
+            ) : (
+              <>
+                <svg width="60" height="50" viewBox="0 0 60 50" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ margin: '0 auto 10px' }}>
+                  <rect x="10" y="5" width="40" height="40" rx="5" fill="var(--color-column)" stroke="var(--color-border)" strokeWidth="1.5" />
+                  <line x1="20" y1="18" x2="40" y2="18" stroke="var(--color-text-muted)" strokeWidth="1.5" opacity="0.2" strokeLinecap="round" />
+                  <line x1="20" y1="25" x2="36" y2="25" stroke="var(--color-text-muted)" strokeWidth="1.5" opacity="0.2" strokeLinecap="round" />
+                  <line x1="20" y1="32" x2="38" y2="32" stroke="var(--color-text-muted)" strokeWidth="1.5" opacity="0.2" strokeLinecap="round" />
+                </svg>
+                <div style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>No {filter} tasks</div>
+              </>
+            )}
           </div>
         )}
       </div>

@@ -630,6 +630,27 @@ body {
   animation: shimmer-border 3s linear infinite;
 }
 
+/* ── Strategy loading steps ─────────────────────────────────────────────── */
+@keyframes loading-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50%      { transform: scale(1.08); opacity: 1; }
+}
+.strategy-loading-pulse {
+  animation: loading-pulse 2s ease-in-out infinite;
+}
+
+/* ── Typewriter cursor ─────────────────────────────────────────────────── */
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0; }
+}
+.typewriter-cursor {
+  animation: cursor-blink 0.8s step-end infinite;
+  color: var(--color-primary);
+  font-weight: 400;
+  margin-left: 1px;
+}
+
 /* ── Strategy empty state ────────────────────────────────────────────────── */
 @keyframes float-bob {
   0%, 100% { transform: translateY(0); }
