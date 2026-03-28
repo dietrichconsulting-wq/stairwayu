@@ -18,6 +18,7 @@ import { showToast } from '@/components/CelebrationToast'
 import { WelcomeTour } from './WelcomeTour'
 import { DailyChallenges } from './DailyChallenges'
 import { Tooltip } from '@/components/ui/Tooltip'
+import { WidgetErrorBoundary } from '@/components/WidgetErrorBoundary'
 
 interface DashboardClientProps {
   userId: string
@@ -261,10 +262,14 @@ export function DashboardClient({ userId }: DashboardClientProps) {
       }
 
       {/* ── Daily Challenges ── */}
-      <DailyChallenges userId={userId} />
+      <WidgetErrorBoundary name="Daily Challenges">
+        <DailyChallenges userId={userId} />
+      </WidgetErrorBoundary>
 
       {/* ── Section 1: Profile Stats ── */}
-      <ProfileStats profile={profile} loading={profileLoading} tasks={tasks} userId={userId} />
+      <WidgetErrorBoundary name="Profile Stats">
+        <ProfileStats profile={profile} loading={profileLoading} tasks={tasks} userId={userId} />
+      </WidgetErrorBoundary>
 
       {/* ── Section 2: Two-column grid — Admission Chances + Journey Progress ── */}
       <div style={{
@@ -277,9 +282,12 @@ export function DashboardClient({ userId }: DashboardClientProps) {
         className="dashboard-mid-grid"
       >
         {/* Left: Admission Snapshot */}
-        <AdmissionSnapshot profile={profile} colleges={colleges} loading={profileLoading || collegesLoading} />
+        <WidgetErrorBoundary name="Admission Snapshot">
+          <AdmissionSnapshot profile={profile} colleges={colleges} loading={profileLoading || collegesLoading} />
+        </WidgetErrorBoundary>
 
         {/* Right: Journey Progress ring */}
+        <WidgetErrorBoundary name="Journey Progress">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -378,6 +386,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
             View full journey →
           </Link>
         </motion.div>
+        </WidgetErrorBoundary>
       </div>
 
       {/* ── Section 3: Quick Actions ── */}
@@ -426,7 +435,9 @@ export function DashboardClient({ userId }: DashboardClientProps) {
 
       {/* ── Section 4: Task list (collapsed to 5) ── */}
       <div style={{ marginTop: 20 }}>
-        <TaskList tasks={tasks} loading={tasksLoading} userId={userId} collapsedMax={5} />
+        <WidgetErrorBoundary name="Tasks">
+          <TaskList tasks={tasks} loading={tasksLoading} userId={userId} collapsedMax={5} />
+        </WidgetErrorBoundary>
       </div>
 
       {/* ── Welcome tour (fires once after onboarding) ── */}
