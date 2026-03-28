@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MajorSelect } from '@/components/MajorSelect'
 
@@ -75,6 +75,10 @@ export function StrategyPageClient({ profile, colleges, userId }: StrategyPageCl
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<StrategyResult | null>(profile?.strategy_result ?? null)
   const [error, setError] = useState('')
+  const [formOpen, setFormOpen] = useState(true)
+  const resultsRef = useRef<HTMLDivElement>(null)
+
+  const isMobile = useCallback(() => window.matchMedia('(max-width: 768px)').matches, [])
 
   async function handleGenerate() {
     if ((!form.gpa && !form.gpaWeighted) || (!form.sat && !form.act) || !form.major) {
@@ -96,6 +100,10 @@ export function StrategyPageClient({ profile, colleges, userId }: StrategyPageCl
       }
       const data = await res.json()
       setResult(data)
+      if (isMobile()) {
+        setFormOpen(false)
+        setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
+      }
     } catch (err) {
       let msg = 'Failed to generate strategy.'
       try {
@@ -122,9 +130,20 @@ export function StrategyPageClient({ profile, colleges, userId }: StrategyPageCl
 
       <div className="strategy-layout" style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: 24, alignItems: 'flex-start' }}>
         {/* ── Left: Inputs ── */}
-        <div style={{ position: 'sticky', top: 32 }}>
+        <div className="strategy-form-wrapper" style={{ position: 'sticky', top: 32 }}>
           <div className="card-elevated" style={{ padding: '24px 24px 28px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {/* Mobile toggle header */}
+            <button
+              className="strategy-form-toggle"
+              onClick={() => setFormOpen(o => !o)}
+              style={{ display: 'none', width: '100%', background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--color-text)', alignItems: 'center', justifyContent: 'space-between', marginBottom: formOpen ? 14 : 0 }}
+            >
+              <span style={{ fontWeight: 700, fontSize: 14 }}>
+                {result ? 'Edit Inputs' : 'Your Profile'}
+              </span>
+              <span style={{ fontSize: 18, transition: 'transform 0.2s', transform: formOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>▾</span>
+            </button>
+            <div className={formOpen ? 'strategy-form-body' : 'strategy-form-body strategy-form-collapsed'} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <Field label="Unweighted GPA (4.0)" type="number" step="0.01" min="0" max="4.0" placeholder="3.9" value={form.gpa} onChange={v => setForm(f => ({ ...f, gpa: v }))} />
               <Field label="Weighted GPA (5.0)" type="number" step="0.01" min="0" max="5.0" placeholder="4.3" value={form.gpaWeighted} onChange={v => setForm(f => ({ ...f, gpaWeighted: v }))} />
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
@@ -142,18 +161,18 @@ export function StrategyPageClient({ profile, colleges, userId }: StrategyPageCl
                   {CLIMATE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt || 'Any climate'}</option>)}
                 </select>
               </div>
-            </div>
 
             {error && <div style={{ color: '#EF4444', fontSize: 13, marginTop: 14 }}>{error}</div>}
 
             <button onClick={handleGenerate} disabled={loading} style={{ background: loading ? 'var(--color-text-muted)' : 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: 10, padding: '12px 28px', fontWeight: 700, fontSize: 14, cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: 8, marginTop: 18, width: '100%', justifyContent: 'center' }}>
               {loading ? <><span className="strategy-spinner" /> Generating…</> : <>✨ Generate Strategy</>}
             </button>
+            </div>
           </div>
         </div>
 
         {/* ── Right: Results ── */}
-        <div>
+        <div ref={resultsRef}>
           <AnimatePresence>
             {loading ? (
               <div>
