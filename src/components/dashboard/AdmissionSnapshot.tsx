@@ -85,11 +85,12 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
     return null
   })
   const [expandedCard, setExpandedCard] = useState<number | null>(null)
+  const [fetchError, setFetchError] = useState(false)
 
-  useEffect(() => {
-    if (!profile || loading || !fetchKey || fetchKey === lastFetchKey || schools.length === 0) return
-    const controller = new AbortController()
+  const doFetch = useCallback((signal?: AbortSignal) => {
+    if (!profile || !fetchKey || schools.length === 0) return
     setFetching(true)
+    setFetchError(false)
     fetch('/api/colleges/chances', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -101,19 +102,26 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
         proposed_major: profile.proposed_major,
         schools,
       }),
-      signal: controller.signal,
+      signal,
     })
-      .then(r => r.json())
+      .then(r => { if (!r.ok) throw new Error('fetch failed'); return r.json() })
       .then(data => {
         const freshResults = data.results || []
         setResults(freshResults)
         setLastFetchKey(fetchKey)
         try { sessionStorage.setItem(SNAPSHOT_KEY, JSON.stringify({ key: fetchKey, data: freshResults })) } catch { /* ignore */ }
       })
-      .catch((err) => { if (err.name !== 'AbortError') setLastFetchKey(fetchKey) })
-      .finally(() => { if (!controller.signal.aborted) setFetching(false) })
+      .catch((err) => { if (err.name !== 'AbortError') setFetchError(true) })
+      .finally(() => { if (!signal?.aborted) setFetching(false) })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fetchKey, profile])
+
+  useEffect(() => {
+    if (!profile || loading || !fetchKey || fetchKey === lastFetchKey || schools.length === 0) return
+    const controller = new AbortController()
+    doFetch(controller.signal)
     return () => controller.abort()
-  }, [fetchKey, loading]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fetchKey, loading, doFetch]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) {
     return (
@@ -225,9 +233,35 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
         </div>
       )}
 
-      {!fetching && results.length === 0 && lastFetchKey !== null && (
+      {!fetching && fetchError && (
+        <div style={{
+          padding: '16px',
+          borderRadius: 12,
+          background: 'rgba(239,68,68,0.06)',
+          border: '1px solid rgba(239,68,68,0.18)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 12,
+        }}>
+          <span style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
+            Couldn&apos;t load admission data.
+          </span>
+          <button
+            onClick={() => doFetch()}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              fontSize: 13, fontWeight: 700, color: '#EF4444', padding: 0, flexShrink: 0,
+            }}
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {!fetching && !fetchError && results.length === 0 && lastFetchKey !== null && (
         <div style={{ fontSize: 13, color: 'var(--color-text-muted)', padding: '12px 0' }}>
-          Couldn&apos;t load school data. Add your SAT score and try refreshing.{' '}
+          No admission data available yet. Add your SAT score to see estimates.{' '}
           <Link href="/profile" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>Update profile →</Link>
         </div>
       )}
