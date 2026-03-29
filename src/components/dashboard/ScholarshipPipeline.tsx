@@ -54,7 +54,7 @@ export function ScholarshipPipeline({ scholarships, loading, userId }: Scholarsh
     return (
       <div className="card-elevated" style={{ padding: '20px 24px' }}>
         <div className="skeleton" style={{ height: 20, width: 160, marginBottom: 16 }} />
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+        <div className="scholarship-stage-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
           {[...Array(4)].map((_, i) => (
             <div key={i} className="skeleton" style={{ height: 80, borderRadius: 10 }} />
           ))}
@@ -104,7 +104,7 @@ export function ScholarshipPipeline({ scholarships, loading, userId }: Scholarsh
       </AnimatePresence>
 
       {/* Stage columns */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+      <div className="scholarship-stage-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
         {STAGES.map(stage => {
           const items = scholarships.filter(s => s.stage === stage)
           const c = getStageColors()[stage]

@@ -259,7 +259,7 @@ body {
   left: 0;
   top: 0;
   bottom: 0;
-  width: 280px;
+  width: min(280px, calc(100vw - 48px));
   box-shadow: 8px 0 24px rgba(0,0,0,0.3);
 }
 
@@ -418,6 +418,18 @@ body {
   /* ── Task rows: wrap so actions sit below content ── */
   .task-row {
     flex-wrap: wrap;
+  }
+
+  /* ── Scholarship stage grid: 2×2 → single column on small phones ── */
+  @media (max-width: 420px) {
+    .scholarship-stage-grid {
+      grid-template-columns: 1fr !important;
+    }
+  }
+
+  /* ── Admission skeleton grid: prevent overflow ── */
+  .admission-snapshot-grid {
+    grid-template-columns: 1fr !important;
   }
 
   /* ── Compare page: responsive fixes ── */

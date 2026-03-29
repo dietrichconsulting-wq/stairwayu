@@ -299,7 +299,7 @@ export function ComparePageClient({ profile, colleges }: ComparePageClientProps)
               <tr>
                 <th style={{ textAlign: 'left', padding: '8px 12px', fontWeight: 700, color: 'var(--color-text-muted)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Metric</th>
                 {results.map(r => (
-                  <th key={r.name} style={{ textAlign: 'center', padding: '8px 12px', fontWeight: 700, color: 'var(--color-primary)', fontSize: 13, minWidth: 120 }}>
+                  <th key={r.name} style={{ textAlign: 'center', padding: '8px 12px', fontWeight: 700, color: 'var(--color-primary)', fontSize: 13 }}>
                     <div>{shortName(r.name)}</div>
                     {r._dataSources?.scorecard && <div style={{ fontSize: 9, fontWeight: 500, color: '#16a34a' }}>live data</div>}
                   </th>

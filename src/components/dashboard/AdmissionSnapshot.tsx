@@ -87,10 +87,17 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
   const [expandedCard, setExpandedCard] = useState<number | null>(null)
   const [fetchError, setFetchError] = useState(false)
 
-  const doFetch = useCallback((signal?: AbortSignal) => {
+  const doFetch = useCallback((signal?: AbortSignal, retriesLeft = 2) => {
     if (!profile || !fetchKey || schools.length === 0) return
     setFetching(true)
     setFetchError(false)
+
+    const timeout = AbortSignal.timeout(15000)
+    // Combine caller signal with our timeout so either can abort
+    const combined = signal
+      ? AbortSignal.any([signal, timeout])
+      : timeout
+
     fetch('/api/colleges/chances', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -102,7 +109,7 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
         proposed_major: profile.proposed_major,
         schools,
       }),
-      signal,
+      signal: combined,
     })
       .then(r => { if (!r.ok) throw new Error('fetch failed'); return r.json() })
       .then(data => {
@@ -111,7 +118,14 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
         setLastFetchKey(fetchKey)
         try { sessionStorage.setItem(SNAPSHOT_KEY, JSON.stringify({ key: fetchKey, data: freshResults })) } catch { /* ignore */ }
       })
-      .catch((err) => { if (err.name !== 'AbortError') setFetchError(true) })
+      .catch((err) => {
+        if (err.name === 'AbortError' || signal?.aborted) return
+        if (retriesLeft > 0) {
+          setTimeout(() => doFetch(signal, retriesLeft - 1), 1500 * (3 - retriesLeft))
+          return
+        }
+        setFetchError(true)
+      })
       .finally(() => { if (!signal?.aborted) setFetching(false) })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchKey, profile])
@@ -226,7 +240,7 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
       </div>
 
       {fetching && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(260px, 100%), 1fr))', gap: 14 }}>
           {schools.map((_, i) => (
             <div key={i} className="skeleton" style={{ height: 140, borderRadius: 12 }} />
           ))}
@@ -267,7 +281,7 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
       )}
 
       {!fetching && results.length > 0 && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(240px, 100%), 1fr))', gap: 14 }}>
           {results.map((r, i) => {
             const { label, color, softColor, bgColor, borderColor } = chanceLabel(r.chance)
             const schoolAdmitRate = r.admissionRate != null ? `${r.admissionRate}% overall admit rate` : null
@@ -294,7 +308,7 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
               >
                 {/* School name + tier label */}
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3, maxWidth: 180 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {r.schoolName}
                   </div>
                   <Tooltip text={label === 'Safety' ? 'Your stats exceed the average — very likely to get in.' : label === 'Target' ? 'Your profile is a solid match — realistic shot.' : 'A stretch — your stats are below average, but worth trying.'} position="left">
