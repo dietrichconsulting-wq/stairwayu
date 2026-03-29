@@ -41,7 +41,13 @@ export function useAddCollege(userId: string) {
         )
         .select()
         .single()
-      if (error) throw error
+      if (error) {
+        // DB trigger returns this for free-tier college limit
+        if (error.code === 'P0001' && error.message.includes('Free plan')) {
+          throw new Error('Free plan allows up to 4 colleges. Upgrade to Pro for unlimited.')
+        }
+        throw error
+      }
 
       // Award XP for adding a college (deduped by id)
       await supabase.rpc('record_xp', { p_action: 'add_college', p_ref_id: data.id })

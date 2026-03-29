@@ -9,7 +9,7 @@ import type { User } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useXp } from '@/hooks/useXp'
-import { useCredits } from '@/hooks/useCredits'
+import { useUsage } from '@/hooks/useCredits'
 import { Tooltip } from '@/components/ui/Tooltip'
 
 const NAV_ITEMS = [
@@ -51,7 +51,7 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
   const supabase = createClient()
   const [mobileOpen, setMobileOpen] = useState(false)
   const { level, totalXp, xpIntoLevel, xpForNextLevel, isMaxLevel, isLoading: xpLoading } = useXp(user.id)
-  const { data: credits } = useCredits()
+  const { data: usage } = useUsage()
 
   // Close drawer on route change
   useEffect(() => {
@@ -191,22 +191,29 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
           </div>
         )}
 
-        {isPro && credits && (
-          <Tooltip text={`${credits.balance} credits · ${credits.callsRemaining} AI calls remaining`} position="right" maxWidth={220}>
+        {usage && (
+          <Tooltip
+            text={usage.isPro ? `${usage.used} AI calls today (unlimited)` : `${usage.used}/${usage.limit} AI calls used today`}
+            position="right" maxWidth={220}
+          >
             <div style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               padding: '6px 10px', borderRadius: 8, marginBottom: 10,
               background: 'color-mix(in srgb, var(--color-border) 40%, transparent)',
               fontSize: 11, fontWeight: 600,
             }}>
-              <span>{credits.callsRemaining} AI calls left</span>
-              {credits.callsRemaining <= 10 && (
+              <span>
+                {usage.isPro
+                  ? `${usage.used} AI calls today`
+                  : `${usage.remaining} AI calls left today`}
+              </span>
+              {!usage.isPro && usage.remaining === 0 && (
                 <Link
-                  href="/dashboard?buy_credits=true"
+                  href="/upgrade"
                   style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-primary)', textDecoration: 'none' }}
                   onClick={e => e.stopPropagation()}
                 >
-                  + Buy More
+                  Upgrade
                 </Link>
               )}
             </div>

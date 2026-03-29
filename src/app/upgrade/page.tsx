@@ -6,13 +6,21 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 
+const FREE_FEATURES = [
+  { icon: '🎓', label: 'Up to 4 colleges', desc: 'Track your top schools on the dashboard' },
+  { icon: '🤖', label: '3 AI calls per day', desc: 'Strategy, essays, and scholarships' },
+  { icon: '📊', label: 'Admission chancing', desc: 'See your score for each school' },
+  { icon: '🗺️', label: 'Journey milestones', desc: 'Visual progress tracker' },
+]
+
 const PRO_FEATURES = [
+  { icon: '♾️', label: 'Unlimited colleges', desc: 'No cap on schools you can track' },
+  { icon: '🤖', label: 'Unlimited AI calls', desc: 'Strategy, essays, scholarships — no daily limit' },
   { icon: '⚡', label: 'College Strategy Generator', desc: 'AI-powered reach/target/safety list with real data' },
   { icon: '⚖️', label: 'College Comparison', desc: 'Side-by-side with live admissions stats' },
+  { icon: '✍️', label: 'Full Essay Coaching', desc: 'Unlimited brainstorm + critique cycles' },
   { icon: '🏆', label: 'Unlimited scholarships', desc: 'Track as many as you need' },
-  { icon: '🤖', label: '1,000 AI credits/mo', desc: '50 AI calls — strategy, essays, scholarships' },
   { icon: '📡', label: 'Deadline Radar', desc: 'Smart deadline tracking across all apps' },
-  { icon: '🗺️', label: 'Journey milestones', desc: 'Visual progress tracker' },
 ]
 
 export default function UpgradePage() {
@@ -78,9 +86,28 @@ export default function UpgradePage() {
           <p style={{ fontSize: 14, color: 'var(--color-text-muted)', marginBottom: 8 }}>
             Everything you need to get into your dream school
           </p>
-          <p style={{ fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 20, lineHeight: 1.6, opacity: 0.7 }}>
-            Free tools make you do the work. Pro connects the dots for you.
+          <p style={{ fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 24, lineHeight: 1.6, opacity: 0.7 }}>
+            Free gets you started. Pro removes every limit.
           </p>
+
+          {/* Free tier summary */}
+          <div style={{ textAlign: 'left', marginBottom: 24, padding: '16px 18px', borderRadius: 12, border: '1px solid var(--color-border)', background: 'var(--color-surface, rgba(255,255,255,0.03))' }}>
+            <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 10 }}>Free — $0 forever</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {FREE_FEATURES.map(f => (
+                <div key={f.label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: 16, flexShrink: 0 }}>{f.icon}</span>
+                  <div>
+                    <span style={{ fontSize: 12, fontWeight: 700 }}>{f.label}</span>
+                    <span style={{ fontSize: 11, color: 'var(--color-text-muted)', marginLeft: 6 }}>{f.desc}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Pro tier */}
+          <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 12, color: 'var(--color-primary)' }}>Upgrade to Pro</div>
 
           {/* Billing toggle */}
           <div style={{ display: 'inline-flex', background: 'var(--color-surface, rgba(255,255,255,0.06))', borderRadius: 10, padding: 3, marginBottom: 20, border: '1px solid var(--color-border)' }}>
@@ -157,28 +184,6 @@ export default function UpgradePage() {
             You won&apos;t be charged during the 7-day trial.<br />
             Cancel anytime from your Profile before the trial ends — no charge.<br />
             <span style={{ opacity: 0.7 }}>Replaces CollegeVine + Niche + Scholarply + ChatGPT + spreadsheets.</span>
-          </div>
-
-          <div style={{ borderTop: '1px solid var(--color-border, #e5e7eb)', paddingTop: 20, marginBottom: 20 }}>
-            <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>Need more AI calls?</p>
-            <p style={{ fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 10 }}>
-              Get 400 extra credits (20 AI calls) for $5
-            </p>
-            <button
-              onClick={async () => {
-                try {
-                  const res = await fetch('/api/credits/purchase', { method: 'POST' })
-                  const data = await res.json()
-                  if (data.url) window.location.href = data.url
-                } catch { /* ignore */ }
-              }}
-              style={{
-                background: 'transparent', color: 'var(--color-primary)', border: '1px solid var(--color-primary)',
-                borderRadius: 8, padding: '8px 20px', fontWeight: 700, fontSize: 13, cursor: 'pointer', width: '100%',
-              }}
-            >
-              Buy 400 Credits — $5
-            </button>
           </div>
 
           <div style={{ borderTop: '1px solid var(--color-border, #e5e7eb)', paddingTop: 20, marginBottom: 20 }}>

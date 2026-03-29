@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { getStripe } from '@/lib/stripe/client'
 import { createServiceClient } from '@/lib/supabase/server'
-import { grantCredits, MONTHLY_CREDIT_GRANT, CREDIT_PACK_AMOUNT } from '@/lib/credits'
+// Credits system removed — freemium model uses daily AI limits instead
 
 export async function POST(req: Request) {
   const stripe = getStripe()
@@ -33,16 +33,7 @@ export async function POST(req: Request) {
     case 'checkout.session.completed': {
       const session = event.data.object as Stripe.Checkout.Session
 
-      // One-time credit pack purchase
-      if (session.mode === 'payment' && session.metadata?.type === 'credit_pack') {
-        const userId = session.metadata.user_id
-        if (userId) {
-          await grantCredits(userId, CREDIT_PACK_AMOUNT, 'credit_pack', session.id)
-        }
-        break
-      }
-
-      // Subscription checkout — grant initial monthly credits
+      // Subscription checkout
       if (session.mode === 'subscription' && session.customer) {
         const sub = await stripe.subscriptions.retrieve(session.subscription as string)
         const interval = sub.items.data[0]?.price?.recurring?.interval
@@ -60,15 +51,6 @@ export async function POST(req: Request) {
           })
           .eq('stripe_customer_id', session.customer as string)
 
-        // Grant monthly credits for new subscription
-        const { data: subRow } = await supabase
-          .from('subscriptions')
-          .select('user_id')
-          .eq('stripe_customer_id', session.customer as string)
-          .single()
-        if (subRow?.user_id) {
-          await grantCredits(subRow.user_id, MONTHLY_CREDIT_GRANT, 'subscription_grant', session.id)
-        }
       }
       break
     }
@@ -100,14 +82,6 @@ export async function POST(req: Request) {
         })
         .eq('stripe_subscription_id', sub.id)
 
-      // Grant credits on period renewal (new period_end differs from stored one)
-      if (
-        existingSub?.user_id &&
-        sub.status === 'active' &&
-        existingSub.current_period_end !== newPeriodEnd
-      ) {
-        await grantCredits(existingSub.user_id, MONTHLY_CREDIT_GRANT, 'subscription_grant')
-      }
       break
     }
 

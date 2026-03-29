@@ -1,9 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
-import { requirePro } from '@/lib/subscription'
+import { getSubscription } from '@/lib/subscription'
 import { NextResponse } from 'next/server'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { checkAiRateLimit } from '@/lib/rateLimit'
-import { deductCredits, getCredits, CREDITS_PER_AI_CALL } from '@/lib/credits'
+import { recordAiUsage, FREE_DAILY_AI_LIMIT } from '@/lib/usage'
 import { sShort, sLong, sNum, userBlock } from '@/lib/promptSanitize'
 import { critiqueSchema, parseBody } from '@/lib/validations'
 
@@ -16,33 +16,19 @@ export async function POST(req: Request) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    // Subscription gate
-    const { allowed, subscription } = await requirePro(user.id)
-    if (!allowed) {
-      return NextResponse.json({
-        error: 'Subscription required',
-        subscription,
-        upgrade_url: '/upgrade',
-      }, { status: 403 })
-    }
-
     // Rate limit
     const rateLimited = await checkAiRateLimit(user.id)
     if (rateLimited) return rateLimited
 
-    // Credit check & deduction
-    const credits = await getCredits(user.id)
-    if (credits.balance < CREDITS_PER_AI_CALL) {
+    // Usage limit (free tier: 3/day, pro: unlimited)
+    const subscription = await getSubscription(user.id)
+    const allowed = await recordAiUsage(user.id, subscription.isPro)
+    if (!allowed) {
       return NextResponse.json({
-        error: 'Insufficient credits',
-        balance: credits.balance,
-        required: CREDITS_PER_AI_CALL,
-        purchase_url: '/api/credits/purchase',
-      }, { status: 402 })
-    }
-    const deducted = await deductCredits(user.id)
-    if (!deducted) {
-      return NextResponse.json({ error: 'Insufficient credits' }, { status: 402 })
+        error: 'Daily AI limit reached',
+        limit: FREE_DAILY_AI_LIMIT,
+        upgrade_url: '/upgrade',
+      }, { status: 429 })
     }
 
     const raw = await req.json()

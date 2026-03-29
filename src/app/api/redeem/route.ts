@@ -2,11 +2,10 @@ import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { redeemSchema, parseBody } from '@/lib/validations'
-import { grantCredits } from '@/lib/credits'
 
-const VALID_CODES: Record<string, { days: number; credits?: number; repeatable?: boolean }> = {
-  'stairway tester': { days: 7, credits: 1000 },
-  'stairway climber': { days: 7, credits: 1000, repeatable: true },
+const VALID_CODES: Record<string, { days: number; repeatable?: boolean }> = {
+  'stairway tester': { days: 7 },
+  'stairway climber': { days: 7, repeatable: true },
 }
 
 export async function POST(req: Request) {
@@ -64,11 +63,6 @@ export async function POST(req: Request) {
         cancel_at_period_end: false,
       })
     if (error) return NextResponse.json({ error: 'Failed to activate trial' }, { status: 500 })
-  }
-
-  // Grant credits if the code includes them
-  if (promo.credits) {
-    await grantCredits(user.id, promo.credits, 'promo_code')
   }
 
   // Bust the Next.js cache so the dashboard layout sees the updated subscription
