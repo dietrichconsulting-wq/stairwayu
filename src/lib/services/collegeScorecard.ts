@@ -160,7 +160,9 @@ export async function getCollege(id) {
     fields: RICH_FIELDS,
   });
 
-  const res = await fetch(`${BASE_URL}?${params}`);
+  const res = await fetch(`${BASE_URL}?${params}`, {
+    signal: AbortSignal.timeout(8000),
+  });
   if (!res.ok) return null;
 
   const data = await res.json();
