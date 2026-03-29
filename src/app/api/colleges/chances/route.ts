@@ -7,7 +7,7 @@ export async function POST(req: Request) {
     const raw = await req.json()
     const parsed = parseBody(chancesSchema, raw)
     if ('error' in parsed) return parsed.error
-    const { gpa, gpa_weighted, sat, act, proposed_major, schools } = parsed.data
+    const { gpa, gpa_weighted, sat, act, proposed_major, ec_entries, schools } = parsed.data
 
     if (schools.length === 0) {
       return NextResponse.json({ results: [] })
@@ -19,6 +19,7 @@ export async function POST(req: Request) {
       sat,
       act,
       proposedMajor: proposed_major,
+      ecEntries: ec_entries,
       schools,
     })
 

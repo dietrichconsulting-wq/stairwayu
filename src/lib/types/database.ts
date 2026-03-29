@@ -8,6 +8,14 @@ export type SubscriptionTier = 'free' | 'pro'
 export type SubscriptionStatus = 'active' | 'trialing' | 'past_due' | 'canceled' | 'paused'
 export type BillingInterval = 'month' | 'year'
 
+/** Tier 1 = national/rare, Tier 4 = participation */
+export type ECTier = 1 | 2 | 3 | 4
+
+export interface ExtracurricularEntry {
+  name: string
+  tier: ECTier
+}
+
 export interface Profile {
   id: string
   display_name: string | null
@@ -23,6 +31,7 @@ export interface Profile {
   school_type_pref: string | null
   distance_pref: string | null
   extracurriculars: string | null
+  ec_entries: ExtracurricularEntry[] | null
   career_interests: string | null
   onboarding_complete: boolean
   walkthrough_complete: boolean

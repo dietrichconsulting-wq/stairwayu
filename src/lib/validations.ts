@@ -11,12 +11,18 @@ const medStr = z.string().max(2000)
 
 // ── Colleges ───────────────────────────────────────────────────────────
 
+const ecEntry = z.object({
+  name: z.string().min(1).max(200),
+  tier: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]),
+})
+
 export const chancesSchema = z.object({
   gpa,
   gpa_weighted: gpa,
   sat,
   act,
   proposed_major: shortStr.nullish(),
+  ec_entries: z.array(ecEntry).max(20).nullish(),
   schools: z.array(z.object({
     name: z.string().min(1).max(200),
     id: z.string().max(50).optional(),

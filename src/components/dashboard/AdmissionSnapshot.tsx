@@ -7,7 +7,7 @@ import Link from 'next/link'
 import { Tooltip } from '@/components/ui/Tooltip'
 
 interface Insight {
-  factor: 'sat' | 'act' | 'gpa' | 'selectivity' | 'test_optional'
+  factor: 'sat' | 'act' | 'gpa' | 'ec' | 'selectivity' | 'test_optional'
   sentiment: 'positive' | 'neutral' | 'negative'
   message: string
   impact: number
@@ -46,10 +46,11 @@ const SENTIMENT_STYLES = {
   negative: { icon: '↓', color: '#FB7185', bg: 'rgba(251,113,133,0.08)', border: 'rgba(251,113,133,0.18)' },
 }
 
-const FACTOR_ICONS = {
+const FACTOR_ICONS: Record<string, string> = {
   sat: '📝',
   act: '📝',
   gpa: '📊',
+  ec: '🏆',
   selectivity: '🏫',
   test_optional: '📋',
 }
@@ -59,8 +60,9 @@ const SNAPSHOT_KEY = 'admission_snapshot_v2'
 export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnapshotProps) {
   const schools = colleges.map(c => ({ name: c.college_name, id: c.college_id }))
 
+  const ecKey = profile?.ec_entries ? JSON.stringify(profile.ec_entries) : ''
   const fetchKey = profile
-    ? `${profile.gpa}|${profile.gpa_weighted}|${profile.sat}|${profile.act_score}|${profile.proposed_major}|${schools.map(s => s.name).join(',')}`
+    ? `${profile.gpa}|${profile.gpa_weighted}|${profile.sat}|${profile.act_score}|${profile.proposed_major}|${ecKey}|${schools.map(s => s.name).join(',')}`
     : null
 
   const [results, setResults] = useState<SchoolResult[]>(() => {
@@ -107,6 +109,7 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
         sat: profile.sat,
         act: profile.act_score,
         proposed_major: profile.proposed_major,
+        ec_entries: profile.ec_entries,
         schools,
       }),
       signal: combined,
@@ -229,7 +232,7 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
           <h2 style={{ fontSize: 15, fontWeight: 800, margin: 0 }}>Admission Snapshot</h2>
           </Tooltip>
           <p style={{ fontSize: 12, color: 'var(--color-text-muted)', margin: '2px 0 0' }}>
-            AI-generated estimates based on your GPA, SAT/ACT & school admit rates
+            Estimates based on your GPA, SAT/ACT, extracurriculars & school admit rates
           </p>
         </div>
         <Tooltip text="Generate a 3-tier application strategy (reach, target & safety) with these schools." position="left" maxWidth={220}>
@@ -362,7 +365,7 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
                             whiteSpace: 'nowrap',
                           }}
                         >
-                          {style.icon} {ins.factor === 'sat' || ins.factor === 'act' ? 'Test scores' : ins.factor === 'gpa' ? 'GPA' : ins.factor === 'selectivity' ? 'Selectivity' : 'No scores'}
+                          {style.icon} {ins.factor === 'sat' || ins.factor === 'act' ? 'Test scores' : ins.factor === 'gpa' ? 'GPA' : ins.factor === 'ec' ? 'Activities' : ins.factor === 'selectivity' ? 'Selectivity' : 'No scores'}
                           {ins.impact !== 0 && ` ${ins.impact > 0 ? '+' : ''}${ins.impact}%`}
                         </span>
                       )
@@ -430,7 +433,7 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
                         })}
 
                         <div style={{ fontSize: 10, color: 'var(--color-text-muted)', fontStyle: 'italic', marginTop: 2 }}>
-                          Estimates are based on public admit-rate data and your academic profile. Actual decisions depend on many more factors including essays, extracurriculars, and recommendations.
+                          Estimates are based on public admit-rate data, your academic profile, and extracurricular tiers. Actual decisions also depend on essays, recommendations, and other factors.
                         </div>
                       </div>
                     </motion.div>

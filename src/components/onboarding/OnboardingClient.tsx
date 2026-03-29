@@ -7,6 +7,8 @@ import { createClient } from '@/lib/supabase/client'
 import { useSeedTasks } from '@/hooks/useTasks'
 import { MajorSelect } from '@/components/MajorSelect'
 import { CollegeSelect } from '@/components/CollegeSelect'
+import { ECPicker } from '@/components/ECPicker'
+import type { ExtracurricularEntry } from '@/lib/types/database'
 
 const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY']
 const CURRENT_YEAR = new Date().getFullYear()
@@ -48,6 +50,7 @@ type FormData = {
   gpa: string
   gpa_weighted: string
   sat: string
+  ec_entries: ExtracurricularEntry[]
   act_score: string
   proposed_major: string
   extracurriculars: string
@@ -74,6 +77,7 @@ export function OnboardingClient({ userId, initialName = '' }: { userId: string;
     sat: '',
     act_score: '',
     proposed_major: '',
+    ec_entries: [],
     extracurriculars: '',
     career_interests: '',
     desired_climate: '',
@@ -110,6 +114,7 @@ export function OnboardingClient({ userId, initialName = '' }: { userId: string;
         act_score: form.act_score ? parseInt(form.act_score) : null,
         proposed_major: form.proposed_major || null,
         extracurriculars: form.extracurriculars || null,
+        ec_entries: form.ec_entries.filter(e => e.name.trim()) || null,
         career_interests: form.career_interests || null,
         desired_climate: form.desired_climate || null,
         school_size_pref: form.school_size_pref || null,
@@ -204,7 +209,7 @@ export function OnboardingClient({ userId, initialName = '' }: { userId: string;
           >
             <div className="card-elevated" style={{ padding: '32px 32px 28px' }}>
               {step === 0 && <StepAbout form={form} set={set} />}
-              {step === 1 && <StepAcademics form={form} set={set} />}
+              {step === 1 && <StepAcademics form={form} set={set} setForm={setForm} />}
               {step === 2 && <StepPreferences form={form} set={set} />}
               {step === 3 && <StepSchools schools={form.schools} setSchools={schools => setForm(f => ({ ...f, schools }))} />}
             </div>
@@ -288,7 +293,7 @@ function StepAbout({ form, set }: { form: FormData; set: (k: keyof FormData, v: 
 }
 
 // ─── Step 2: Academics ────────────────────────────────────────────────────────
-function StepAcademics({ form, set }: { form: FormData; set: (k: keyof FormData, v: string) => void }) {
+function StepAcademics({ form, set, setForm }: { form: FormData; set: (k: keyof FormData, v: string) => void; setForm: React.Dispatch<React.SetStateAction<FormData>> }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
@@ -303,16 +308,10 @@ function StepAcademics({ form, set }: { form: FormData; set: (k: keyof FormData,
         <label style={labelStyle}>Intended Major <span style={{ color: 'var(--color-primary)', marginLeft: 2 }}>*</span></label>
         <MajorSelect value={form.proposed_major} onChange={v => set('proposed_major', v)} />
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <label style={labelStyle}>Extracurricular Activities</label>
-        <textarea
-          value={form.extracurriculars}
-          onChange={e => set('extracurriculars', e.target.value)}
-          placeholder="e.g. Varsity Soccer captain, NHS, debate team, robotics club, part-time job..."
-          rows={3}
-          style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit' }}
-        />
-      </div>
+      <ECPicker
+        entries={form.ec_entries}
+        onChange={ec_entries => setForm(f => ({ ...f, ec_entries }))}
+      />
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         <label style={labelStyle}>Career Interests</label>
         <textarea

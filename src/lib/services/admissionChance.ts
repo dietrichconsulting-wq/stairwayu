@@ -14,7 +14,7 @@ import { getCollege, lookupByName } from './collegeScorecard';
  */
 
 export interface Insight {
-  factor: 'sat' | 'act' | 'gpa' | 'selectivity' | 'test_optional';
+  factor: 'sat' | 'act' | 'gpa' | 'ec' | 'selectivity' | 'test_optional';
   sentiment: 'positive' | 'neutral' | 'negative';
   message: string;
   /** How many percentage points this factor contributed (signed) */
@@ -70,11 +70,40 @@ function sentimentFromImpact(impact: number): 'positive' | 'neutral' | 'negative
   return 'neutral';
 }
 
+// ── Extracurricular tier scoring ──────────────────────────────────────
+// Points per tier (research-backed: mirrors how selective admissions
+// weight national > state > school > participation activities).
+const EC_TIER_POINTS: Record<number, number> = { 1: 8, 2: 5, 3: 3, 4: 1 };
+
+/** Max activities scored (diminishing returns after 5) */
+const EC_MAX_SCORED = 5;
+/** Hard cap on total EC factor points */
+const EC_CAP = 15;
+
+export const EC_TIER_LABELS: Record<number, { label: string; description: string; examples: string }> = {
+  1: { label: 'National / Rare', description: 'National or international recognition', examples: 'National award winner, published researcher, recruited D1 athlete, professional-level achievement' },
+  2: { label: 'State / Significant', description: 'State-level recognition or major leadership', examples: 'State competition winner, club president/founder, Eagle Scout, significant community impact' },
+  3: { label: 'School / Notable', description: 'School-level leadership or sustained commitment', examples: 'Team captain, newspaper editor, varsity athlete, multi-year club officer' },
+  4: { label: 'Participation', description: 'General involvement', examples: 'Club member, casual volunteering, part-time job, intramural sports' },
+};
+
+/**
+ * Score extracurricular entries. Returns 0–EC_CAP points.
+ * Only the top EC_MAX_SCORED activities by tier are counted.
+ */
+function scoreECs(entries: { name: string; tier: number }[] | null | undefined): number {
+  if (!entries || entries.length === 0) return 0;
+  // Sort by tier ascending (tier 1 = best) and take top entries
+  const sorted = [...entries].sort((a, b) => a.tier - b.tier).slice(0, EC_MAX_SCORED);
+  const raw = sorted.reduce((sum, e) => sum + (EC_TIER_POINTS[e.tier] || 0), 0);
+  return Math.min(raw, EC_CAP);
+}
+
 /**
  * Core probability calculation for a single school.
  * Returns { chance: 0-100, insights: Insight[] }.
  */
-export function calculateChance(studentSAT, studentGPA, school, studentACT, studentGPAWeighted?): ChanceResult | null {
+export function calculateChance(studentSAT, studentGPA, school, studentACT, studentGPAWeighted?, ecEntries?): ChanceResult | null {
   const { admissionRate, avgSAT, sat25, sat75, actMidpoint } = school;
 
   // If no admission data at all, return null
@@ -187,6 +216,22 @@ export function calculateChance(studentSAT, studentGPA, school, studentACT, stud
     });
   }
 
+  // ── Extracurricular Factor ──
+  let ecFactor = 0;
+  const ecPoints = scoreECs(ecEntries);
+  if (ecEntries && ecEntries.length > 0) {
+    ecFactor = ecPoints;
+    const bestTier = Math.min(...ecEntries.map(e => e.tier));
+    const count = Math.min(ecEntries.length, EC_MAX_SCORED);
+    const tierWord = bestTier === 1 ? 'national-level' : bestTier === 2 ? 'state-level' : bestTier === 3 ? 'school-level' : 'participation-level';
+    insights.push({
+      factor: 'ec',
+      sentiment: sentimentFromImpact(ecFactor),
+      message: `${count} activit${count === 1 ? 'y' : 'ies'} scored (strongest: ${tierWord})`,
+      impact: Math.round(ecFactor),
+    });
+  }
+
   // ── Selectivity adjustment ──
   let selectivityScale = 1.0;
   if (baseRate < 10) selectivityScale = 0.5;
@@ -194,8 +239,16 @@ export function calculateChance(studentSAT, studentGPA, school, studentACT, stud
   else if (baseRate < 35) selectivityScale = 0.8;
   else if (baseRate > 70) selectivityScale = 1.3;
 
+  // ECs matter MORE at selective schools — invert the scale
+  let ecSelectivityScale = 1.0;
+  if (baseRate < 10) ecSelectivityScale = 1.4;
+  else if (baseRate < 20) ecSelectivityScale = 1.2;
+  else if (baseRate < 35) ecSelectivityScale = 1.0;
+  else if (baseRate > 70) ecSelectivityScale = 0.6;
+
   const adjustedSAT = satFactor * selectivityScale;
   const adjustedGPA = gpaFactor * selectivityScale;
+  const adjustedEC = ecFactor * ecSelectivityScale;
 
   // Scale the insight impacts to match the selectivity adjustment
   for (const insight of insights) {
@@ -203,6 +256,8 @@ export function calculateChance(studentSAT, studentGPA, school, studentACT, stud
       insight.impact = Math.round(insight.impact * selectivityScale);
     } else if (insight.factor === 'gpa') {
       insight.impact = Math.round(insight.impact * selectivityScale);
+    } else if (insight.factor === 'ec') {
+      insight.impact = Math.round(insight.impact * ecSelectivityScale);
     }
   }
 
@@ -224,7 +279,7 @@ export function calculateChance(studentSAT, studentGPA, school, studentACT, stud
   }
 
   // Round to nearest 5% to signal this is an estimate
-  const raw = clamp(baseRate + adjustedSAT + adjustedGPA, 5, 95);
+  const raw = clamp(baseRate + adjustedSAT + adjustedGPA + adjustedEC, 5, 95);
   const chance = Math.round(raw / 5) * 5;
 
   return { chance, insights };
@@ -247,7 +302,7 @@ export async function computeChances(profile) {
         }
         if (!college) return null;
 
-        const result = calculateChance(profile.sat, profile.gpa, college, profile.act, profile.gpa_weighted);
+        const result = calculateChance(profile.sat, profile.gpa, college, profile.act, profile.gpa_weighted, profile.ecEntries);
         if (result == null) return null;
 
         return {

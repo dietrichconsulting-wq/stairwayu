@@ -8,8 +8,9 @@ import { useSeedTasks, useTasks } from '@/hooks/useTasks'
 import { MajorSelect } from '@/components/MajorSelect'
 import { CollegeSelect } from '@/components/CollegeSelect'
 import { createClient } from '@/lib/supabase/client'
-import type { UserCollege } from '@/lib/types/database'
+import type { UserCollege, ExtracurricularEntry } from '@/lib/types/database'
 import { useAchievements } from '@/hooks/useAchievements'
+import { ECPicker } from '@/components/ECPicker'
 
 const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY']
 
@@ -27,6 +28,7 @@ export function ProfilePageClient({ userId }: { userId: string }) {
 
   const [form, setForm] = useState({
     display_name: '', gpa: '', gpa_weighted: '', sat: '', act_score: '', proposed_major: '', home_state: '',
+    ec_entries: [] as ExtracurricularEntry[],
   })
 
   const [weeklyNudge, setWeeklyNudge] = useState(true)
@@ -123,6 +125,7 @@ export function ProfilePageClient({ userId }: { userId: string }) {
         act_score: profile.act_score?.toString() ?? '',
         proposed_major: profile.proposed_major ?? '',
         home_state: profile.home_state ?? '',
+        ec_entries: profile.ec_entries ?? [],
       })
 
       // Load email preferences
@@ -160,6 +163,7 @@ export function ProfilePageClient({ userId }: { userId: string }) {
       act_score: form.act_score ? parseInt(form.act_score) : null,
       proposed_major: form.proposed_major || null,
       home_state: form.home_state || null,
+      ec_entries: form.ec_entries.filter(e => e.name.trim()) || null,
     })
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
@@ -200,6 +204,12 @@ export function ProfilePageClient({ userId }: { userId: string }) {
           <div style={{ gridColumn: 'span 2', display: 'flex', flexDirection: 'column', gap: 6 }}>
             <label style={labelStyle}>Intended Major</label>
             <MajorSelect value={form.proposed_major} onChange={v => setForm(f => ({ ...f, proposed_major: v }))} />
+          </div>
+          <div style={{ gridColumn: 'span 2' }}>
+            <ECPicker
+              entries={form.ec_entries}
+              onChange={ec_entries => setForm(f => ({ ...f, ec_entries }))}
+            />
           </div>
         </div>
       </div>
