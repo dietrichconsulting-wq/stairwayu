@@ -41,6 +41,7 @@ const FEATURES = [
     cta: 'See Your Chances',
     href: '/signup',
     light: false,
+    tier: 'free' as const,
   },
   {
     label: 'AI Scholarship Finder',
@@ -49,6 +50,7 @@ const FEATURES = [
     cta: 'Find Scholarships',
     href: '/signup',
     light: true,
+    tier: 'pro' as const,
   },
   {
     label: 'Financial Planner',
@@ -57,6 +59,7 @@ const FEATURES = [
     cta: 'Plan the Cost',
     href: '/signup',
     light: false,
+    tier: 'free' as const,
   },
   {
     label: 'Essay Studio',
@@ -65,6 +68,7 @@ const FEATURES = [
     cta: 'Find Your Story',
     href: '/signup',
     light: true,
+    tier: 'pro' as const,
   },
 ]
 
@@ -75,57 +79,101 @@ const STATS = [
   { value: '100%', label: 'Personalized to you' },
 ]
 
-function PricingCard() {
+function PricingCards() {
   const [plan, setPlan] = useState<'monthly' | 'annual'>('annual')
   return (
-    <div className="landing-pro-bg relative px-10 py-12">
-      <div className="mb-4 text-[11px] font-extrabold uppercase tracking-[0.15em] text-white/60">Full Access</div>
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+      {/* Free tier */}
+      <div className="rounded-2xl border border-white/10 bg-white/5 px-8 py-10">
+        <div className="mb-2 text-[11px] font-extrabold uppercase tracking-[0.15em] text-white/40">Free Forever</div>
+        <div className="mb-1 text-[44px] font-black tracking-tight text-white">$0</div>
+        <div className="mb-8 text-[13px] text-white/40">No credit card required</div>
 
-      {/* Billing toggle */}
-      <div className="mb-4 inline-flex rounded-lg border border-white/15 bg-white/10 p-0.5">
-        <button
-          onClick={() => setPlan('monthly')}
-          className={`cursor-pointer rounded-md border-none px-3.5 py-1.5 text-xs font-bold text-white transition-all duration-150 ${
-            plan === 'monthly' ? 'bg-white/25' : 'bg-transparent'
-          }`}
-        >
-          Monthly
-        </button>
-        <button
-          onClick={() => setPlan('annual')}
-          className={`flex cursor-pointer items-center gap-1.5 rounded-md border-none px-3.5 py-1.5 text-xs font-bold text-white transition-all duration-150 ${
-            plan === 'annual' ? 'bg-white/25' : 'bg-transparent'
-          }`}
-        >
-          Annual
-          <span className="rounded-sm bg-amber-400 px-1 py-px text-[9px] font-extrabold text-amber-900">✦</span>
-        </button>
+        {[
+          { label: 'Up to 4 colleges', included: true },
+          { label: '3 AI calls per day', included: true },
+          { label: 'Admission chancing', included: true },
+          { label: 'Journey milestones', included: true },
+          { label: 'Score Bands & Explore', included: true },
+          { label: 'Strategy Generator', included: false },
+          { label: 'Essay Coaching', included: false },
+          { label: 'College Comparison', included: false },
+        ].map(f => (
+          <div key={f.label} className={`mb-3 flex items-center gap-3 ${f.included ? '' : 'opacity-30'}`}>
+            <div className={`flex size-[18px] shrink-0 items-center justify-center rounded-full text-[10px] ${
+              f.included ? 'bg-teal-500/30 text-teal-300' : 'bg-white/10 text-white/40'
+            }`}>
+              {f.included ? '✓' : '—'}
+            </div>
+            <span className="text-sm text-white/75">{f.label}</span>
+          </div>
+        ))}
+
+        <Link href="/signup" className="mt-8 block rounded-lg border-2 border-white/20 bg-transparent px-3.5 py-3.5 text-center text-[13px] font-extrabold uppercase tracking-[0.05em] text-white no-underline">
+          Get Started Free
+        </Link>
       </div>
 
-      {plan === 'monthly' ? (
-        <>
-          <div className="mb-1 text-[52px] font-black tracking-tight text-white">$9.99</div>
-          <div className="mb-9 text-[13px] text-white/50">per month</div>
-        </>
-      ) : (
-        <>
-          <div className="mb-0.5 flex items-baseline gap-2">
-            <span className="text-[52px] font-black tracking-tight text-white">$79</span>
-            <span className="text-[13px] text-white/50 line-through">$119.88</span>
-          </div>
-          <div className="mb-9 text-[13px] font-bold text-green-300">$6.58/mo · Save 34%</div>
-        </>
-      )}
+      {/* Pro tier */}
+      <div className="landing-pro-bg relative rounded-2xl px-8 py-10">
+        <div className="mb-2 text-[11px] font-extrabold uppercase tracking-[0.15em] text-white/60">Full Access</div>
 
-      {['AI Admission Snapshot', 'Scholarship Finder', 'College Comparison', 'Financial Planner', 'Essay Studio', 'Unlimited everything'].map(f => (
-        <div key={f} className="mb-3.5 flex items-center gap-3">
-          <div className="flex size-[18px] shrink-0 items-center justify-center rounded-full bg-white/20 text-[10px] text-white">✓</div>
-          <span className="text-sm text-white/85">{f}</span>
+        {/* Billing toggle */}
+        <div className="mb-4 inline-flex rounded-lg border border-white/15 bg-white/10 p-0.5">
+          <button
+            onClick={() => setPlan('monthly')}
+            className={`cursor-pointer rounded-md border-none px-3.5 py-1.5 text-xs font-bold text-white transition-all duration-150 ${
+              plan === 'monthly' ? 'bg-white/25' : 'bg-transparent'
+            }`}
+          >
+            Monthly
+          </button>
+          <button
+            onClick={() => setPlan('annual')}
+            className={`flex cursor-pointer items-center gap-1.5 rounded-md border-none px-3.5 py-1.5 text-xs font-bold text-white transition-all duration-150 ${
+              plan === 'annual' ? 'bg-white/25' : 'bg-transparent'
+            }`}
+          >
+            Annual
+            <span className="rounded-sm bg-amber-400 px-1 py-px text-[9px] font-extrabold text-amber-900">SAVE 34%</span>
+          </button>
         </div>
-      ))}
-      <Link href="/signup" className="mt-9 block rounded bg-white px-3.5 py-3.5 text-center text-[13px] font-extrabold uppercase tracking-[0.05em] text-slate-900 no-underline">
-        Start Free Trial →
-      </Link>
+
+        {plan === 'monthly' ? (
+          <>
+            <div className="mb-1 text-[44px] font-black tracking-tight text-white">$9.99</div>
+            <div className="mb-8 text-[13px] text-white/50">per month</div>
+          </>
+        ) : (
+          <>
+            <div className="mb-0.5 flex items-baseline gap-2">
+              <span className="text-[44px] font-black tracking-tight text-white">$79</span>
+              <span className="text-[13px] text-white/50 line-through">$119.88</span>
+            </div>
+            <div className="mb-8 text-[13px] font-bold text-green-300">$6.58/mo · Save 34%</div>
+          </>
+        )}
+
+        {[
+          'Unlimited colleges',
+          'Unlimited AI calls',
+          'AI Strategy Generator',
+          'Full Essay Coaching',
+          'College Comparison',
+          'Unlimited scholarships',
+          'Deadline Radar',
+          'Everything in Free',
+        ].map(f => (
+          <div key={f} className="mb-3 flex items-center gap-3">
+            <div className="flex size-[18px] shrink-0 items-center justify-center rounded-full bg-white/20 text-[10px] text-white">✓</div>
+            <span className="text-sm text-white/85">{f}</span>
+          </div>
+        ))}
+        <Link href="/signup" className="mt-8 block rounded-lg bg-white px-3.5 py-3.5 text-center text-[13px] font-extrabold uppercase tracking-[0.05em] text-slate-900 no-underline">
+          Start 7-Day Free Trial →
+        </Link>
+        <div className="mt-3 text-center text-[11px] text-white/35">Cancel anytime — no charge during trial</div>
+      </div>
     </div>
   )
 }
@@ -281,6 +329,15 @@ export function LandingPage() {
                 className="object-cover opacity-75 transition-transform duration-[600ms] ease-out group-hover:scale-[1.04]"
               />
               <div className={`absolute inset-0 ${f.light ? 'landing-feature-gradient-light' : 'landing-feature-gradient-dark'}`} />
+              <div className="absolute right-4 top-4">
+                <span className={`rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.08em] ${
+                  f.tier === 'free'
+                    ? 'bg-teal-400/90 text-slate-900'
+                    : 'bg-amber-400/90 text-amber-900'
+                }`}>
+                  {f.tier === 'free' ? 'Included Free' : 'Pro'}
+                </span>
+              </div>
               <div className="absolute inset-x-0 bottom-0 p-[clamp(16px,3vw,32px)] px-[clamp(16px,3vw,36px)]">
                 <div className="mb-2 text-[clamp(20px,2.5vw,28px)] font-black leading-tight tracking-tight text-white">
                   {f.label}
@@ -388,11 +445,11 @@ export function LandingPage() {
               Pricing
             </div>
             <h2 className="text-[clamp(28px,4vw,52px)] font-black leading-[1.05] tracking-tight text-white">
-              Simple pricing.<br />No surprises.
+              Free gets you started.<br />Pro removes every limit.
             </h2>
           </div>
-          <div className="mx-auto max-w-[460px]">
-            <PricingCard />
+          <div className="mx-auto max-w-[820px]">
+            <PricingCards />
           </div>
         </div>
       </section>

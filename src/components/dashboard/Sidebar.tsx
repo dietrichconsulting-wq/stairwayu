@@ -161,7 +161,7 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
 
       {/* Footer */}
       <div style={{ padding: '16px 20px', borderTop: '1px solid var(--color-border)' }}>
-        {isPro && (
+        {isPro ? (
           <Link
             href="/profile#referrals"
             style={{
@@ -177,6 +177,24 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
             <div>
               <div>Suggest to a Friend</div>
               <div style={{ fontSize: 10, fontWeight: 400, color: 'var(--color-text-muted)' }}>Earn 50 XP + 7 days free</div>
+            </div>
+          </Link>
+        ) : (
+          <Link
+            href="/upgrade"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '8px 10px', borderRadius: 8, marginBottom: 10,
+              background: 'linear-gradient(135deg, rgba(99,102,241,0.10), rgba(168,85,247,0.10))',
+              border: '1px solid rgba(99,102,241,0.20)',
+              textDecoration: 'none', color: 'var(--color-text)',
+              fontSize: 12, fontWeight: 600,
+            }}
+          >
+            <span style={{ fontSize: 14 }}>⚡</span>
+            <div>
+              <div style={{ fontWeight: 700 }}>Upgrade to Pro</div>
+              <div style={{ fontSize: 10, fontWeight: 400, color: 'var(--color-text-muted)' }}>Unlimited AI, colleges & more</div>
             </div>
           </Link>
         )}

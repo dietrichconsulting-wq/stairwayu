@@ -170,7 +170,7 @@ export function OnboardingClient({ userId, initialName = '' }: { userId: string;
           {step === 0 && 'This helps us personalize your dashboard and roadmap.'}
           {step === 1 && 'Be honest — this powers your AI strategy and school fit analysis.'}
           {step === 2 && 'These preferences help us match you to the right schools.'}
-          {step === 3 && "Add up to 9 schools. You can always change these later."}
+          {step === 3 && "Add up to 4 schools on Free. Upgrade to Pro for unlimited."}
         </p>
       </div>
 
@@ -412,18 +412,24 @@ function StepSchools({ schools, setSchools }: { schools: string[]; setSchools: (
           </div>
         </div>
       ))}
-      <button
-        type="button"
-        onClick={addSlot}
-        style={{
-          background: 'var(--color-column)', color: 'var(--color-text-muted)',
-          border: '1.5px dashed var(--color-border)', borderRadius: 8,
-          padding: '10px 16px', fontWeight: 600, fontSize: 13, cursor: 'pointer',
-          alignSelf: 'flex-start',
-        }}
-      >
-        + Add another school
-      </button>
+      {schools.length < 4 ? (
+        <button
+          type="button"
+          onClick={addSlot}
+          style={{
+            background: 'var(--color-column)', color: 'var(--color-text-muted)',
+            border: '1.5px dashed var(--color-border)', borderRadius: 8,
+            padding: '10px 16px', fontWeight: 600, fontSize: 13, cursor: 'pointer',
+            alignSelf: 'flex-start',
+          }}
+        >
+          + Add another school
+        </button>
+      ) : (
+        <div style={{ fontSize: 12, color: 'var(--color-text-muted)', padding: '8px 0', lineHeight: 1.5 }}>
+          Free plan tracks up to 4 schools. You can upgrade to Pro later for unlimited.
+        </div>
+      )}
     </div>
   )
 }

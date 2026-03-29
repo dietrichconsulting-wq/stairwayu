@@ -47,14 +47,14 @@ export const TOUR_STEPS: TourStep[] = [
     target: 'nav-strategy',
     title: 'AI Strategy',
     description:
-      'Get a personalized reach / target / safety school list powered by AI, based on your GPA, test scores, and major.',
+      'Get a personalized reach / target / safety school list powered by AI, based on your GPA, test scores, and major. Free users get 3 AI calls per day — Pro is unlimited.',
     placement: 'right',
   },
   {
     target: 'nav-essays',
     title: 'Essays & Scholarships',
     description:
-      'Uncover your best essay angles and get expert-level critique — you write every word, AI coaches you to make it shine.',
+      'Uncover your best essay angles and get expert-level critique — you write every word, AI coaches you to make it shine. Each brainstorm or critique uses one AI call.',
     placement: 'right',
   },
   {
