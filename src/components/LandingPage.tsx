@@ -170,9 +170,9 @@ function PricingCards() {
           </div>
         ))}
         <Link href="/signup" className="mt-8 block rounded-lg bg-white px-3.5 py-3.5 text-center text-[13px] font-extrabold uppercase tracking-[0.05em] text-slate-900 no-underline">
-          Start 7-Day Free Trial →
+          Start 7-Day Pro Trial →
         </Link>
-        <div className="mt-3 text-center text-[11px] text-white/35">Cancel anytime — no charge during trial</div>
+        <div className="mt-3 text-center text-[11px] text-white/35">Cancel anytime — no charge during your Pro trial</div>
       </div>
     </div>
   )

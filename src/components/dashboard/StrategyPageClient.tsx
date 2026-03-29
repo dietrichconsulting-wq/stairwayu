@@ -223,7 +223,7 @@ export function StrategyPageClient({ profile, colleges, userId }: StrategyPageCl
         const body = err instanceof Error ? err.message : String(err)
         const parsed = JSON.parse(body)
         if (parsed.error === 'Subscription required') {
-          msg = 'Your trial has ended. Subscribe to generate your list.'
+          msg = 'Your Pro trial has ended. Upgrade to Pro to generate your list.'
         } else if (parsed.error) {
           msg = parsed.error
         }

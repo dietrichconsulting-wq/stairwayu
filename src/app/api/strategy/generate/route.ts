@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     const allowed = await recordAiUsage(user.id, subscription.isPro)
     if (!allowed) {
       return NextResponse.json({
-        error: 'Daily AI limit reached',
+        error: 'You\u2019ve used all 3 free AI calls today. Upgrade to Pro for unlimited.',
         limit: FREE_DAILY_AI_LIMIT,
         upgrade_url: '/upgrade',
       }, { status: 429 })

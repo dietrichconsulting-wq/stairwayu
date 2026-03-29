@@ -33,10 +33,10 @@ export function TrialBanner({ status, trialEnd, tier }: TrialBannerProps) {
     <div className={`${urgencyColor} border rounded-lg px-4 py-3 flex items-center justify-between mb-4`}>
       <div className="flex items-center gap-3">
         <span className={`${badgeColor} text-xs font-semibold px-2 py-1 rounded-full`}>
-          FREE TRIAL
+          PRO TRIAL
         </span>
         <span className="text-sm font-medium">
-          {daysLeft === 1 ? '1 day' : `${daysLeft} days`} left in your free trial
+          {daysLeft === 1 ? '1 day' : `${daysLeft} days`} left in your Pro trial
           {daysLeft <= 3
             ? <span style={{ color: '#16a34a', fontWeight: 700 }}> · Save 34% with annual</span>
             : <span style={{ fontWeight: 400 }}> · Cancel anytime from <Link href="/profile#subscription" style={{ textDecoration: 'underline' }}>Profile</Link></span>
@@ -47,7 +47,7 @@ export function TrialBanner({ status, trialEnd, tier }: TrialBannerProps) {
         href="/upgrade"
         className="text-sm font-semibold px-4 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
       >
-        Subscribe Now
+        Keep Pro
       </Link>
     </div>
   )

@@ -13,17 +13,17 @@ import { useUsage } from '@/hooks/useCredits'
 import { Tooltip } from '@/components/ui/Tooltip'
 
 const NAV_ITEMS = [
-  { href: '/dashboard',      icon: '⊞',  label: 'Dashboard',        tip: 'Your home base — stats, progress, and next steps at a glance.' },
-  { href: '/journey',        icon: '🗺️',  label: 'Your Journey',     tip: 'Step-by-step milestones from freshman year through submission.' },
-  { href: '/strategy',       icon: '⚡',  label: 'Strategy',         tip: 'Generate a 3-tier application strategy with these schools.' },
-  { href: '/explore',         icon: '🎚️',  label: 'Explore',           tip: 'Slide your stats and discover matching schools instantly.' },
-  { href: '/score-bands',    icon: '📊',  label: 'Score Bands',      tip: 'Browse schools grouped by your admission chance tier.' },
-  { href: '/compare',        icon: '⚖️',  label: 'Compare',          tip: 'Side-by-side comparison of your saved schools.' },
-  { href: '/find-major',     icon: '🧭', label: 'Find Your Major',  tip: 'Explore majors that match your interests and strengths.' },
-  { href: '/essays',         icon: '✍️',  label: 'Essays',           tip: 'Find your story angle, then get feedback that sharpens your voice.' },
-  { href: '/scholarships',   icon: '🏆',  label: 'Scholarships',     tip: 'Discover scholarships matched to your profile.' },
-  { href: '/finance',        icon: '💵',  label: 'Finance Plan',     tip: 'Plan how to pay for college — aid, loans, and family contribution.' },
-  { href: '/profile',        icon: '👤',  label: 'Profile',          tip: 'Edit your academic stats, preferences, and account settings.' },
+  { href: '/dashboard',      icon: '⊞',  label: 'Dashboard',        tip: 'Your home base — stats, progress, and next steps at a glance.', proOnly: false },
+  { href: '/journey',        icon: '🗺️',  label: 'Your Journey',     tip: 'Step-by-step milestones from freshman year through submission.', proOnly: false },
+  { href: '/strategy',       icon: '⚡',  label: 'Strategy',         tip: 'AI-powered reach/target/safety strategy. Pro feature — uses AI calls.', proOnly: true },
+  { href: '/explore',         icon: '🎚️',  label: 'Explore',           tip: 'Slide your stats and discover matching schools instantly.', proOnly: false },
+  { href: '/score-bands',    icon: '📊',  label: 'Score Bands',      tip: 'Browse schools grouped by your admission chance tier.', proOnly: false },
+  { href: '/compare',        icon: '⚖️',  label: 'Compare',          tip: 'Side-by-side comparison of your saved schools. Pro feature.', proOnly: true },
+  { href: '/find-major',     icon: '🧭', label: 'Find Your Major',  tip: 'Explore majors that match your interests and strengths.', proOnly: false },
+  { href: '/essays',         icon: '✍️',  label: 'Essays',           tip: 'AI essay coaching — brainstorm + critique. Pro feature — uses AI calls.', proOnly: true },
+  { href: '/scholarships',   icon: '🏆',  label: 'Scholarships',     tip: 'Discover scholarships matched to your profile. Unlimited with Pro.', proOnly: true },
+  { href: '/finance',        icon: '💵',  label: 'Finance Plan',     tip: 'Plan how to pay for college — aid, loans, and family contribution.', proOnly: false },
+  { href: '/profile',        icon: '👤',  label: 'Profile',          tip: 'Edit your academic stats, preferences, and account settings.', proOnly: false },
 ]
 
 interface SidebarProps {
@@ -152,7 +152,18 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
                 />
               )}
               <span style={{ fontSize: 15, position: 'relative' }}>{item.icon}</span>
-              <span style={{ position: 'relative' }}>{item.label}</span>
+              <span style={{ position: 'relative', flex: 1 }}>{item.label}</span>
+              {!isPro && item.proOnly && (
+                <span style={{
+                  position: 'relative',
+                  fontSize: 8, fontWeight: 800, letterSpacing: '0.06em',
+                  background: 'linear-gradient(135deg, #6366f1, #a855f7)',
+                  color: '#fff', borderRadius: 4,
+                  padding: '2px 5px', lineHeight: 1,
+                }}>
+                  PRO
+                </span>
+              )}
             </Link>
             </Tooltip>
           )
@@ -176,7 +187,7 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
             <span style={{ fontSize: 14 }}>🎁</span>
             <div>
               <div>Suggest to a Friend</div>
-              <div style={{ fontSize: 10, fontWeight: 400, color: 'var(--color-text-muted)' }}>Earn 50 XP + 7 days free</div>
+              <div style={{ fontSize: 10, fontWeight: 400, color: 'var(--color-text-muted)' }}>Earn 50 XP + 7 days Pro free</div>
             </div>
           </Link>
         ) : (
@@ -202,10 +213,10 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
         {isPro && (
           <div style={{ fontSize: 11, fontWeight: 700, color: typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'dark' ? '#FCD34D' : '#d97706', background: typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'dark' ? 'rgba(252,211,77,0.10)' : 'rgba(217,119,6,0.1)', borderRadius: 8, padding: '4px 10px', textAlign: 'center', marginBottom: 12 }}>
             {subscription?.status === 'trialing'
-              ? '✨ Free Trial'
+              ? '⚡ Pro Trial'
               : subscription?.billing_interval === 'year'
-              ? '✨ Annual'
-              : '✨ Monthly'}
+              ? '⚡ Pro · Annual'
+              : '⚡ Pro · Monthly'}
           </div>
         )}
 

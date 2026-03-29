@@ -175,13 +175,13 @@ export default function UpgradePage() {
             disabled={loading}
             style={{ background: 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: 12, padding: '14px 28px', fontWeight: 800, fontSize: 16, cursor: 'pointer', width: '100%', marginBottom: 12 }}
           >
-            {loading ? 'Redirecting…' : 'Start 7-day Free Trial →'}
+            {loading ? 'Redirecting…' : 'Start 7-Day Pro Trial →'}
           </button>
 
           {upgradeError && <p style={{ fontSize: 12, color: '#ef4444', marginBottom: 8 }}>{upgradeError}</p>}
 
           <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 20, lineHeight: 1.6 }}>
-            You won&apos;t be charged during the 7-day trial.<br />
+            You won&apos;t be charged during your 7-day Pro trial.<br />
             Cancel anytime from your Profile before the trial ends — no charge.<br />
             <span style={{ opacity: 0.7 }}>Replaces CollegeVine + Niche + Scholarply + ChatGPT + spreadsheets.</span>
           </div>
