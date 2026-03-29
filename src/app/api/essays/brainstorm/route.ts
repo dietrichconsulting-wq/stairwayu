@@ -3,6 +3,7 @@ import { requirePro } from '@/lib/subscription'
 import { NextResponse } from 'next/server'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { checkAiRateLimit } from '@/lib/rateLimit'
+import { deductCredits, getCredits, CREDITS_PER_AI_CALL } from '@/lib/credits'
 import { sShort, sMedium, sNum, userBlock } from '@/lib/promptSanitize'
 import { brainstormSchema, parseBody } from '@/lib/validations'
 
@@ -28,6 +29,21 @@ export async function POST(req: Request) {
     // Rate limit
     const rateLimited = await checkAiRateLimit(user.id)
     if (rateLimited) return rateLimited
+
+    // Credit check & deduction
+    const credits = await getCredits(user.id)
+    if (credits.balance < CREDITS_PER_AI_CALL) {
+      return NextResponse.json({
+        error: 'Insufficient credits',
+        balance: credits.balance,
+        required: CREDITS_PER_AI_CALL,
+        purchase_url: '/api/credits/purchase',
+      }, { status: 402 })
+    }
+    const deducted = await deductCredits(user.id)
+    if (!deducted) {
+      return NextResponse.json({ error: 'Insufficient credits' }, { status: 402 })
+    }
 
     const raw = await req.json()
     const parsed = parseBody(brainstormSchema, raw)

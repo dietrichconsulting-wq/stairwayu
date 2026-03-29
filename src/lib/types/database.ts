@@ -156,6 +156,25 @@ export interface ChallengeCompletion {
   created_at: string
 }
 
+export interface UserCredits {
+  user_id: string
+  balance: number
+  created_at: string
+  updated_at: string
+}
+
+export type CreditTransactionReason = 'subscription_grant' | 'credit_pack' | 'ai_call' | 'trial_grant'
+
+export interface CreditTransaction {
+  id: string
+  user_id: string
+  amount: number
+  balance_after: number
+  reason: CreditTransactionReason
+  stripe_session_id: string | null
+  created_at: string
+}
+
 // Required for Supabase typed client — minimal inline version
 export type Database = {
   public: {
@@ -172,6 +191,8 @@ export type Database = {
       daily_activity: { Row: DailyActivity; Insert: Partial<DailyActivity>; Update: Partial<DailyActivity> }
       xp_ledger: { Row: XpEvent; Insert: Partial<XpEvent>; Update: Partial<XpEvent> }
       challenge_completions: { Row: ChallengeCompletion; Insert: Partial<ChallengeCompletion>; Update: Partial<ChallengeCompletion> }
+      user_credits: { Row: UserCredits; Insert: Partial<UserCredits>; Update: Partial<UserCredits> }
+      credit_transactions: { Row: CreditTransaction; Insert: Partial<CreditTransaction>; Update: Partial<CreditTransaction> }
     }
     Views: Record<string, never>
     Functions: Record<string, never>

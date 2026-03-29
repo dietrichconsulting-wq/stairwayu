@@ -9,6 +9,7 @@ import type { User } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useXp } from '@/hooks/useXp'
+import { useCredits } from '@/hooks/useCredits'
 import { Tooltip } from '@/components/ui/Tooltip'
 
 const NAV_ITEMS = [
@@ -50,6 +51,7 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
   const supabase = createClient()
   const [mobileOpen, setMobileOpen] = useState(false)
   const { level, totalXp, xpIntoLevel, xpForNextLevel, isMaxLevel, isLoading: xpLoading } = useXp(user.id)
+  const { data: credits } = useCredits()
 
   // Close drawer on route change
   useEffect(() => {

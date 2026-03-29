@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { getStripe } from '@/lib/stripe/client'
 import { createServiceClient } from '@/lib/supabase/server'
+import { grantCredits, MONTHLY_CREDIT_GRANT, CREDIT_PACK_AMOUNT } from '@/lib/credits'
 
 export async function POST(req: Request) {
   const stripe = getStripe()
@@ -31,6 +32,17 @@ export async function POST(req: Request) {
   switch (event.type) {
     case 'checkout.session.completed': {
       const session = event.data.object as Stripe.Checkout.Session
+
+      // One-time credit pack purchase
+      if (session.mode === 'payment' && session.metadata?.type === 'credit_pack') {
+        const userId = session.metadata.user_id
+        if (userId) {
+          await grantCredits(userId, CREDIT_PACK_AMOUNT, 'credit_pack', session.id)
+        }
+        break
+      }
+
+      // Subscription checkout — grant initial monthly credits
       if (session.mode === 'subscription' && session.customer) {
         const sub = await stripe.subscriptions.retrieve(session.subscription as string)
         const interval = sub.items.data[0]?.price?.recurring?.interval
@@ -47,6 +59,16 @@ export async function POST(req: Request) {
             trial_end: (sub as any).trial_end ? new Date((sub as any).trial_end * 1000).toISOString() : null,
           })
           .eq('stripe_customer_id', session.customer as string)
+
+        // Grant monthly credits for new subscription
+        const { data: subRow } = await supabase
+          .from('subscriptions')
+          .select('user_id')
+          .eq('stripe_customer_id', session.customer as string)
+          .single()
+        if (subRow?.user_id) {
+          await grantCredits(subRow.user_id, MONTHLY_CREDIT_GRANT, 'subscription_grant', session.id)
+        }
       }
       break
     }
@@ -55,19 +77,37 @@ export async function POST(req: Request) {
       const sub = event.data.object as Stripe.Subscription
       const tier = sub.status === 'active' || sub.status === 'trialing' ? 'pro' : 'free'
       const interval = sub.items.data[0]?.price?.recurring?.interval
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const newPeriodEnd = new Date((sub as any).current_period_end * 1000).toISOString()
+
+      // Check if period rolled over (renewal) — grant monthly credits
+      const { data: existingSub } = await supabase
+        .from('subscriptions')
+        .select('user_id, current_period_end')
+        .eq('stripe_subscription_id', sub.id)
+        .single()
+
       await supabase
         .from('subscriptions')
         .update({
           tier,
           status: sub.status,
           billing_interval: interval === 'year' ? 'year' : 'month',
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          current_period_end: new Date((sub as any).current_period_end * 1000).toISOString(),
+          current_period_end: newPeriodEnd,
           cancel_at_period_end: sub.cancel_at_period_end,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           trial_end: (sub as any).trial_end ? new Date((sub as any).trial_end * 1000).toISOString() : null,
         })
         .eq('stripe_subscription_id', sub.id)
+
+      // Grant credits on period renewal (new period_end differs from stored one)
+      if (
+        existingSub?.user_id &&
+        sub.status === 'active' &&
+        existingSub.current_period_end !== newPeriodEnd
+      ) {
+        await grantCredits(existingSub.user_id, MONTHLY_CREDIT_GRANT, 'subscription_grant')
+      }
       break
     }
 
