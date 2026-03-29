@@ -75,8 +75,11 @@ export default function UpgradePage() {
         <div className="card-elevated" style={{ padding: '40px 36px', textAlign: 'center' }}>
           <div style={{ fontSize: 40, marginBottom: 12 }}>✨</div>
           <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-primary)', marginBottom: 6 }}>Stairway U</h1>
-          <p style={{ fontSize: 14, color: 'var(--color-text-muted)', marginBottom: 20 }}>
+          <p style={{ fontSize: 14, color: 'var(--color-text-muted)', marginBottom: 8 }}>
             Everything you need to get into your dream school
+          </p>
+          <p style={{ fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 20, lineHeight: 1.6, opacity: 0.7 }}>
+            Free tools make you do the work. Pro connects the dots for you.
           </p>
 
           {/* Billing toggle */}
@@ -152,7 +155,8 @@ export default function UpgradePage() {
 
           <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 20, lineHeight: 1.6 }}>
             You won&apos;t be charged during the 7-day trial.<br />
-            Cancel anytime from your Profile before the trial ends — no charge.
+            Cancel anytime from your Profile before the trial ends — no charge.<br />
+            <span style={{ opacity: 0.7 }}>Replaces CollegeVine + Niche + Scholarply + ChatGPT + spreadsheets.</span>
           </div>
 
           <div style={{ borderTop: '1px solid var(--color-border, #e5e7eb)', paddingTop: 20, marginBottom: 20 }}>

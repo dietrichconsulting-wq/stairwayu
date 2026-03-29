@@ -175,13 +175,14 @@ export function LandingPage() {
 
         <div className="absolute bottom-[12%] left-[6%] max-w-[680px]">
           <div className="mb-4 text-xs font-extrabold uppercase tracking-[0.2em] text-white/60">
-            AI-Powered College Planning
+            5 College Tools. 1 Dashboard. 0 Spreadsheets.
           </div>
           <h1 className="mb-6 text-[clamp(48px,7vw,88px)] font-black leading-none tracking-tight text-white">
             Your Stairway<br />to College.
           </h1>
           <p className="mb-9 max-w-[480px] text-[clamp(16px,2vw,20px)] leading-relaxed text-white/75">
-            Know your real odds. Find your scholarships.<br />Get in.
+            Stop juggling odds calculators, scholarship searches, and spreadsheets.<br />
+            One dashboard that knows your profile and connects everything.
           </p>
           <div className="flex flex-wrap gap-3">
             <Link href="/signup" className="rounded-md bg-white px-10 py-4 text-[15px] font-extrabold text-slate-900 no-underline">
@@ -208,6 +209,62 @@ export function LandingPage() {
               <div className="mt-1 text-xs tracking-[0.05em] text-white/45">{s.label}</div>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* ── REPLACE 5 TABS ── */}
+      <section className="bg-white px-[6%] py-24">
+        <div className="mx-auto max-w-[1000px]">
+          <div className="mb-4 text-center text-[11px] font-extrabold uppercase tracking-[0.15em] text-teal-600">
+            Before &amp; After
+          </div>
+          <h2 className="mb-14 text-center text-[clamp(28px,4vw,48px)] font-black leading-[1.05] tracking-tight text-slate-900">
+            Replace 5 tabs with 1&nbsp;dashboard.
+          </h2>
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+            {/* BEFORE */}
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-8 py-10">
+              <div className="mb-5 text-xs font-extrabold uppercase tracking-[0.12em] text-slate-400">Before Stairway U</div>
+              <ul className="m-0 list-none space-y-4 p-0">
+                {[
+                  { tool: 'CollegeVine', task: 'for admission odds' },
+                  { tool: 'Niche', task: 'for college reviews' },
+                  { tool: 'Scholarply', task: 'for scholarships' },
+                  { tool: 'ChatGPT', task: 'for essay help' },
+                  { tool: 'Google Sheets', task: 'for deadlines & costs' },
+                ].map(r => (
+                  <li key={r.tool} className="flex items-center gap-3 text-sm text-slate-500">
+                    <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-slate-200 text-[10px] text-slate-400">✕</span>
+                    <span><span className="font-bold text-slate-700">{r.tool}</span> {r.task}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-6 text-xs leading-relaxed text-slate-400">
+                5 logins. No shared context. You copy-paste everything.
+              </div>
+            </div>
+            {/* AFTER */}
+            <div className="rounded-2xl border border-teal-200 bg-teal-50 px-8 py-10">
+              <div className="mb-5 text-xs font-extrabold uppercase tracking-[0.12em] text-teal-600">With Stairway U</div>
+              <ul className="m-0 list-none space-y-4 p-0">
+                {[
+                  'Real admission odds from federal data',
+                  'Personalized scholarship matches',
+                  'Essay brainstorming & critique',
+                  'Financial planner with 529 & loan estimates',
+                  'Deadline tracking & journey milestones',
+                ].map(r => (
+                  <li key={r} className="flex items-center gap-3 text-sm text-slate-700">
+                    <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-teal-500 text-[10px] text-white">✓</span>
+                    {r}
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-6 text-xs font-semibold leading-relaxed text-teal-700">
+                1 dashboard. Your profile powers every tool automatically.
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -266,6 +323,33 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* ── CONNECTED DATA ── */}
+      <section className="bg-slate-900 px-[6%] py-24">
+        <div className="mx-auto max-w-[900px] text-center">
+          <div className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.15em] text-teal-300">
+            The Connected Advantage
+          </div>
+          <h2 className="mb-5 text-[clamp(28px,4vw,48px)] font-black leading-[1.05] tracking-tight text-white">
+            Your profile powers everything.
+          </h2>
+          <p className="mx-auto mb-14 max-w-[500px] text-base leading-relaxed text-white/50">
+            Separate tools can&apos;t share context. Stairway U connects your GPA, scores, budget, and school list across every feature.
+          </p>
+          <div className="grid grid-cols-1 gap-6 text-left md:grid-cols-3">
+            {[
+              { highlight: 'Scholarship matches', rest: 'already know your GPA and major.' },
+              { highlight: 'Financial estimates', rest: 'already know the schools on your list.' },
+              { highlight: 'Essay brainstorming', rest: 'already knows which prompts you need.' },
+            ].map(c => (
+              <div key={c.highlight} className="rounded-xl border border-white/10 bg-white/5 px-7 py-8">
+                <div className="mb-2 text-sm font-bold text-teal-300">{c.highlight}</div>
+                <div className="text-sm leading-relaxed text-white/60">{c.rest}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── TESTIMONIALS ── */}
       <section className="bg-white px-[6%] py-24">
         <div className="mx-auto max-w-[1100px]">
@@ -280,7 +364,7 @@ export function LandingPage() {
           <div className="grid grid-cols-1 gap-0.5 md:grid-cols-3">
             {[
               { name: 'Sophia R.', school: 'Admitted to UT Austin', quote: "Stairway U showed me I had a 74% chance at UT Austin. That gave me the confidence to apply early. I got in.", color: 'bg-teal-300', textColor: 'text-teal-300' },
-              { name: 'Marcus T.', school: '$28,000 in scholarships', quote: "The scholarship finder surfaced 3 I never would have found on my own. Two were easy-apply — no essay required.", color: 'bg-amber-300', textColor: 'text-amber-300' },
+              { name: 'Marcus T.', school: '$28,000 in scholarships', quote: "I was using CollegeVine for my chances, Scholly for scholarships, and a Google Doc for essays. Stairway U replaced all of it — and it already knew my info.", color: 'bg-amber-300', textColor: 'text-amber-300' },
               { name: 'Linda C.', school: 'Parent of 2026 applicant', quote: "The Financial Planner finally helped me understand what college will actually cost us. Eye-opening.", color: 'bg-cyan-600', textColor: 'text-cyan-600' },
             ].map((t, i) => (
               <div key={i} className="bg-slate-50 px-8 py-10">
