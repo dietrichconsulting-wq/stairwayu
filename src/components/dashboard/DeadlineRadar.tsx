@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import type { Task } from '@/lib/types/database'
+import { Tooltip } from '@/components/ui/Tooltip'
 
 interface DeadlineRadarProps {
   tasks: Task[]
@@ -41,12 +42,17 @@ export function DeadlineRadar({ tasks, loading }: DeadlineRadarProps) {
 
   return (
     <div className="card-elevated" style={{ padding: '20px 24px' }}>
-      <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', marginBottom: 14, margin: '0 0 14px' }}>
+      <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', marginBottom: 14, margin: '0 0 14px', display: 'flex', alignItems: 'center', gap: 6 }}>
         📡 Deadline Radar
+        <Tooltip text="All dates shown here are ones you entered. We never auto-generate due dates — this protects you from missing real deadlines due to AI hallucinations." position="bottom" maxWidth={260}>
+          <span style={{ fontSize: 13, color: 'var(--color-text-muted)', cursor: 'help', lineHeight: 1 }} aria-label="Info about deadline dates">
+            &#9432;
+          </span>
+        </Tooltip>
       </h3>
       {upcoming.length === 0 ? (
         <div style={{ color: 'var(--color-text-muted)', fontSize: 13, textAlign: 'center', padding: '20px 0' }}>
-          No upcoming deadlines
+          No upcoming deadlines — add your own due dates to tasks to see them here
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

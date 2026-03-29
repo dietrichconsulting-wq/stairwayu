@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useUpdateTaskStatus, useUpdateTask, useCreateTask } from '@/hooks/useTasks'
 import type { Task, TaskStatus, TaskCategory } from '@/lib/types/database'
+import { Tooltip } from '@/components/ui/Tooltip'
 import confetti from 'canvas-confetti'
 
 const CATEGORIES: TaskCategory[] = [
@@ -135,11 +136,16 @@ export function TaskList({ tasks, loading, userId, collapsedMax }: TaskListProps
   return (
     <div className="card-elevated" style={{ padding: '24px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <h2 style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text)', margin: 0 }}>
+        <h2 style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text)', margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
           Tasks
-          <span style={{ marginLeft: 8, fontSize: 13, fontWeight: 500, color: 'var(--color-text-muted)' }}>
+          <span style={{ marginLeft: 2, fontSize: 13, fontWeight: 500, color: 'var(--color-text-muted)' }}>
             {activeTasks.length} active
           </span>
+          <Tooltip text="Tasks are listed in the recommended order. Due dates are never auto-generated — you set your own dates to avoid errors from AI hallucinations." position="bottom" maxWidth={260}>
+            <span style={{ fontSize: 13, color: 'var(--color-text-muted)', cursor: 'help', lineHeight: 1 }} aria-label="Info about task dates">
+              &#9432;
+            </span>
+          </Tooltip>
         </h2>
         {/* Category filter */}
         <select
@@ -276,7 +282,7 @@ export function TaskList({ tasks, loading, userId, collapsedMax }: TaskListProps
                     ) : (
                       <button
                         onClick={() => setEditingDateId(task.id)}
-                        title={task.due_date ? 'Change date' : 'Set a due date'}
+                        title={task.due_date ? 'Change date — only you set due dates, never AI' : 'Set your own due date — we never auto-generate dates'}
                         style={{
                           background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0,
                           fontSize: 11, color: 'var(--color-text-muted)', padding: '2px 6px',
