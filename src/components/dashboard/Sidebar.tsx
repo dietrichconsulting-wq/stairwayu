@@ -19,7 +19,7 @@ const NAV_ITEMS = [
   { href: '/score-bands',    icon: '📊',  label: 'Score Bands',      tip: 'Browse schools grouped by your admission chance tier.' },
   { href: '/compare',        icon: '⚖️',  label: 'Compare',          tip: 'Side-by-side comparison of your saved schools.' },
   { href: '/find-major',     icon: '🧭', label: 'Find Your Major',  tip: 'Explore majors that match your interests and strengths.' },
-  { href: '/essays',         icon: '✍️',  label: 'Essays',           tip: 'Draft and polish your college essays with AI feedback.' },
+  { href: '/essays',         icon: '✍️',  label: 'Essays',           tip: 'Find your story angle, then get feedback that sharpens your voice.' },
   { href: '/scholarships',   icon: '🏆',  label: 'Scholarships',     tip: 'Discover scholarships matched to your profile.' },
   { href: '/finance',        icon: '💵',  label: 'Finance Plan',     tip: 'Plan how to pay for college — aid, loans, and family contribution.' },
   { href: '/profile',        icon: '👤',  label: 'Profile',          tip: 'Edit your academic stats, preferences, and account settings.' },

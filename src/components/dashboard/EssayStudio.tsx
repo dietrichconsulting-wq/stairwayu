@@ -66,7 +66,7 @@ export function EssayStudio({ profile, colleges, userId }: EssayStudioProps) {
     <div style={{ maxWidth: 1200 }}>
       <h1 style={{ fontSize: 26, fontWeight: 800, marginBottom: 4 }}>Essay Studio ✍️</h1>
       <p style={{ fontSize: 14, color: 'var(--color-text-muted)', marginBottom: 24 }}>
-        Brainstorm essay topics or paste a draft to get AI feedback tailored to each school.
+        Your essay, your voice — AI helps you find the right story angle and sharpen every draft.
       </p>
 
       {/* Tab switcher */}

@@ -149,7 +149,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
 
   const QUICK_ACTIONS = [
     { label: 'Compare Schools', href: '/compare', icon: '⚖️', tip: 'Compare tuition, admit rates, and stats side-by-side for your saved schools.' },
-    { label: 'Start Essay', href: '/essays', icon: '✍️', tip: 'Draft and refine your college essays with AI-powered feedback.' },
+    { label: 'Start Essay', href: '/essays', icon: '✍️', tip: 'Discover your best essay angle and get feedback that keeps your authentic voice.' },
     { label: 'Find Scholarships', href: '/scholarships', icon: '🏆', tip: 'Discover scholarships matched to your profile and major.' },
   ]
 

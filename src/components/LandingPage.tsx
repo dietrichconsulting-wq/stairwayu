@@ -60,9 +60,9 @@ const FEATURES = [
   },
   {
     label: 'Essay Studio',
-    desc: 'AI brainstorming and critique for Common App and every supplement.',
+    desc: 'You write the essay — AI coaches you to find your best story angle and polish every draft.',
     img: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800&q=80',
-    cta: 'Start Writing',
+    cta: 'Find Your Story',
     href: '/signup',
     light: true,
   },
