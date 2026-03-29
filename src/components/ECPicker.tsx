@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import type { ExtracurricularEntry, ECTier } from '@/lib/types/database'
-import { EC_TIER_LABELS } from '@/lib/services/admissionChance'
+import { EC_TIER_LABELS, EC_TIER_POINTS } from '@/lib/services/admissionChance'
 
 const TIERS: ECTier[] = [1, 2, 3, 4]
 
@@ -55,29 +55,49 @@ export function ECPicker({ entries, onChange, maxEntries = 10 }: ECPickerProps) 
       {showTierHelp && (
         <div style={{
           background: 'var(--color-column)', border: '1px solid var(--color-border)',
-          borderRadius: 10, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8,
+          borderRadius: 10, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10,
         }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>
-            Activity Tiers — how selective colleges weight ECs
+            How extracurricular scoring works
           </div>
-          {TIERS.map(t => {
-            const info = EC_TIER_LABELS[t]
-            return (
-              <div key={t} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                <span style={{
-                  fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 12,
-                  background: tierColor(t).bg, color: tierColor(t).text, border: `1px solid ${tierColor(t).border}`,
-                  whiteSpace: 'nowrap', flexShrink: 0, marginTop: 1,
-                }}>
-                  T{t}
-                </span>
-                <div>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)' }}>{info.label}</div>
-                  <div style={{ fontSize: 11, color: 'var(--color-text-muted)', lineHeight: 1.3 }}>{info.examples}</div>
+
+          {/* Tier table */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {TIERS.map(t => {
+              const info = EC_TIER_LABELS[t]
+              const pts = EC_TIER_POINTS[t]
+              return (
+                <div key={t} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                  <span style={{
+                    fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 12,
+                    background: tierColor(t).bg, color: tierColor(t).text, border: `1px solid ${tierColor(t).border}`,
+                    whiteSpace: 'nowrap', flexShrink: 0, marginTop: 1,
+                  }}>
+                    T{t}
+                  </span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)' }}>
+                      {info.label} <span style={{ fontWeight: 800, color: 'var(--color-primary)' }}>+{pts} pts</span>
+                    </div>
+                    <div style={{ fontSize: 11, color: 'var(--color-text-muted)', lineHeight: 1.3 }}>{info.examples}</div>
+                  </div>
                 </div>
-              </div>
-            )
-          })}
+              )
+            })}
+          </div>
+
+          {/* Scoring rules */}
+          <div style={{
+            borderTop: '1px solid var(--color-border)', paddingTop: 8,
+            display: 'flex', flexDirection: 'column', gap: 4,
+          }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)' }}>Scoring rules</div>
+            <div style={{ fontSize: 11, color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
+              Your <strong>top 5</strong> activities (by tier) are scored, capped at <strong>15 points</strong>.<br />
+              At highly selective schools (&lt;10% admit), ECs are weighted <strong>1.4x</strong> — they matter more when stats alone don&apos;t separate applicants.<br />
+              At open-admission schools (&gt;70% admit), ECs are weighted <strong>0.6x</strong> — stats dominate.
+            </div>
+          </div>
         </div>
       )}
 
@@ -136,11 +156,27 @@ export function ECPicker({ entries, onChange, maxEntries = 10 }: ECPickerProps) 
         </button>
       )}
 
-      {entries.length > 0 && (
-        <div style={{ fontSize: 11, color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
-          Top 5 activities scored by tier. Higher tiers have more impact on your admission odds.
-        </div>
-      )}
+      {entries.filter(e => e.name.trim()).length > 0 && (() => {
+        const valid = entries.filter(e => e.name.trim())
+        const sorted = [...valid].sort((a, b) => a.tier - b.tier).slice(0, 5)
+        const raw = sorted.reduce((sum, e) => sum + (EC_TIER_POINTS[e.tier] || 0), 0)
+        const capped = Math.min(raw, 15)
+        return (
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '8px 12px', borderRadius: 8,
+            background: 'color-mix(in srgb, var(--color-primary) 6%, var(--color-column))',
+            border: '1px solid color-mix(in srgb, var(--color-primary) 15%, var(--color-border))',
+          }}>
+            <span style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>
+              Top {Math.min(valid.length, 5)} of {valid.length} scored
+            </span>
+            <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--color-primary)' }}>
+              {capped} / 15 pts
+            </span>
+          </div>
+        )
+      })()}
     </div>
   )
 }

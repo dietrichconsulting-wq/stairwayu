@@ -73,7 +73,7 @@ function sentimentFromImpact(impact: number): 'positive' | 'neutral' | 'negative
 // ── Extracurricular tier scoring ──────────────────────────────────────
 // Points per tier (research-backed: mirrors how selective admissions
 // weight national > state > school > participation activities).
-const EC_TIER_POINTS: Record<number, number> = { 1: 8, 2: 5, 3: 3, 4: 1 };
+export const EC_TIER_POINTS: Record<number, number> = { 1: 8, 2: 5, 3: 3, 4: 1 };
 
 /** Max activities scored (diminishing returns after 5) */
 const EC_MAX_SCORED = 5;
@@ -91,7 +91,7 @@ export const EC_TIER_LABELS: Record<number, { label: string; description: string
  * Score extracurricular entries. Returns 0–EC_CAP points.
  * Only the top EC_MAX_SCORED activities by tier are counted.
  */
-function scoreECs(entries: { name: string; tier: number }[] | null | undefined): number {
+export function scoreECs(entries: { name: string; tier: number }[] | null | undefined): number {
   if (!entries || entries.length === 0) return 0;
   // Sort by tier ascending (tier 1 = best) and take top entries
   const sorted = [...entries].sort((a, b) => a.tier - b.tier).slice(0, EC_MAX_SCORED);

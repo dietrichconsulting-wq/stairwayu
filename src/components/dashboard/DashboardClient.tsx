@@ -18,6 +18,7 @@ import { showToast } from '@/components/CelebrationToast'
 import { WelcomeTour } from './WelcomeTour'
 import { DailyChallenges } from './DailyChallenges'
 import { Tooltip } from '@/components/ui/Tooltip'
+import { scoreECs, EC_TIER_POINTS } from '@/lib/services/admissionChance'
 
 interface DashboardClientProps {
   userId: string
@@ -417,6 +418,99 @@ export function DashboardClient({ userId }: DashboardClientProps) {
           </Link>
         </motion.div>
       </div>
+
+      {/* ── EC Score Summary ── */}
+      {!profileLoading && (() => {
+        const ecEntries = profile?.ec_entries?.filter(e => e.name.trim()) ?? []
+        const ecScore = scoreECs(ecEntries)
+        const hasECs = ecEntries.length > 0
+
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="card-elevated"
+            style={{ padding: '16px 20px', marginTop: 20 }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 0 }}>
+                <Tooltip text="Your extracurricular score is computed from your top 5 activities by tier. This factors directly into your admission odds." position="bottom" maxWidth={260}>
+                <div style={{
+                  width: 44, height: 44, borderRadius: 12,
+                  background: hasECs
+                    ? 'color-mix(in srgb, var(--color-primary) 10%, var(--color-column))'
+                    : 'var(--color-column)',
+                  border: hasECs
+                    ? '1.5px solid color-mix(in srgb, var(--color-primary) 25%, var(--color-border))'
+                    : '1.5px solid var(--color-border)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 20, flexShrink: 0,
+                }}>
+                  {hasECs ? '🏆' : '📋'}
+                </div>
+                </Tooltip>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>
+                    {hasECs ? (
+                      <>Extracurricular Score: <span style={{ color: 'var(--color-primary)' }}>{ecScore}/15</span></>
+                    ) : (
+                      'Add your extracurriculars'
+                    )}
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 1 }}>
+                    {hasECs ? (
+                      <>
+                        {ecEntries.length} activit{ecEntries.length === 1 ? 'y' : 'ies'} tracked
+                        {ecScore < 15 && ' — add stronger activities to boost your score'}
+                      </>
+                    ) : (
+                      'Activities factor into your admission odds — higher tiers = more impact'
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {hasECs && (
+                <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                  {[1, 2, 3, 4].map(tier => {
+                    const count = ecEntries.filter(e => e.tier === tier).length
+                    if (count === 0) return null
+                    const colors = tier === 1
+                      ? { bg: 'rgba(251,191,36,0.12)', text: '#D97706', border: 'rgba(251,191,36,0.3)' }
+                      : tier === 2
+                        ? { bg: 'rgba(52,211,153,0.10)', text: '#059669', border: 'rgba(52,211,153,0.25)' }
+                        : tier === 3
+                          ? { bg: 'rgba(96,165,250,0.10)', text: '#2563EB', border: 'rgba(96,165,250,0.25)' }
+                          : { bg: 'rgba(148,163,184,0.10)', text: '#64748B', border: 'rgba(148,163,184,0.25)' }
+                    return (
+                      <Tooltip key={tier} text={`${count} Tier ${tier} activit${count === 1 ? 'y' : 'ies'} (+${EC_TIER_POINTS[tier]} pts each)`} position="top">
+                      <span style={{
+                        fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 12,
+                        background: colors.bg, color: colors.text, border: `1px solid ${colors.border}`,
+                        whiteSpace: 'nowrap',
+                      }}>
+                        T{tier} ×{count}
+                      </span>
+                      </Tooltip>
+                    )
+                  })}
+                </div>
+              )}
+
+              <Link
+                href="/profile"
+                style={{
+                  fontSize: 12, fontWeight: 700, color: 'var(--color-primary)',
+                  textDecoration: 'none', flexShrink: 0, whiteSpace: 'nowrap',
+                }}
+              >
+                {hasECs ? 'Edit activities →' : '+ Add activities →'}
+              </Link>
+            </div>
+          </motion.div>
+        )
+      })()}
 
       {/* ── Section 3: Quick Actions ── */}
       <div data-tour="quick-actions" style={{
