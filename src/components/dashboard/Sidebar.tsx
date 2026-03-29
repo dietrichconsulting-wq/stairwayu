@@ -191,6 +191,28 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
           </div>
         )}
 
+        {isPro && credits && (
+          <Tooltip text={`${credits.balance} credits · ${credits.callsRemaining} AI calls remaining`} position="right" maxWidth={220}>
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '6px 10px', borderRadius: 8, marginBottom: 10,
+              background: 'color-mix(in srgb, var(--color-border) 40%, transparent)',
+              fontSize: 11, fontWeight: 600,
+            }}>
+              <span>{credits.callsRemaining} AI calls left</span>
+              {credits.callsRemaining <= 10 && (
+                <Link
+                  href="/dashboard?buy_credits=true"
+                  style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-primary)', textDecoration: 'none' }}
+                  onClick={e => e.stopPropagation()}
+                >
+                  + Buy More
+                </Link>
+              )}
+            </div>
+          </Tooltip>
+        )}
+
         {/* XP Level badge + progress */}
         {!xpLoading && (
           <Tooltip text="Earn XP by completing tasks, generating strategies, and logging in daily. Level up to track your progress." position="right" maxWidth={240}>

@@ -10,7 +10,7 @@ const PRO_FEATURES = [
   { icon: '⚡', label: 'College Strategy Generator', desc: 'AI-powered reach/target/safety list with real data' },
   { icon: '⚖️', label: 'College Comparison', desc: 'Side-by-side with live admissions stats' },
   { icon: '🏆', label: 'Unlimited scholarships', desc: 'Track as many as you need' },
-  { icon: '🤖', label: 'AI Advisor — unlimited', desc: 'Portfolio and scholarship brainstorming' },
+  { icon: '🤖', label: '1,000 AI credits/mo', desc: '50 AI calls — strategy, essays, scholarships' },
   { icon: '📡', label: 'Deadline Radar', desc: 'Smart deadline tracking across all apps' },
   { icon: '🗺️', label: 'Journey milestones', desc: 'Visual progress tracker' },
 ]
@@ -157,6 +157,28 @@ export default function UpgradePage() {
             You won&apos;t be charged during the 7-day trial.<br />
             Cancel anytime from your Profile before the trial ends — no charge.<br />
             <span style={{ opacity: 0.7 }}>Replaces CollegeVine + Niche + Scholarply + ChatGPT + spreadsheets.</span>
+          </div>
+
+          <div style={{ borderTop: '1px solid var(--color-border, #e5e7eb)', paddingTop: 20, marginBottom: 20 }}>
+            <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>Need more AI calls?</p>
+            <p style={{ fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 10 }}>
+              Get 400 extra credits (20 AI calls) for $5
+            </p>
+            <button
+              onClick={async () => {
+                try {
+                  const res = await fetch('/api/credits/purchase', { method: 'POST' })
+                  const data = await res.json()
+                  if (data.url) window.location.href = data.url
+                } catch { /* ignore */ }
+              }}
+              style={{
+                background: 'transparent', color: 'var(--color-primary)', border: '1px solid var(--color-primary)',
+                borderRadius: 8, padding: '8px 20px', fontWeight: 700, fontSize: 13, cursor: 'pointer', width: '100%',
+              }}
+            >
+              Buy 400 Credits — $5
+            </button>
           </div>
 
           <div style={{ borderTop: '1px solid var(--color-border, #e5e7eb)', paddingTop: 20, marginBottom: 20 }}>
