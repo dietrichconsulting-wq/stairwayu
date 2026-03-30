@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <rect width="192" height="192" rx="32" fill="#121318"/>
+  <g transform="translate(96,96)">
+    <!-- Staircase icon -->
+    <rect x="-48" y="8" width="28" height="40" rx="4" fill="#5EEAD4"/>
+    <rect x="-16" y="-16" width="28" height="64" rx="4" fill="#5EEAD4"/>
+    <rect x="16" y="-40" width="28" height="88" rx="4" fill="#5EEAD4"/>
+    <!-- Graduation cap -->
+    <polygon points="0,-64 -28,-48 0,-32 28,-48" fill="#67E8F9"/>
+    <line x1="0" y1="-32" x2="0" y2="-16" stroke="#67E8F9" stroke-width="3"/>
+  </g>
+</svg>
