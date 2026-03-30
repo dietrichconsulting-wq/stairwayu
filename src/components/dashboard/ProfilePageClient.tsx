@@ -520,6 +520,9 @@ export function ProfilePageClient({ userId }: { userId: string }) {
     >
       <div className="card-elevated" style={{ padding: '20px 20px 24px' }}>
         <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>How to pick a tier</div>
+        <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
+          Extracurricular Activities
+        </div>
         <p style={{ fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 16, lineHeight: 1.4 }}>
           The same activity can be any tier — it depends on <strong>your role</strong>, not the club itself.
         </p>
