@@ -33,26 +33,37 @@ export function ProfilePageClient({ userId }: { userId: string }) {
     ec_entries: [] as ExtracurricularEntry[],
   })
 
-  // Auto-save EC entries after a short delay when they change
-  const ecSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const prevEcRef = useRef<string>('')
+  // Auto-save all profile fields after a short delay when they change
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const prevFormRef = useRef<string>('')
   useEffect(() => {
     if (!profile) return
-    const serialized = JSON.stringify(form.ec_entries)
-    // Skip the initial load
-    if (prevEcRef.current === '') {
-      prevEcRef.current = serialized
+    const serialized = JSON.stringify(form)
+    // Skip the initial load (when form is first populated from profile)
+    if (prevFormRef.current === '') {
+      prevFormRef.current = serialized
       return
     }
-    if (serialized === prevEcRef.current) return
-    prevEcRef.current = serialized
-    if (ecSaveTimer.current) clearTimeout(ecSaveTimer.current)
-    ecSaveTimer.current = setTimeout(() => {
-      const filtered = form.ec_entries.filter(e => e.name.trim())
-      updateProfile.mutate({ ec_entries: filtered.length > 0 ? filtered : null })
+    if (serialized === prevFormRef.current) return
+    prevFormRef.current = serialized
+    if (saveTimer.current) clearTimeout(saveTimer.current)
+    saveTimer.current = setTimeout(() => {
+      const ecFiltered = form.ec_entries.filter(e => e.name.trim())
+      updateProfile.mutate({
+        display_name: form.display_name || null,
+        gpa: form.gpa ? parseFloat(form.gpa) : null,
+        gpa_weighted: form.gpa_weighted ? parseFloat(form.gpa_weighted) : null,
+        sat: form.sat ? parseInt(form.sat) : null,
+        act_score: form.act_score ? parseInt(form.act_score) : null,
+        proposed_major: form.proposed_major || null,
+        home_state: form.home_state || null,
+        ec_entries: ecFiltered.length > 0 ? ecFiltered : null,
+      })
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
     }, 800)
-    return () => { if (ecSaveTimer.current) clearTimeout(ecSaveTimer.current) }
-  }, [form.ec_entries, profile, updateProfile])
+    return () => { if (saveTimer.current) clearTimeout(saveTimer.current) }
+  }, [form, profile, updateProfile])
 
   const [weeklyNudge, setWeeklyNudge] = useState(true)
   const [lastNudgeSent, setLastNudgeSent] = useState<string | null>(null)
@@ -177,7 +188,9 @@ export function ProfilePageClient({ userId }: { userId: string }) {
     setNudgeSaving(false)
   }
 
+  // handleSave kept for the seed-tasks button area
   async function handleSave() {
+    const ecFiltered = form.ec_entries.filter(e => e.name.trim())
     await updateProfile.mutateAsync({
       display_name: form.display_name || null,
       gpa: form.gpa ? parseFloat(form.gpa) : null,
@@ -186,7 +199,7 @@ export function ProfilePageClient({ userId }: { userId: string }) {
       act_score: form.act_score ? parseInt(form.act_score) : null,
       proposed_major: form.proposed_major || null,
       home_state: form.home_state || null,
-      ec_entries: form.ec_entries.filter(e => e.name.trim()).length > 0 ? form.ec_entries.filter(e => e.name.trim()) : null,
+      ec_entries: ecFiltered.length > 0 ? ecFiltered : null,
     })
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
@@ -442,9 +455,13 @@ export function ProfilePageClient({ userId }: { userId: string }) {
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-        <button onClick={handleSave} disabled={updateProfile.isPending} style={{ background: 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: 10, padding: '12px 28px', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
-          {updateProfile.isPending ? 'Saving…' : saved ? '✓ Saved!' : 'Save Profile'}
-        </button>
+        <div style={{
+          fontSize: 13, fontWeight: 600, padding: '10px 0',
+          color: updateProfile.isPending ? 'var(--color-text-muted)' : saved ? '#059669' : 'var(--color-text-muted)',
+          transition: 'color 0.2s',
+        }}>
+          {updateProfile.isPending ? 'Saving...' : saved ? 'Saved!' : 'Changes auto-save'}
+        </div>
 
         {tasks.length === 0 && (
           <button
