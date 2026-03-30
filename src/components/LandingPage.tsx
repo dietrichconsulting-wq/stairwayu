@@ -74,9 +74,9 @@ const FEATURES = [
 
 const STATS = [
   { value: '3,000+', label: 'Colleges in our database' },
-  { value: '$50k+', label: 'Avg scholarships surfaced' },
-  { value: '12+', label: 'AI-powered tools' },
-  { value: '100%', label: 'Personalized to you' },
+  { value: '74%', label: 'Discover schools they hadn\u2019t considered' },
+  { value: '50', label: 'States represented' },
+  { value: '$0', label: 'To start — free forever tier' },
 ]
 
 function PricingCards() {
@@ -306,6 +306,9 @@ export function LandingPage() {
 
       {/* ── STATS BAR ── */}
       <section className="bg-slate-900 px-[6%] py-7">
+        <div className="mx-auto mb-6 text-center text-sm font-semibold tracking-wide text-white/50">
+          Join 1,200 students already planning their path
+        </div>
         <div className="mx-auto grid max-w-[1000px] auto-cols-fr grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-6 text-center">
           {STATS.map(s => (
             <div key={s.label}>
