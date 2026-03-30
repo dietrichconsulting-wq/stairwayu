@@ -81,10 +81,10 @@ const EC_MAX_SCORED = 5;
 const EC_CAP = 15;
 
 export const EC_TIER_LABELS: Record<number, { label: string; description: string; examples: string; question: string }> = {
-  1: { label: 'National / Rare', description: 'National or international recognition', examples: 'National award winner, published researcher, recruited D1 athlete, professional-level achievement', question: 'Were you recognized at the national or international level?' },
-  2: { label: 'Leadership / State', description: 'Led an org or earned state-level recognition', examples: 'Club president/founder, state competition winner, Eagle Scout, significant community impact', question: 'Did you lead the org or win at the state/regional level?' },
-  3: { label: 'Active Role', description: 'Held a title or committed 2+ years', examples: 'Team captain, newspaper editor, varsity athlete, multi-year officer, Key Club board member', question: 'Did you hold a title (captain, officer, editor) or commit 2+ years?' },
-  4: { label: 'Member', description: 'Participated without a leadership role', examples: 'Club member, casual volunteering, part-time job, intramural sports', question: 'Did you participate without a specific leadership role?' },
+  1: { label: 'National / Rare', description: 'National or international recognition', examples: 'National award winner, published researcher, recruited D1 athlete, All-State/All-American selection', question: 'Were you recognized at the national or international level?' },
+  2: { label: 'Leadership / State', description: 'Led an org or earned state/regional recognition', examples: 'Club president/founder, regional/state competition winner, team MVP, Eagle Scout, varsity athlete with awards', question: 'Did you lead the org or win at the state/regional level?' },
+  3: { label: 'Active Role', description: 'Held a title or committed 2+ years', examples: 'Team captain, varsity starter, newspaper editor, multi-year officer, Key Club board member', question: 'Did you hold a title (captain, starter, officer) or commit 2+ years?' },
+  4: { label: 'Member', description: 'Participated without a leadership role', examples: 'Club member, JV/intramural sports, casual volunteering, part-time job', question: 'Did you participate without a specific leadership role?' },
 };
 
 /**

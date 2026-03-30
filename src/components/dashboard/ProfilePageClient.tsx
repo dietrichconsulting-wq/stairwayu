@@ -550,13 +550,24 @@ export function ProfilePageClient({ userId }: { userId: string }) {
           })}
         </div>
 
-        <div style={{ borderTop: '1px solid var(--color-border)', marginTop: 14, paddingTop: 12 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>Example: Key Club</div>
-          <div style={{ fontSize: 11, color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
-            <strong>Member</strong> = T4 (1 pt)<br />
-            <strong>Board member / 2+ yrs</strong> = T3 (3 pts)<br />
-            <strong>President</strong> = T2 (5 pts)<br />
-            <strong>International board</strong> = T1 (8 pts)
+        <div style={{ borderTop: '1px solid var(--color-border)', marginTop: 14, paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>Example: Key Club</div>
+            <div style={{ fontSize: 11, color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
+              <strong>Member</strong> = T4 (1 pt)<br />
+              <strong>Board member / 2+ yrs</strong> = T3 (3 pts)<br />
+              <strong>President</strong> = T2 (5 pts)<br />
+              <strong>International board</strong> = T1 (8 pts)
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>Example: Basketball</div>
+            <div style={{ fontSize: 11, color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
+              <strong>JV player</strong> = T4 (1 pt)<br />
+              <strong>Varsity starter</strong> = T3 (3 pts)<br />
+              <strong>Varsity + regional wins</strong> = T2 (5 pts)<br />
+              <strong>Recruited D1 / All-State</strong> = T1 (8 pts)
+            </div>
           </div>
         </div>
 
