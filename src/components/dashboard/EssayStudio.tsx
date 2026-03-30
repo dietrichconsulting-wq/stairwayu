@@ -137,13 +137,13 @@ function BrainstormTab({ schools, profile, onXp }: { schools: string[]; profile:
           sat: profile?.sat,
         }),
       })
-      if (!res.ok) throw new Error()
       const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Request failed')
       setQuestions(data.questions)
       setAnswers(Object.fromEntries(data.questions.map((q: string) => [q, ''])))
       setStep('questions')
-    } catch {
-      setError('Failed to load questions. Try again.')
+    } catch (err) {
+      setError(err instanceof Error && err.message ? err.message : 'Failed to load questions. Try again.')
     } finally {
       setLoading(false)
     }
@@ -169,13 +169,13 @@ function BrainstormTab({ schools, profile, onXp }: { schools: string[]; profile:
           answers,
         }),
       })
-      if (!res.ok) throw new Error()
       const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Request failed')
       setPrompts(data.prompts)
       setStep('prompts')
       onXp('essay_brainstorm', `${school}:${essayType}`)
-    } catch {
-      setError('Failed to generate prompts. Try again.')
+    } catch (err) {
+      setError(err instanceof Error && err.message ? err.message : 'Failed to generate prompts. Try again.')
     } finally {
       setLoading(false)
     }

@@ -72,7 +72,7 @@ export const brainstormSchema = z.discriminatedUnion('action', [
     gpa,
     gpa_weighted: gpa,
     sat,
-    answers: z.record(z.string().max(200), z.string().max(2000)),
+    answers: z.record(z.string().max(500), z.string().max(2000)),
   }),
 ])
 
