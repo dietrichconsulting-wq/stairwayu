@@ -5,6 +5,34 @@ import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
 
+/**
+ * Maps the current month to a phase-aware urgency message.
+ * Aligned with the app's Prep → Research → Apply → Final milestone phases.
+ */
+function getSeasonalHook(): { emoji: string; message: string; phase: string } {
+  const month = new Date().getMonth() // 0-indexed
+  // Jan–Feb: Decision season
+  if (month <= 1)
+    return { emoji: '📬', message: 'Decisions are coming. Make sure your list is airtight.', phase: 'Final' }
+  // Mar–Apr: Commitment season
+  if (month <= 3)
+    return { emoji: '🎓', message: 'Decision Day is approaching. Do you know your top choice?', phase: 'Final' }
+  // May–Jun: Sophomore/Junior prep
+  if (month <= 5)
+    return { emoji: '🔬', message: 'Summer is the best time to get ahead. Start your college research now.', phase: 'Prep' }
+  // Jul: Pre-app season
+  if (month === 6)
+    return { emoji: '✍️', message: 'Essay season starts next month. Get your brainstorm done now.', phase: 'Research' }
+  // Aug–Sep: Application season kicks off
+  if (month <= 8)
+    return { emoji: '🔥', message: 'Application season is here. Is your list ready?', phase: 'Apply' }
+  // Oct–Nov: Peak application crunch
+  if (month <= 10)
+    return { emoji: '⏰', message: 'Early deadlines are weeks away. Most students start too late — don\u2019t be most students.', phase: 'Apply' }
+  // Dec: Early results + RD push
+  return { emoji: '🚀', message: 'Early decisions are out. Regular deadline is next — finish strong.', phase: 'Apply' }
+}
+
 function GoogleSignInButton({ className }: { className?: string }) {
   const handleGoogleLogin = async () => {
     const supabase = createBrowserClient(
@@ -196,6 +224,21 @@ export function LandingPage() {
           </Link>
         </div>
       </nav>
+
+      {/* ── SEASONAL URGENCY ── */}
+      {(() => {
+        const hook = getSeasonalHook()
+        return (
+          <div className="fixed inset-x-0 top-[60px] z-[90] bg-gradient-to-r from-teal-600 to-cyan-600 px-4 py-2.5 text-center">
+            <span className="text-[13px] font-bold tracking-wide text-white">
+              {hook.emoji} {hook.message}
+            </span>
+            <Link href="/signup" className="ml-3 inline-block rounded bg-white/20 px-3 py-0.5 text-[11px] font-extrabold uppercase tracking-[0.05em] text-white no-underline backdrop-blur-sm">
+              Start Free →
+            </Link>
+          </div>
+        )
+      })()}
 
       {/* ── HERO ── */}
       <section className="relative h-screen min-h-[600px] overflow-hidden">
