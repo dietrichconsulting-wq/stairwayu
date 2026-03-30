@@ -437,6 +437,48 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* ── PARENTS ── */}
+      <section className="bg-slate-50 px-[6%] py-24">
+        <div className="mx-auto max-w-[900px]">
+          <div className="grid grid-cols-1 items-center gap-14 md:grid-cols-2">
+            <div>
+              <div className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.15em] text-teal-600">
+                For Parents
+              </div>
+              <h2 className="mb-5 text-[clamp(28px,4vw,44px)] font-black leading-[1.05] tracking-tight text-slate-900">
+                Finally understand what college will actually&nbsp;cost.
+              </h2>
+              <p className="mb-8 text-base leading-relaxed text-slate-500">
+                Your student gets the tools — you get the clarity. One dashboard with the financial answers you can&apos;t find anywhere&nbsp;else.
+              </p>
+              <ul className="m-0 list-none space-y-4 p-0">
+                {[
+                  'Real net cost estimates for every school on the list',
+                  '529 projections & tuition-inflation forecasts',
+                  'Side-by-side cost comparison across schools',
+                ].map(item => (
+                  <li key={item} className="flex items-start gap-3 text-[15px] text-slate-700">
+                    <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-teal-500 text-[10px] text-white">✓</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <Link href="/signup" className="mt-10 inline-block rounded-md bg-slate-900 px-8 py-3.5 text-[13px] font-extrabold uppercase tracking-[0.05em] text-white no-underline">
+                See What College Will Cost →
+              </Link>
+            </div>
+            <div className="rounded-2xl border border-teal-200 bg-teal-50 px-8 py-10">
+              <div className="mb-5 h-8 w-1 rounded-sm bg-cyan-600" />
+              <p className="mb-6 text-[15px] italic leading-[1.75] text-slate-700">
+                &ldquo;The Financial Planner finally helped me understand what college will actually cost us. I stopped dreading the conversation and started making a real plan.&rdquo;
+              </p>
+              <div className="text-[13px] font-extrabold text-slate-900">Linda C.</div>
+              <div className="mt-0.5 text-xs font-semibold text-cyan-600">Parent of 2026 applicant</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── PRICING ── */}
       <section className="bg-slate-900 px-[6%] py-24">
         <div className="mx-auto max-w-[900px]">
