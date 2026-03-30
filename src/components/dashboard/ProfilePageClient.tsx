@@ -572,6 +572,15 @@ export function ProfilePageClient({ userId }: { userId: string }) {
               <strong>Recruited D1 / All-State</strong> = T1 (8 pts)
             </div>
           </div>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>Example: Started a Business</div>
+            <div style={{ fontSize: 11, color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
+              <strong>Casual side hustle</strong> = T4 (1 pt)<br />
+              <strong>Real business, 2+ yrs</strong> = T3 (3 pts)<br />
+              <strong>Employees or real revenue</strong> = T2 (5 pts)<br />
+              <strong>National press / elite program</strong> = T1 (8 pts)
+            </div>
+          </div>
         </div>
 
         <div style={{
