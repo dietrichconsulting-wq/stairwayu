@@ -80,11 +80,11 @@ const EC_MAX_SCORED = 5;
 /** Hard cap on total EC factor points */
 const EC_CAP = 15;
 
-export const EC_TIER_LABELS: Record<number, { label: string; description: string; examples: string }> = {
-  1: { label: 'National / Rare', description: 'National or international recognition', examples: 'National award winner, published researcher, recruited D1 athlete, professional-level achievement' },
-  2: { label: 'State / Significant', description: 'State-level recognition or major leadership', examples: 'State competition winner, club president/founder, Eagle Scout, significant community impact' },
-  3: { label: 'School / Notable', description: 'School-level leadership or sustained commitment', examples: 'Team captain, newspaper editor, varsity athlete, multi-year club officer' },
-  4: { label: 'Participation', description: 'General involvement', examples: 'Club member, casual volunteering, part-time job, intramural sports' },
+export const EC_TIER_LABELS: Record<number, { label: string; description: string; examples: string; question: string }> = {
+  1: { label: 'National / Rare', description: 'National or international recognition', examples: 'National award winner, published researcher, recruited D1 athlete, professional-level achievement', question: 'Were you recognized at the national or international level?' },
+  2: { label: 'Leadership / State', description: 'Led an org or earned state-level recognition', examples: 'Club president/founder, state competition winner, Eagle Scout, significant community impact', question: 'Did you lead the org or win at the state/regional level?' },
+  3: { label: 'Active Role', description: 'Held a title or committed 2+ years', examples: 'Team captain, newspaper editor, varsity athlete, multi-year officer, Key Club board member', question: 'Did you hold a title (captain, officer, editor) or commit 2+ years?' },
+  4: { label: 'Member', description: 'Participated without a leadership role', examples: 'Club member, casual volunteering, part-time job, intramural sports', question: 'Did you participate without a specific leadership role?' },
 };
 
 /**

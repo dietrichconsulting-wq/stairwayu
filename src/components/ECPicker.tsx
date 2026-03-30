@@ -61,8 +61,12 @@ export function ECPicker({ entries, onChange, maxEntries = 10 }: ECPickerProps) 
             How extracurricular scoring works
           </div>
 
+          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: 2, fontStyle: 'italic' }}>
+            Pick based on your role, not the activity itself.
+          </div>
+
           {/* Tier table */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {TIERS.map(t => {
               const info = EC_TIER_LABELS[t]
               const pts = EC_TIER_POINTS[t]
@@ -79,7 +83,8 @@ export function ECPicker({ entries, onChange, maxEntries = 10 }: ECPickerProps) 
                     <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)' }}>
                       {info.label} <span style={{ fontWeight: 800, color: 'var(--color-primary)' }}>+{pts} pts</span>
                     </div>
-                    <div style={{ fontSize: 11, color: 'var(--color-text-muted)', lineHeight: 1.3 }}>{info.examples}</div>
+                    <div style={{ fontSize: 11, color: 'var(--color-text-muted)', lineHeight: 1.3, fontStyle: 'italic' }}>{info.question}</div>
+                    <div style={{ fontSize: 10, color: 'var(--color-text-muted)', lineHeight: 1.3, marginTop: 2 }}>{info.examples}</div>
                   </div>
                 </div>
               )
@@ -120,7 +125,7 @@ export function ECPicker({ entries, onChange, maxEntries = 10 }: ECPickerProps) 
               padding: '9px 8px', borderRadius: 8,
               border: '1.5px solid var(--color-border)', background: 'var(--color-column)',
               color: 'var(--color-text)', fontSize: 12, fontWeight: 600, outline: 'none',
-              width: 120, flexShrink: 0,
+              width: 140, flexShrink: 0,
             }}
           >
             {TIERS.map(t => (

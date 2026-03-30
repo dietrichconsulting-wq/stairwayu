@@ -11,6 +11,8 @@ import { createClient } from '@/lib/supabase/client'
 import type { UserCollege, ExtracurricularEntry } from '@/lib/types/database'
 import { useAchievements } from '@/hooks/useAchievements'
 import { ECPicker } from '@/components/ECPicker'
+import { EC_TIER_LABELS, EC_TIER_POINTS } from '@/lib/services/admissionChance'
+import type { ECTier } from '@/lib/types/database'
 
 const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY']
 
@@ -180,7 +182,8 @@ export function ProfilePageClient({ userId }: { userId: string }) {
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} style={{ maxWidth: 600 }}>
+    <div style={{ display: 'flex', gap: 28, alignItems: 'flex-start' }}>
+    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} style={{ maxWidth: 600, flex: '1 1 600px', minWidth: 0 }}>
       <h1 style={{ fontSize: 26, fontWeight: 800, marginBottom: 6 }}>Profile</h1>
       <p style={{ fontSize: 14, color: 'var(--color-text-muted)', marginBottom: 28 }}>
         Update your stats and schools here — every tool in the app uses this info.
@@ -505,6 +508,70 @@ export function ProfilePageClient({ userId }: { userId: string }) {
         )}
       </div>
     </motion.div>
+
+    {/* Right sidebar: EC Tier Guide */}
+    <motion.aside
+      initial={{ opacity: 0, x: 16 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: 0.15 }}
+      style={{
+        flex: '0 0 280px', position: 'sticky', top: 24, alignSelf: 'flex-start',
+      }}
+    >
+      <div className="card-elevated" style={{ padding: '20px 20px 24px' }}>
+        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>How to pick a tier</div>
+        <p style={{ fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 16, lineHeight: 1.4 }}>
+          The same activity can be any tier — it depends on <strong>your role</strong>, not the club itself.
+        </p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {([1, 2, 3, 4] as ECTier[]).map(t => {
+            const info = EC_TIER_LABELS[t]
+            const pts = EC_TIER_POINTS[t]
+            const colors = ecTierColor(t)
+            return (
+              <div key={t} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                <span style={{
+                  fontSize: 10, fontWeight: 800, padding: '2px 7px', borderRadius: 12,
+                  background: colors.bg, color: colors.text, border: `1px solid ${colors.border}`,
+                  whiteSpace: 'nowrap', flexShrink: 0, marginTop: 1,
+                }}>
+                  T{t}
+                </span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)' }}>
+                    {info.label} <span style={{ fontWeight: 800, color: 'var(--color-primary)' }}>+{pts} pts</span>
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--color-text-muted)', lineHeight: 1.3, fontStyle: 'italic' }}>{info.question}</div>
+                  <div style={{ fontSize: 10, color: 'var(--color-text-muted)', lineHeight: 1.3, marginTop: 2, opacity: 0.7 }}>{info.examples}</div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        <div style={{ borderTop: '1px solid var(--color-border)', marginTop: 14, paddingTop: 12 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>Example: Key Club</div>
+          <div style={{ fontSize: 11, color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
+            <strong>Member</strong> = T4 (1 pt)<br />
+            <strong>Board member / 2+ yrs</strong> = T3 (3 pts)<br />
+            <strong>President</strong> = T2 (5 pts)<br />
+            <strong>International board</strong> = T1 (8 pts)
+          </div>
+        </div>
+
+        <div style={{
+          marginTop: 14, padding: '10px 12px', borderRadius: 8,
+          background: 'color-mix(in srgb, var(--color-primary) 6%, var(--color-column))',
+          border: '1px solid color-mix(in srgb, var(--color-primary) 15%, var(--color-border))',
+        }}>
+          <div style={{ fontSize: 11, color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
+            Your <strong>top 5</strong> activities are scored, capped at <strong>15 pts</strong>. At selective schools (&lt;10% admit rate), ECs are weighted <strong>1.4x</strong>.
+          </div>
+        </div>
+      </div>
+    </motion.aside>
+    </div>
   )
 }
 
@@ -560,6 +627,15 @@ function Field({ label, style: _style, onChange, ...inputProps }: { label: strin
       <input {...inputProps} onChange={e => onChange(e.target.value)} style={inputStyle} />
     </div>
   )
+}
+
+function ecTierColor(tier: ECTier) {
+  switch (tier) {
+    case 1: return { bg: 'rgba(251,191,36,0.12)', text: '#D97706', border: 'rgba(251,191,36,0.3)' }
+    case 2: return { bg: 'rgba(52,211,153,0.10)', text: '#059669', border: 'rgba(52,211,153,0.25)' }
+    case 3: return { bg: 'rgba(96,165,250,0.10)', text: '#2563EB', border: 'rgba(96,165,250,0.25)' }
+    case 4: return { bg: 'rgba(148,163,184,0.10)', text: '#64748B', border: 'rgba(148,163,184,0.25)' }
+  }
 }
 
 const labelStyle: React.CSSProperties = {

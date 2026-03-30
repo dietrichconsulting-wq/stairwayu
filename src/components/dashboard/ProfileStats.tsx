@@ -12,6 +12,7 @@ import type { ReadinessScore } from '@/hooks/useReadinessScore'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import Link from 'next/link'
 import { Tooltip } from '@/components/ui/Tooltip'
+import { scoreECs, EC_TIER_POINTS } from '@/lib/services/admissionChance'
 
 interface ProfileStatsProps {
   profile: Profile | null | undefined
@@ -324,6 +325,10 @@ export function ProfileStats({ profile, loading, tasks, userId }: ProfileStatsPr
             onSave={v => updateProfile.mutate({ proposed_major: v || null })}
             tooltip="Your intended college major. Affects school recommendations and strategy."
           />
+          {/* ECs */}
+          <ECStatPill
+            ecEntries={loading ? null : profile?.ec_entries ?? null}
+          />
         </div>
 
         {/* Readiness ring */}
@@ -526,6 +531,50 @@ function EditableMajorPill({ label, display, onSave, tooltip }: {
         </button>
       )}
     </div>
+  )
+}
+
+function ECStatPill({ ecEntries }: { ecEntries: { name: string; tier: number }[] | null }) {
+  const count = ecEntries?.filter(e => e.name.trim()).length ?? 0
+  const ecScore = scoreECs(ecEntries)
+  const color = count === 0
+    ? (isDark() ? '#FCA5A5' : '#EF4444')
+    : ecScore >= 10
+      ? (isDark() ? '#86EFAC' : '#22C55E')
+      : (isDark() ? '#FDE68A' : '#d97706')
+
+  return (
+    <Tooltip
+      text={count === 0
+        ? 'Add extracurriculars on your Profile to improve admission estimates.'
+        : `${count} activities added, scoring ${ecScore}/15 pts. Edit on your Profile page.`}
+      position="top"
+    >
+      <Link href="/profile" style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column' }}>
+        <span style={{
+          fontSize: 10, fontWeight: 700, color: 'var(--color-text-muted)',
+          textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2,
+        }}>
+          ECs
+        </span>
+        <span style={{
+          fontSize: 20, fontWeight: 800, color, lineHeight: 1,
+          display: 'flex', alignItems: 'center', gap: 4,
+        }}>
+          {count === 0 ? '—' : `${ecScore}/15`}
+          {count === 0 && (
+            <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-primary)' }}>
+              + Add
+            </span>
+          )}
+        </span>
+        {count > 0 && (
+          <span style={{ fontSize: 10, color: 'var(--color-text-muted)', marginTop: 2 }}>
+            {count} activit{count === 1 ? 'y' : 'ies'}
+          </span>
+        )}
+      </Link>
+    </Tooltip>
   )
 }
 
