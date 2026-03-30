@@ -92,17 +92,12 @@ export function EssayStudio({ profile, colleges, userId }: EssayStudioProps) {
         ))}
       </div>
 
-      <AnimatePresence mode="wait">
-        {tab === 'brainstorm' ? (
-          <motion.div key="brainstorm" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-            <BrainstormTab schools={schools} profile={profile} onXp={(action, refId) => recordXp.mutate({ action, refId })} />
-          </motion.div>
-        ) : (
-          <motion.div key="critique" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-            <CritiqueTab schools={schools} profile={profile} onXp={(action, refId) => recordXp.mutate({ action, refId })} />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div style={{ display: tab === 'brainstorm' ? 'block' : 'none' }}>
+        <BrainstormTab schools={schools} profile={profile} onXp={(action, refId) => recordXp.mutate({ action, refId })} />
+      </div>
+      <div style={{ display: tab === 'critique' ? 'block' : 'none' }}>
+        <CritiqueTab schools={schools} profile={profile} onXp={(action, refId) => recordXp.mutate({ action, refId })} />
+      </div>
     </div>
   )
 }
