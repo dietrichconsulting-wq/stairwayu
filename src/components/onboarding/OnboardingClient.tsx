@@ -161,40 +161,54 @@ export function OnboardingClient({ userId, initialName = '' }: { userId: string;
           Stairway U
         </div>
         <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 8 }}>
-          {step === 0 && "Let's get to know you"}
-          {step === 1 && 'Tell us about your academics'}
-          {step === 2 && 'What are you looking for?'}
-          {step === 3 && 'Which schools are you eyeing?'}
+          {step === 0 && "Let's build your college gameplan. 🎓"}
+          {step === 1 && 'Now the fun part — your stats 📊'}
+          {step === 2 && 'What\'s your ideal campus? 🏫'}
+          {step === 3 && 'Dream schools — let\'s go 🎯'}
         </h1>
         <p style={{ color: 'var(--color-text-muted)', fontSize: 15 }}>
-          {step === 0 && 'This helps us personalize your dashboard and roadmap.'}
+          {step === 0 && 'Takes 2 minutes. Powers your entire dashboard and roadmap.'}
           {step === 1 && 'Be honest — this powers your AI strategy and school fit analysis.'}
           {step === 2 && 'These preferences help us match you to the right schools.'}
           {step === 3 && "Add up to 4 schools on Free. Upgrade to Pro for unlimited."}
         </p>
       </div>
 
-      {/* Progress bar */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 36 }}>
-        {STEPS.map((s, i) => (
-          <div key={s} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-            <div style={{
-              width: 32, height: 32, borderRadius: '50%',
-              background: i < step ? 'var(--color-primary)' : i === step ? 'var(--color-primary)' : 'var(--color-column)',
-              border: i === step ? '3px solid var(--color-primary)' : '2px solid var(--color-border)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: i <= step ? '#fff' : 'var(--color-text-muted)',
-              fontSize: 13, fontWeight: 700,
-              opacity: i > step ? 0.4 : 1,
-              transition: 'all 0.2s',
-            }}>
-              {i < step ? '✓' : i + 1}
+      {/* Progress stairway */}
+      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, marginBottom: 36 }}>
+        {STEPS.map((s, i) => {
+          const done = i < step
+          const active = i === step
+          const height = 28 + i * 14 // ascending stair heights: 28, 42, 56, 70
+          return (
+            <div key={s} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+              <div style={{
+                width: 64, height, borderRadius: 8,
+                background: done
+                  ? 'var(--color-primary)'
+                  : active
+                    ? 'linear-gradient(to top, var(--color-primary), color-mix(in srgb, var(--color-primary) 70%, white))'
+                    : 'var(--color-column)',
+                border: active ? '2px solid var(--color-primary)' : done ? 'none' : '1.5px solid var(--color-border)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: done || active ? '#fff' : 'var(--color-text-muted)',
+                fontSize: 13, fontWeight: 700,
+                opacity: !done && !active ? 0.35 : 1,
+                transition: 'all 0.3s ease',
+                boxShadow: active ? '0 4px 16px color-mix(in srgb, var(--color-primary) 40%, transparent)' : 'none',
+              }}>
+                {done ? '✓' : i + 1}
+              </div>
+              <span style={{
+                fontSize: 10, fontWeight: 700, letterSpacing: '0.03em',
+                color: active ? 'var(--color-primary)' : done ? 'var(--color-text-muted)' : 'var(--color-text-muted)',
+                opacity: !done && !active ? 0.35 : 1,
+              }}>
+                {s}
+              </span>
             </div>
-            <span style={{ fontSize: 11, fontWeight: 600, color: i === step ? 'var(--color-primary)' : 'var(--color-text-muted)', opacity: i > step ? 0.4 : 1 }}>
-              {s}
-            </span>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
       {/* Card */}
@@ -248,7 +262,9 @@ export function OnboardingClient({ userId, initialName = '' }: { userId: string;
                 transition: 'background 0.15s',
               }}
             >
-              Continue →
+              {step === 0 && "Let's Go →"}
+              {step === 1 && 'Looking Good — Next →'}
+              {step === 2 && 'Almost There →'}
             </button>
           ) : (
             <button

@@ -185,7 +185,7 @@ export function LandingPage() {
         }`}
       >
         <div className="text-lg font-black tracking-tight text-white">
-          Stairway U
+          🎓 Stairway U
         </div>
         <div className="flex items-center gap-2">
           <Link href="/login" className="rounded-md px-4 py-2 text-[13px] font-semibold text-white/80 no-underline">
@@ -211,14 +211,14 @@ export function LandingPage() {
 
         <div className="absolute bottom-[12%] left-[6%] max-w-[680px]">
           <div className="mb-4 text-xs font-extrabold uppercase tracking-[0.2em] text-white/60">
-            Admission Odds · Scholarships · Essays · Finances · Deadlines
+            Your Stairway to College
           </div>
           <h1 className="mb-6 text-[clamp(48px,7vw,88px)] font-black leading-none tracking-tight text-white">
             Your real odds.<br />Your best schools.
           </h1>
           <p className="mb-9 max-w-[480px] text-[clamp(16px,2vw,20px)] leading-relaxed text-white/75">
-            Know where you stand. Know where you&apos;re going.<br />
-            Stop guessing.
+            Admission odds · scholarships · essays · finances · deadlines&nbsp;&mdash;<br />
+            one dashboard, zero guesswork.
           </p>
           <div className="flex flex-wrap gap-3">
             <Link href="/signup" className="rounded-md bg-white px-10 py-4 text-[15px] font-extrabold text-slate-900 no-underline">
@@ -528,7 +528,7 @@ export function LandingPage() {
       {/* ── FOOTER ── */}
       <footer className="bg-slate-950 px-[6%] py-10">
         <div className="mx-auto flex max-w-[1100px] flex-wrap items-center justify-between gap-4">
-          <div className="text-base font-black tracking-tight text-white">Stairway U</div>
+          <div className="text-base font-black tracking-tight text-white">🎓 Stairway U</div>
           <div className="flex gap-7">
             {[{ label: 'Sign In', href: '/login' }, { label: 'Sign Up', href: '/signup' }, { label: 'Pricing', href: '/upgrade' }, { label: 'For Counselors', href: 'mailto:hello@stairwayu.com?subject=Counselor%20%2F%20Test%20Prep%20Partnership' }, { label: 'Terms', href: '/terms' }, { label: 'Privacy', href: '/privacy' }].map(l => (
               <Link key={l.href} href={l.href} className="text-[13px] font-medium tracking-[0.03em] text-white/35 no-underline">
