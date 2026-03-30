@@ -60,7 +60,8 @@ const SNAPSHOT_KEY = 'admission_snapshot_v2'
 export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnapshotProps) {
   const schools = colleges.map(c => ({ name: c.college_name, id: c.college_id }))
 
-  const ecKey = profile?.ec_entries ? JSON.stringify(profile.ec_entries) : ''
+  const validECs = profile?.ec_entries?.filter(e => e.name?.trim()) ?? []
+  const ecKey = validECs.length > 0 ? JSON.stringify(validECs) : ''
   const fetchKey = profile
     ? `${profile.gpa}|${profile.gpa_weighted}|${profile.sat}|${profile.act_score}|${profile.proposed_major}|${ecKey}|${schools.map(s => s.name).join(',')}`
     : null
@@ -109,7 +110,7 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
         sat: profile.sat,
         act: profile.act_score,
         proposed_major: profile.proposed_major,
-        ec_entries: profile.ec_entries,
+        ec_entries: profile.ec_entries?.filter(e => e.name?.trim()) ?? null,
         schools,
       }),
       signal: combined,

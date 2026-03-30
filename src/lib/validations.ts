@@ -25,7 +25,7 @@ export const chancesSchema = z.object({
   ec_entries: z.array(ecEntry).max(20).nullish(),
   schools: z.array(z.object({
     name: z.string().min(1).max(200),
-    id: z.string().max(50).optional(),
+    id: z.string().max(50).nullish(),
   })).max(50).default([]),
 })
 
