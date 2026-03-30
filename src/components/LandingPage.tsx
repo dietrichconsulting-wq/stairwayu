@@ -248,18 +248,6 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ── STATS BAR ── */}
-      <section className="bg-slate-900 px-[6%] py-7">
-        <div className="mx-auto grid max-w-[1000px] auto-cols-fr grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-6 text-center">
-          {STATS.map(s => (
-            <div key={s.label}>
-              <div className="text-[28px] font-black tracking-tight text-white">{s.value}</div>
-              <div className="mt-1 text-xs tracking-[0.05em] text-white/45">{s.label}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
       {/* ── REPLACE 5 TABS ── */}
       <section className="bg-white px-[6%] py-24">
         <div className="mx-auto max-w-[1000px]">
@@ -313,6 +301,18 @@ export function LandingPage() {
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* ── STATS BAR ── */}
+      <section className="bg-slate-900 px-[6%] py-7">
+        <div className="mx-auto grid max-w-[1000px] auto-cols-fr grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-6 text-center">
+          {STATS.map(s => (
+            <div key={s.label}>
+              <div className="text-[28px] font-black tracking-tight text-white">{s.value}</div>
+              <div className="mt-1 text-xs tracking-[0.05em] text-white/45">{s.label}</div>
+            </div>
+          ))}
         </div>
       </section>
 
