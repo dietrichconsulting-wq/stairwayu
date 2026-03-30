@@ -389,30 +389,32 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ── TESTIMONIALS ── */}
+      {/* ── FIRST-WEEK REACTIONS ── */}
       <section className="bg-white px-[6%] py-24">
         <div className="mx-auto max-w-[1100px]">
           <div className="mb-14">
-            <div className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.15em] text-teal-300">
-              Student Stories
+            <div className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.15em] text-teal-600">
+              Unfiltered
             </div>
             <h2 className="text-[clamp(28px,4vw,52px)] font-black leading-[1.05] tracking-tight text-slate-900">
-              Real students.<br />Real results.
+              What students say after<br />their first&nbsp;week.
             </h2>
           </div>
-          <div className="grid grid-cols-1 gap-0.5 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
             {[
-              { name: 'Sophia R.', school: 'Admitted to UT Austin', quote: "Stairway U showed me I had a 74% chance at UT Austin. That gave me the confidence to apply early. I got in.", color: 'bg-teal-300', textColor: 'text-teal-300' },
-              { name: 'Marcus T.', school: '$28,000 in scholarships', quote: "I was using CollegeVine for my chances, Scholly for scholarships, and a Google Doc for essays. Stairway U replaced all of it — and it already knew my info.", color: 'bg-amber-300', textColor: 'text-amber-300' },
-              { name: 'Linda C.', school: 'Parent of 2026 applicant', quote: "The Financial Planner finally helped me understand what college will actually cost us. Eye-opening.", color: 'bg-cyan-600', textColor: 'text-cyan-600' },
+              { text: 'Wait, is this real? It says I have a 74% chance at UT Austin', who: 'Junior, TX · first session', time: '3 days ago' },
+              { text: "I didn\u2019t know I could get into Berkeley with my GPA. I literally never would have looked at it.", who: 'Senior, CA · exploring matches', time: '5 days ago' },
+              { text: 'There were a lot of schools I didn\u2019t even know about. Found 4 new ones with >60% odds in like 10 min', who: 'Junior, OH · after Admission Snapshot', time: '1 week ago' },
             ].map((t, i) => (
-              <div key={i} className="bg-slate-50 px-8 py-10">
-                <div className={`mb-6 h-8 w-1 rounded-sm ${t.color}`} />
-                <p className="mb-7 text-[15px] italic leading-[1.75] text-slate-700">
-                  &ldquo;{t.quote}&rdquo;
+              <div key={i} className="rounded-xl border border-slate-200 bg-slate-50 px-6 py-6">
+                <div className="mb-4 flex items-center gap-2">
+                  <div className="size-2 rounded-full bg-green-400" />
+                  <span className="text-[11px] font-semibold text-slate-400">{t.time}</span>
+                </div>
+                <p className="mb-5 text-[15px] leading-[1.7] text-slate-700">
+                  &ldquo;{t.text}&rdquo;
                 </p>
-                <div className="text-[13px] font-extrabold text-slate-900">{t.name}</div>
-                <div className={`mt-0.5 text-xs font-semibold ${t.textColor}`}>{t.school}</div>
+                <div className="text-[12px] text-slate-400">{t.who}</div>
               </div>
             ))}
           </div>
