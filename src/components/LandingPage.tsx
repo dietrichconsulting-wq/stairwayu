@@ -496,6 +496,28 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* ── COUNSELORS & TEST PREP ── */}
+      <section className="bg-white px-[6%] py-16">
+        <div className="mx-auto max-w-[900px] rounded-2xl border border-slate-200 bg-slate-50 px-8 py-10 md:flex md:items-center md:justify-between md:gap-10 md:px-12">
+          <div className="mb-6 md:mb-0">
+            <div className="mb-2 text-[11px] font-extrabold uppercase tracking-[0.15em] text-slate-400">
+              For Counselors &amp; Test Prep
+            </div>
+            <h3 className="mb-2 text-[clamp(20px,3vw,28px)] font-black leading-tight tracking-tight text-slate-900">
+              One recommendation. 300&nbsp;students&nbsp;helped.
+            </h3>
+            <p className="max-w-[420px] text-sm leading-relaxed text-slate-500">
+              Show students how score improvements translate into better school matches — and give every family a financial plan in&nbsp;minutes.
+            </p>
+          </div>
+          <div className="shrink-0">
+            <a href="mailto:hello@stairwayu.com?subject=Counselor%20%2F%20Test%20Prep%20Partnership" className="inline-block rounded-md bg-slate-900 px-8 py-3.5 text-[13px] font-extrabold uppercase tracking-[0.05em] text-white no-underline">
+              Partner With Us →
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* ── FINAL CTA ── */}
       <section className="relative h-[50vh] min-h-[360px] overflow-hidden">
         <Image
@@ -524,7 +546,7 @@ export function LandingPage() {
         <div className="mx-auto flex max-w-[1100px] flex-wrap items-center justify-between gap-4">
           <div className="text-base font-black tracking-tight text-white">Stairway U</div>
           <div className="flex gap-7">
-            {[{ label: 'Sign In', href: '/login' }, { label: 'Sign Up', href: '/signup' }, { label: 'Pricing', href: '/upgrade' }, { label: 'Terms', href: '/terms' }, { label: 'Privacy', href: '/privacy' }].map(l => (
+            {[{ label: 'Sign In', href: '/login' }, { label: 'Sign Up', href: '/signup' }, { label: 'Pricing', href: '/upgrade' }, { label: 'For Counselors', href: 'mailto:hello@stairwayu.com?subject=Counselor%20%2F%20Test%20Prep%20Partnership' }, { label: 'Terms', href: '/terms' }, { label: 'Privacy', href: '/privacy' }].map(l => (
               <Link key={l.href} href={l.href} className="text-[13px] font-medium tracking-[0.03em] text-white/35 no-underline">
                 {l.label}
               </Link>
