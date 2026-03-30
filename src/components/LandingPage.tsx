@@ -38,37 +38,25 @@ const FEATURES = [
     label: 'Admission Snapshot',
     desc: 'Know your real odds — and what it takes to improve them.',
     img: 'https://images.unsplash.com/photo-1571260899304-425eee4c7efc?w=800&q=80',
-    cta: 'See Your Chances',
-    href: '/signup',
     light: false,
-    tier: 'free' as const,
   },
   {
     label: 'AI Scholarship Finder',
     desc: '10 personalized matches. Direct links. No essay required on half of them.',
     img: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=800&q=80',
-    cta: 'Find Scholarships',
-    href: '/signup',
     light: true,
-    tier: 'pro' as const,
   },
   {
     label: 'Financial Planner',
     desc: '529 projections, tuition inflation, loan estimates — all in one dashboard.',
     img: 'https://images.unsplash.com/photo-1554224154-26032ffc0d07?w=800&q=80',
-    cta: 'Plan the Cost',
-    href: '/signup',
     light: false,
-    tier: 'free' as const,
   },
   {
     label: 'Essay Studio',
     desc: 'You write the essay — AI coaches you to find your best story angle and polish every draft.',
     img: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800&q=80',
-    cta: 'Find Your Story',
-    href: '/signup',
     light: true,
-    tier: 'pro' as const,
   },
 ]
 
@@ -332,15 +320,6 @@ export function LandingPage() {
                 className="object-cover opacity-75 transition-transform duration-[600ms] ease-out group-hover:scale-[1.04]"
               />
               <div className={`absolute inset-0 ${f.light ? 'landing-feature-gradient-light' : 'landing-feature-gradient-dark'}`} />
-              <div className="absolute right-4 top-4">
-                <span className={`rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.08em] ${
-                  f.tier === 'free'
-                    ? 'bg-teal-400/90 text-slate-900'
-                    : 'bg-amber-400/90 text-amber-900'
-                }`}>
-                  {f.tier === 'free' ? 'Included Free' : 'Pro'}
-                </span>
-              </div>
               <div className="absolute inset-x-0 bottom-0 p-[clamp(16px,3vw,32px)] px-[clamp(16px,3vw,36px)]">
                 <div className="mb-2 text-[clamp(20px,2.5vw,28px)] font-black leading-tight tracking-tight text-white">
                   {f.label}
@@ -348,8 +327,8 @@ export function LandingPage() {
                 <div className="mb-5 text-[13px] leading-relaxed text-white/70">
                   {f.desc}
                 </div>
-                <Link href={f.href} className="inline-block rounded bg-white px-5.5 py-2.5 text-xs font-extrabold uppercase tracking-[0.03em] text-slate-900 no-underline">
-                  {f.cta}
+                <Link href="/signup" className="inline-block rounded bg-white px-5.5 py-2.5 text-xs font-extrabold uppercase tracking-[0.03em] text-slate-900 no-underline">
+                  Start Free →
                 </Link>
               </div>
             </div>
