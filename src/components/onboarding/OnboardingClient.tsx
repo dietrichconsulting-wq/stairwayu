@@ -114,7 +114,7 @@ export function OnboardingClient({ userId, initialName = '' }: { userId: string;
         act_score: form.act_score ? parseInt(form.act_score) : null,
         proposed_major: form.proposed_major || null,
         extracurriculars: form.extracurriculars || null,
-        ec_entries: form.ec_entries.filter(e => e.name.trim()) || null,
+        ec_entries: form.ec_entries.filter(e => e.name.trim()).length > 0 ? form.ec_entries.filter(e => e.name.trim()) : null,
         career_interests: form.career_interests || null,
         desired_climate: form.desired_climate || null,
         school_size_pref: form.school_size_pref || null,

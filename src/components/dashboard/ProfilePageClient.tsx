@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile'
 import { useUserColleges, useAddCollege, useRemoveCollege, useUpdateCollege } from '@/hooks/useUserColleges'
@@ -32,6 +32,27 @@ export function ProfilePageClient({ userId }: { userId: string }) {
     display_name: '', gpa: '', gpa_weighted: '', sat: '', act_score: '', proposed_major: '', home_state: '',
     ec_entries: [] as ExtracurricularEntry[],
   })
+
+  // Auto-save EC entries after a short delay when they change
+  const ecSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const prevEcRef = useRef<string>('')
+  useEffect(() => {
+    if (!profile) return
+    const serialized = JSON.stringify(form.ec_entries)
+    // Skip the initial load
+    if (prevEcRef.current === '') {
+      prevEcRef.current = serialized
+      return
+    }
+    if (serialized === prevEcRef.current) return
+    prevEcRef.current = serialized
+    if (ecSaveTimer.current) clearTimeout(ecSaveTimer.current)
+    ecSaveTimer.current = setTimeout(() => {
+      const filtered = form.ec_entries.filter(e => e.name.trim())
+      updateProfile.mutate({ ec_entries: filtered.length > 0 ? filtered : null })
+    }, 800)
+    return () => { if (ecSaveTimer.current) clearTimeout(ecSaveTimer.current) }
+  }, [form.ec_entries, profile, updateProfile])
 
   const [weeklyNudge, setWeeklyNudge] = useState(true)
   const [lastNudgeSent, setLastNudgeSent] = useState<string | null>(null)
@@ -165,7 +186,7 @@ export function ProfilePageClient({ userId }: { userId: string }) {
       act_score: form.act_score ? parseInt(form.act_score) : null,
       proposed_major: form.proposed_major || null,
       home_state: form.home_state || null,
-      ec_entries: form.ec_entries.filter(e => e.name.trim()) || null,
+      ec_entries: form.ec_entries.filter(e => e.name.trim()).length > 0 ? form.ec_entries.filter(e => e.name.trim()) : null,
     })
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
