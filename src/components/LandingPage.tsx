@@ -61,9 +61,9 @@ const FEATURES = [
 ]
 
 const STATS = [
-  { value: '3,000+', label: 'Colleges in our database' },
+  { value: '3,000+', label: 'Colleges from the College Scorecard' },
   { value: '74%', label: 'Discover schools they hadn\u2019t considered' },
-  { value: '50', label: 'States represented' },
+  { value: '100%', label: 'Federal data — nothing scraped or guessed' },
   { value: '$0', label: 'To start — free forever tier' },
 ]
 
@@ -272,7 +272,7 @@ export function LandingPage() {
               <div className="mb-5 text-xs font-extrabold uppercase tracking-[0.12em] text-teal-600">With Stairway U</div>
               <ul className="m-0 list-none space-y-4 p-0">
                 {[
-                  'Real admission odds from federal data',
+                  'Admission odds powered by the U.S. Dept of Education College Scorecard',
                   'Personalized scholarship matches',
                   'Essay brainstorming & critique',
                   'Financial planner with 529 & loan estimates',
@@ -304,6 +304,24 @@ export function LandingPage() {
               <div className="mt-1 text-xs tracking-[0.05em] text-white/45">{s.label}</div>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* ── DATA TRUST STRIP ── */}
+      <section className="bg-slate-800 px-[6%] py-5">
+        <div className="mx-auto flex max-w-[900px] flex-wrap items-center justify-center gap-x-10 gap-y-3 text-center">
+          <div className="flex items-center gap-2.5">
+            <span className="text-[11px] font-extrabold uppercase tracking-[0.1em] text-white/30">Data from</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[13px] font-bold text-white/60">🏛 U.S. Dept of Education</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[13px] font-bold text-white/60">📊 College Scorecard API</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[13px] font-bold text-white/60">🎓 IPEDS</span>
+          </div>
         </div>
       </section>
 
@@ -372,7 +390,7 @@ export function LandingPage() {
             Your profile powers everything.
           </h2>
           <p className="mx-auto mb-14 max-w-[500px] text-base leading-relaxed text-white/50">
-            Separate tools can&apos;t share context. Stairway U connects your GPA, scores, budget, and school list across every feature.
+            Separate tools can&apos;t share context. Stairway U connects your GPA, scores, budget, and school list across every feature — all grounded in real federal data from the College Scorecard.
           </p>
           <div className="grid grid-cols-1 gap-6 text-left md:grid-cols-3">
             {[
@@ -464,7 +482,7 @@ export function LandingPage() {
       </section>
 
       {/* ── PRICING ── */}
-      <section className="bg-slate-900 px-[6%] py-24">
+      <section id="pricing" className="bg-slate-900 px-[6%] py-24">
         <div className="mx-auto max-w-[900px]">
           <div className="mb-14">
             <div className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.15em] text-white/40">
