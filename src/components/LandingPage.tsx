@@ -223,14 +223,14 @@ export function LandingPage() {
 
         <div className="absolute bottom-[12%] left-[6%] max-w-[680px]">
           <div className="mb-4 text-xs font-extrabold uppercase tracking-[0.2em] text-white/60">
-            5 College Tools. 1 Dashboard. 0 Spreadsheets.
+            Admission Odds · Scholarships · Essays · Finances · Deadlines
           </div>
           <h1 className="mb-6 text-[clamp(48px,7vw,88px)] font-black leading-none tracking-tight text-white">
-            Your Stairway<br />to College.
+            Your real odds.<br />Your best schools.
           </h1>
           <p className="mb-9 max-w-[480px] text-[clamp(16px,2vw,20px)] leading-relaxed text-white/75">
-            Stop juggling odds calculators, scholarship searches, and spreadsheets.<br />
-            One dashboard that knows your profile and connects everything.
+            Know where you stand. Know where you&apos;re going.<br />
+            Stop guessing.
           </p>
           <div className="flex flex-wrap gap-3">
             <Link href="/signup" className="rounded-md bg-white px-10 py-4 text-[15px] font-extrabold text-slate-900 no-underline">
