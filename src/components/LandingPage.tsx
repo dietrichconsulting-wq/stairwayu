@@ -79,7 +79,7 @@ function PricingCards() {
 
         {[
           { label: 'Up to 4 colleges', included: true },
-          { label: '3 AI calls per day', included: true },
+          { label: '3 AI-powered insights daily', included: true },
           { label: 'Admission chancing', included: true },
           { label: 'Journey milestones', included: true },
           { label: 'Score Bands & Explore', included: true },
@@ -471,7 +471,7 @@ export function LandingPage() {
               Pricing
             </div>
             <h2 className="text-[clamp(28px,4vw,52px)] font-black leading-[1.05] tracking-tight text-white">
-              Free gets you started.<br />Pro removes every limit.
+              Everything for sophomore &amp; junior&nbsp;year&nbsp;&mdash;&nbsp;free&nbsp;forever.<br />Ready to apply? Pro gives you the full&nbsp;toolkit.
             </h2>
           </div>
           <div className="mx-auto max-w-[820px]">
