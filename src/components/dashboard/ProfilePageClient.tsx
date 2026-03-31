@@ -503,6 +503,9 @@ export function ProfilePageClient({ userId }: { userId: string }) {
               placeholder="delete my account"
               style={inputStyle}
               autoFocus
+              autoCapitalize="off"
+              autoCorrect="off"
+              spellCheck={false}
             />
             <div style={{ display: 'flex', gap: 8 }}>
               <button
@@ -520,13 +523,13 @@ export function ProfilePageClient({ userId }: { userId: string }) {
                   }
                   setDeleting(false)
                 }}
-                disabled={deleteConfirmText !== 'delete my account' || deleting}
+                disabled={deleteConfirmText.trim().toLowerCase() !== 'delete my account' || deleting}
                 style={{
-                  background: deleteConfirmText === 'delete my account' ? 'var(--color-danger, #ef4444)' : 'var(--color-border)',
+                  background: deleteConfirmText.trim().toLowerCase() === 'delete my account' ? 'var(--color-danger, #ef4444)' : 'var(--color-border)',
                   color: '#fff', border: 'none',
                   borderRadius: 10, padding: '10px 24px', fontWeight: 700, fontSize: 13,
-                  cursor: deleteConfirmText === 'delete my account' && !deleting ? 'pointer' : 'not-allowed',
-                  opacity: deleteConfirmText === 'delete my account' ? 1 : 0.5,
+                  cursor: deleteConfirmText.trim().toLowerCase() === 'delete my account' && !deleting ? 'pointer' : 'not-allowed',
+                  opacity: deleteConfirmText.trim().toLowerCase() === 'delete my account' ? 1 : 0.5,
                 }}
               >
                 {deleting ? 'Deleting…' : 'Permanently Delete'}
