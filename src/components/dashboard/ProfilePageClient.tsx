@@ -216,8 +216,8 @@ export function ProfilePageClient({ userId }: { userId: string }) {
   }
 
   return (
-    <div style={{ display: 'flex', gap: 28, alignItems: 'flex-start' }}>
-    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} style={{ maxWidth: 600, flex: '1 1 600px', minWidth: 0 }}>
+    <div className="flex flex-col-reverse lg:flex-row gap-7 items-start">
+    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="w-full lg:max-w-[600px] lg:flex-[1_1_600px] min-w-0">
       <h1 style={{ fontSize: 26, fontWeight: 800, marginBottom: 6 }}>Profile</h1>
       <p style={{ fontSize: 14, color: 'var(--color-text-muted)', marginBottom: 28 }}>
         Update your stats and schools here — every tool in the app uses this info.
@@ -225,7 +225,7 @@ export function ProfilePageClient({ userId }: { userId: string }) {
 
       <div className="card-elevated" style={{ padding: '28px 28px 32px', marginBottom: 24 }}>
         <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20 }}>Academic Info</h2>
-        <div className="profile-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <div className="profile-grid grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Display Name" value={form.display_name} onChange={v => setForm(f => ({ ...f, display_name: v }))} placeholder="Your name" />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <label style={labelStyle}>Home State</label>
@@ -238,11 +238,11 @@ export function ProfilePageClient({ userId }: { userId: string }) {
           <Field label="Weighted GPA (5.0)" type="number" step="0.01" min="0" max="5.0" value={form.gpa_weighted} onChange={v => setForm(f => ({ ...f, gpa_weighted: v }))} placeholder="4.3" />
           <Field label="SAT Score" type="number" min="400" max="1600" value={form.sat} onChange={v => setForm(f => ({ ...f, sat: v }))} placeholder="1400" />
           <Field label="ACT Score" type="number" min="1" max="36" step="1" value={form.act_score} onChange={v => setForm(f => ({ ...f, act_score: v }))} placeholder="30" />
-          <div style={{ gridColumn: 'span 2', display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div className="sm:col-span-2" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <label style={labelStyle}>Intended Major</label>
             <MajorSelect value={form.proposed_major} onChange={v => setForm(f => ({ ...f, proposed_major: v }))} />
           </div>
-          <div style={{ gridColumn: 'span 2' }}>
+          <div className="sm:col-span-2">
             <ECPicker
               entries={form.ec_entries}
               onChange={ec_entries => setForm(f => ({ ...f, ec_entries }))}
@@ -552,9 +552,7 @@ export function ProfilePageClient({ userId }: { userId: string }) {
       initial={{ opacity: 0, x: 16 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: 0.15 }}
-      style={{
-        flex: '0 0 280px', position: 'sticky', top: 24, alignSelf: 'flex-start',
-      }}
+      className="w-full lg:w-[280px] lg:flex-[0_0_280px] lg:sticky lg:top-6 lg:self-start"
     >
       <div className="card-elevated" style={{ padding: '20px 20px 24px' }}>
         <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>How to pick a tier</div>
