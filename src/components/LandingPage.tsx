@@ -34,18 +34,26 @@ function getSeasonalHook(): { emoji: string; message: string; phase: string } {
 }
 
 function GoogleSignInButton({ className }: { className?: string }) {
+  const [error, setError] = useState('')
+
   const handleGoogleLogin = async () => {
+    setError('')
     const supabase = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     )
-    await supabase.auth.signInWithOAuth({
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: `${window.location.origin}/api/auth/callback` },
     })
+    if (error) {
+      setError(error.message)
+    }
   }
 
   return (
+    <>
+    {error && <div className="text-red-500 text-sm mb-2">{error}</div>}
     <button
       onClick={handleGoogleLogin}
       className={`flex items-center gap-2.5 rounded-md bg-white px-6 py-4 text-[15px] font-bold text-slate-700 no-underline border-none cursor-pointer ${className ?? ''}`}
@@ -58,6 +66,7 @@ function GoogleSignInButton({ className }: { className?: string }) {
       </svg>
       Sign in with Google
     </button>
+    </>
   )
 }
 

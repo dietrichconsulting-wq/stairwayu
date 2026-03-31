@@ -21,6 +21,7 @@ function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const message = searchParams.get('message')
+  const urlError = searchParams.get('error')
   const supabase = createClient()
 
   async function handleLogin(e: React.FormEvent) {
@@ -38,10 +39,14 @@ function LoginContent() {
   }
 
   async function handleGoogleLogin() {
-    await supabase.auth.signInWithOAuth({
+    setError('')
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: `${window.location.origin}/api/auth/callback` },
     })
+    if (error) {
+      setError(error.message)
+    }
   }
 
   return (
@@ -100,8 +105,8 @@ function LoginContent() {
           {message && (
             <div style={{ color: 'var(--color-success, #16a34a)', fontSize: 13, background: '#f0fdf4', padding: '8px 12px', borderRadius: 8 }}>{message}</div>
           )}
-          {error && (
-            <div style={{ color: 'var(--color-danger)', fontSize: 13 }}>{error}</div>
+          {(error || urlError) && (
+            <div style={{ color: 'var(--color-danger)', fontSize: 13 }}>{error || urlError}</div>
           )}
 
           <button type="submit" disabled={loading} style={primaryBtnStyle}>
