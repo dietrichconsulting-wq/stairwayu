@@ -55,10 +55,10 @@ type FormData = {
   proposed_major: string
   extracurriculars: string
   career_interests: string
-  desired_climate: string
-  school_size_pref: string
-  school_type_pref: string
-  distance_pref: string
+  desired_climate: string[]
+  school_size_pref: string[]
+  school_type_pref: string[]
+  distance_pref: string[]
   schools: string[] // dynamic list of school names
 }
 
@@ -80,10 +80,10 @@ export function OnboardingClient({ userId, initialName = '' }: { userId: string;
     ec_entries: [],
     extracurriculars: '',
     career_interests: '',
-    desired_climate: '',
-    school_size_pref: '',
-    school_type_pref: '',
-    distance_pref: '',
+    desired_climate: [],
+    school_size_pref: [],
+    school_type_pref: [],
+    distance_pref: [],
     schools: ['', '', '', ''], // start with 4 slots visible
   })
 
@@ -91,10 +91,27 @@ export function OnboardingClient({ userId, initialName = '' }: { userId: string;
     setForm(f => ({ ...f, [key]: value }))
   }
 
+  // For multi-select preference fields: "Any"/"Either"/"Anywhere" are exclusive; others toggle
+  function togglePref(key: 'desired_climate' | 'school_size_pref' | 'school_type_pref' | 'distance_pref', value: string, exclusiveValues: string[]) {
+    setForm(f => {
+      const current = f[key] as string[]
+      if (exclusiveValues.includes(value)) {
+        // Clicking an exclusive option: select only it (or deselect if already sole selection)
+        return { ...f, [key]: current.length === 1 && current[0] === value ? [] : [value] }
+      }
+      // Clicking a normal option: remove any exclusive values, then toggle
+      const withoutExclusive = current.filter(v => !exclusiveValues.includes(v))
+      const next = withoutExclusive.includes(value)
+        ? withoutExclusive.filter(v => v !== value)
+        : [...withoutExclusive, value]
+      return { ...f, [key]: next }
+    })
+  }
+
   function canAdvance() {
     if (step === 0) return form.display_name.trim().length > 0 && form.home_state.length > 0
     if (step === 1) return form.proposed_major.trim().length > 0
-    if (step === 2) return form.desired_climate.length > 0 && form.school_size_pref.length > 0 && form.school_type_pref.length > 0 && form.distance_pref.length > 0
+    if (step === 2) return form.desired_climate.length > 0 && form.school_size_pref.length > 0 && form.school_type_pref.length > 0 && form.distance_pref.length > 0 // arrays — at least one selected each
     return true
   }
 
@@ -116,10 +133,10 @@ export function OnboardingClient({ userId, initialName = '' }: { userId: string;
         extracurriculars: form.extracurriculars || null,
         ec_entries: form.ec_entries.filter(e => e.name.trim()).length > 0 ? form.ec_entries.filter(e => e.name.trim()) : null,
         career_interests: form.career_interests || null,
-        desired_climate: form.desired_climate || null,
-        school_size_pref: form.school_size_pref || null,
-        school_type_pref: form.school_type_pref || null,
-        distance_pref: form.distance_pref || null,
+        desired_climate: form.desired_climate.length > 0 ? form.desired_climate.join(',') : null,
+        school_size_pref: form.school_size_pref.length > 0 ? form.school_size_pref.join(',') : null,
+        school_type_pref: form.school_type_pref.length > 0 ? form.school_type_pref.join(',') : null,
+        distance_pref: form.distance_pref.length > 0 ? form.distance_pref.join(',') : null,
         onboarding_complete: true,
       }).eq('id', userId)
       if (error) throw error
@@ -224,7 +241,7 @@ export function OnboardingClient({ userId, initialName = '' }: { userId: string;
             <div className="card-elevated" style={{ padding: '32px 32px 28px' }}>
               {step === 0 && <StepAbout form={form} set={set} />}
               {step === 1 && <StepAcademics form={form} set={set} setForm={setForm} />}
-              {step === 2 && <StepPreferences form={form} set={set} />}
+              {step === 2 && <StepPreferences form={form} togglePref={togglePref} />}
               {step === 3 && <StepSchools schools={form.schools} setSchools={schools => setForm(f => ({ ...f, schools }))} />}
             </div>
           </motion.div>
@@ -343,33 +360,36 @@ function StepAcademics({ form, set, setForm }: { form: FormData; set: (k: keyof 
 }
 
 // ─── Step 3: Preferences ─────────────────────────────────────────────────────
-function StepPreferences({ form, set }: { form: FormData; set: (k: keyof FormData, v: string) => void }) {
+function StepPreferences({ form, togglePref }: { form: FormData; togglePref: (key: 'desired_climate' | 'school_size_pref' | 'school_type_pref' | 'distance_pref', value: string, exclusiveValues: string[]) => void }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <p style={{ fontSize: 13, color: 'var(--color-text-muted)', margin: '-8px 0 -8px' }}>
+        Select all that apply — pick multiple options in each category.
+      </p>
       <OptionGroup
         label="Preferred Climate"
         options={CLIMATES}
-        value={form.desired_climate}
-        onSelect={v => set('desired_climate', v)}
+        selected={form.desired_climate}
+        onToggle={v => togglePref('desired_climate', v, ['Any'])}
       />
       <OptionGroup
         label="School Size"
         options={SIZES}
-        value={form.school_size_pref}
-        onSelect={v => set('school_size_pref', v)}
+        selected={form.school_size_pref}
+        onToggle={v => togglePref('school_size_pref', v, ['Any'])}
         cols={5}
       />
       <OptionGroup
         label="School Type"
         options={TYPES}
-        value={form.school_type_pref}
-        onSelect={v => set('school_type_pref', v)}
+        selected={form.school_type_pref}
+        onToggle={v => togglePref('school_type_pref', v, ['Either'])}
       />
       <OptionGroup
         label="Distance from Home"
         options={DISTANCES}
-        value={form.distance_pref}
-        onSelect={v => set('distance_pref', v)}
+        selected={form.distance_pref}
+        onToggle={v => togglePref('distance_pref', v, ['Anywhere'])}
       />
     </div>
   )
@@ -452,39 +472,42 @@ function StepSchools({ schools, setSchools }: { schools: string[]; setSchools: (
 
 // ─── Shared UI ────────────────────────────────────────────────────────────────
 function OptionGroup({
-  label, options, value, onSelect, cols,
+  label, options, selected, onToggle, cols,
 }: {
   label: string
   options: { value: string; label: string; desc: string }[]
-  value: string
-  onSelect: (v: string) => void
+  selected: string[]
+  onToggle: (v: string) => void
   cols?: number
 }) {
   return (
     <div>
       <div style={{ ...labelStyle, marginBottom: 10 }}>{label} <Required /></div>
       <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols ?? options.length}, 1fr)`, gap: 8 }}>
-        {options.map(opt => (
-          <button
-            key={opt.value}
-            type="button"
-            onClick={() => onSelect(opt.value)}
-            style={{
-              padding: '10px 8px',
-              borderRadius: 10,
-              border: value === opt.value ? '2px solid var(--color-primary)' : '1.5px solid var(--color-border)',
-              background: value === opt.value ? 'color-mix(in srgb, var(--color-primary) 10%, transparent)' : 'var(--color-column)',
-              cursor: 'pointer',
-              textAlign: 'center',
-              transition: 'all 0.15s',
-            }}
-          >
-            <div style={{ fontSize: 13, fontWeight: 700, color: value === opt.value ? 'var(--color-primary)' : 'var(--color-text)', marginBottom: 2 }}>
-              {opt.label}
-            </div>
-            <div style={{ fontSize: 11, color: 'var(--color-text-muted)', lineHeight: 1.3 }}>{opt.desc}</div>
-          </button>
-        ))}
+        {options.map(opt => {
+          const active = selected.includes(opt.value)
+          return (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => onToggle(opt.value)}
+              style={{
+                padding: '10px 8px',
+                borderRadius: 10,
+                border: active ? '2px solid var(--color-primary)' : '1.5px solid var(--color-border)',
+                background: active ? 'color-mix(in srgb, var(--color-primary) 10%, transparent)' : 'var(--color-column)',
+                cursor: 'pointer',
+                textAlign: 'center',
+                transition: 'all 0.15s',
+              }}
+            >
+              <div style={{ fontSize: 13, fontWeight: 700, color: active ? 'var(--color-primary)' : 'var(--color-text)', marginBottom: 2 }}>
+                {opt.label}
+              </div>
+              <div style={{ fontSize: 11, color: 'var(--color-text-muted)', lineHeight: 1.3 }}>{opt.desc}</div>
+            </button>
+          )
+        })}
       </div>
     </div>
   )
