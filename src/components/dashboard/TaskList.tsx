@@ -272,11 +272,25 @@ export function TaskList({ tasks, loading, userId, collapsedMax }: TaskListProps
                         type="date"
                         defaultValue={task.due_date?.split('T')[0] ?? ''}
                         autoFocus
-                        onChange={e => {
-                          updateTask.mutate({ taskId: task.id, updates: { due_date: e.target.value || null } })
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') {
+                            (e.target as HTMLInputElement).blur()
+                          } else if (e.key === 'Escape') {
+                            setEditingDateId(null)
+                          }
+                        }}
+                        onBlur={e => {
+                          const v = e.target.value
+                          const orig = task.due_date?.split('T')[0] ?? ''
+                          // Only commit fully-valid dates (4-digit year >= 1900) to avoid
+                          // partial-typing onChange firing mid-edit and closing the picker.
+                          if (v !== orig && /^\d{4}-\d{2}-\d{2}$/.test(v) && Number(v.slice(0, 4)) >= 1900) {
+                            updateTask.mutate({ taskId: task.id, updates: { due_date: v } })
+                          } else if (!v && orig) {
+                            updateTask.mutate({ taskId: task.id, updates: { due_date: null } })
+                          }
                           setEditingDateId(null)
                         }}
-                        onBlur={() => setEditingDateId(null)}
                         style={{ fontSize: 12, padding: '4px 8px', borderRadius: 6, border: '1.5px solid var(--color-border)', background: 'var(--color-column)', color: 'var(--color-text)', outline: 'none' }}
                       />
                     ) : (
