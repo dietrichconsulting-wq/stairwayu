@@ -117,8 +117,8 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
 
   const navContent = (
     <>
-      <div className="sidebar__brand">
-        <img src="/stairwayu-wordmark.svg" alt="Stairway U" style={{ height: 28, width: 'auto', borderRadius: 5, verticalAlign: 'middle' }} />
+      <div className="sidebar__brand" style={{ paddingTop: 8, paddingBottom: 8 }}>
+        <img src="/stairwayu-wordmark-text.svg" alt="Stairway U" style={{ height: 44, width: 'auto', display: 'block' }} />
         {/* Close button — only visible on mobile */}
         <button
           className="sidebar__close-btn"
