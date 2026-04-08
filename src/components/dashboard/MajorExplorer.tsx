@@ -331,13 +331,21 @@ function CareerCard({ career: c, onSelectMajor }: { career: Career, onSelectMajo
           <div style={{ fontSize: 13, color: 'var(--color-text-muted)', marginTop: 4, lineHeight: 1.4 }}>{c.description}</div>
         </div>
         <div style={{ textAlign: 'right', flexShrink: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-stat-sat)' }}>{c.salary}/yr</div>
+          <div
+            style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-stat-sat)', cursor: 'help' }}
+            title="Median annual wage for all U.S. workers in this occupation (Bureau of Labor Statistics). This is the midpoint across all experience levels — not a starting salary or a first-10-years average. Early-career pay is typically lower; experienced workers often earn more."
+          >
+            {c.salary}/yr
+          </div>
           <div style={{ fontSize: 12, marginTop: 4, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-            <span style={{ 
-              background: isPositiveGrowth ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', 
-              color: isPositiveGrowth ? 'var(--color-success)' : 'var(--color-danger)', 
-              padding: '2px 6px', borderRadius: 4, fontWeight: 500 
-            }}>
+            <span
+              style={{
+                background: isPositiveGrowth ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
+                color: isPositiveGrowth ? 'var(--color-success)' : 'var(--color-danger)',
+                padding: '2px 6px', borderRadius: 4, fontWeight: 500, cursor: 'help'
+              }}
+              title={`Projected 10-year job growth for this occupation (Bureau of Labor Statistics). ${isPositiveGrowth ? 'Positive means more jobs are expected to be added than lost' : 'Negative means the field is projected to shrink'}. The U.S. average across all jobs is about +3%.`}
+            >
               {isPositiveGrowth ? '↗' : '↘'} {c.growth}
             </span>
           </div>
