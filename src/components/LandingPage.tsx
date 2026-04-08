@@ -222,7 +222,7 @@ export function LandingPage() {
         }`}
       >
         <div className="flex items-center">
-          <img src="/stairwayu-wordmark.svg" alt="Stairway U" className="h-9 w-auto rounded-md" />
+          <img src="/stairwayu-wordmark.png" alt="Stairway U" className="h-10 w-auto" />
         </div>
         <div className="flex items-center gap-2">
           <Link href="/login" className="rounded-md px-4 py-2 text-[13px] font-semibold text-white/80 no-underline">
@@ -598,7 +598,7 @@ export function LandingPage() {
       {/* ── FOOTER ── */}
       <footer className="bg-slate-950 px-[6%] py-10">
         <div className="mx-auto flex max-w-[1100px] flex-wrap items-center justify-between gap-4">
-          <img src="/stairwayu-wordmark.svg" alt="Stairway U" className="h-8 w-auto rounded-md" />
+          <img src="/stairwayu-wordmark.png" alt="Stairway U" className="h-9 w-auto" />
           <div className="flex gap-7">
             {[{ label: 'Sign In', href: '/login' }, { label: 'Sign Up', href: '/signup' }, { label: 'Pricing', href: '/#pricing' }, { label: 'For Counselors', href: 'mailto:hello@stairwayu.com?subject=Counselor%20%2F%20Test%20Prep%20Partnership' }, { label: 'Terms', href: '/terms' }, { label: 'Privacy', href: '/privacy' }].map(l => (
               <Link key={l.href} href={l.href} className="text-[13px] font-medium tracking-[0.03em] text-white/35 no-underline">

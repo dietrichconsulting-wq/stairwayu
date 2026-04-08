@@ -41,7 +41,7 @@ function ForgotPasswordContent() {
       <div className="card-elevated" style={{ width: '100%', maxWidth: 400, padding: '40px 36px' }}>
         <div style={{ marginBottom: 32, textAlign: 'center' }}>
           <div style={{ marginBottom: 4 }}>
-            <img src="/stairwayu-wordmark.svg" alt="Stairway U" style={{ height: 44, width: 'auto', borderRadius: 6 }} />
+            <img src="/stairwayu-wordmark.png" alt="Stairway U" style={{ height: 44, width: 'auto', borderRadius: 6 }} />
           </div>
           <div style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>Reset your password</div>
         </div>
