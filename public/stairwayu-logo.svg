@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Stairway U logo">
+  <title>Stairway U</title>
+
+  <!-- Dark background (delete this rect for a transparent icon) -->
+  <rect width="512" height="512" fill="#0B1020"/>
+
+  <!--
+    Geometry (all values on a 32-unit grid for perfect alignment):
+      Outer U:  x 96..416 (width 320), y 96..416 (height 320), bottom corners radius 48
+      Inner U:  x 176..336 (width 160), y 96..336 (height 240), bottom corners radius 32
+      Stroke weight: 80 on sides, 80 on bottom
+    The U is a single even-odd path: outer silhouette + inner cavity hole.
+  -->
+  <g fill="#F5C542" fill-rule="evenodd">
+    <path d="
+      M 96 96
+      H 416
+      V 368
+      A 48 48 0 0 1 368 416
+      H 144
+      A 48 48 0 0 1 96 368
+      Z
+      M 176 96
+      V 304
+      A 32 32 0 0 0 208 336
+      H 304
+      A 32 32 0 0 0 336 304
+      V 96
+      Z
+    "/>
+
+    <!--
+      Staircase inside the cavity, anchored to the right inner wall and bottom.
+      5 steps of 32x32, rising from bottom-left interior up to top-right of cavity.
+      All vertices snap to the same 32-unit grid.
+    -->
+    <path d="
+      M 336 96
+      V 336
+      H 208
+      V 304
+      H 240
+      V 272
+      H 272
+      V 240
+      H 304
+      V 208
+      H 336
+      Z
+    "/>
+  </g>
+</svg>
