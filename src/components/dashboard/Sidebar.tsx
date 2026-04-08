@@ -118,8 +118,7 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
   const navContent = (
     <>
       <div className="sidebar__brand">
-        <img src="/stairwayu-logo.svg" alt="" style={{ width: 22, height: 22, borderRadius: 5, verticalAlign: 'middle', marginRight: 6 }} />
-        Stairway U
+        <img src="/stairwayu-wordmark.svg" alt="Stairway U" style={{ height: 28, width: 'auto', borderRadius: 5, verticalAlign: 'middle' }} />
         {/* Close button — only visible on mobile */}
         <button
           className="sidebar__close-btn"
@@ -323,9 +322,8 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
         >
           <span /><span /><span />
         </button>
-        <span className="mobile-topbar__brand" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-          <img src="/stairwayu-logo.svg" alt="" style={{ width: 20, height: 20, borderRadius: 5 }} />
-          Stairway U
+        <span className="mobile-topbar__brand" style={{ display: 'inline-flex', alignItems: 'center' }}>
+          <img src="/stairwayu-wordmark.svg" alt="Stairway U" style={{ height: 24, width: 'auto', borderRadius: 5 }} />
         </span>
         <div style={{ width: 32 }} /> {/* Spacer for centering */}
       </div>

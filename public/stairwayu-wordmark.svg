@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 512" role="img" aria-label="Stairway U wordmark">
+  <title>Stairway U</title>
+
+  <!-- Dark background (delete this rect for a transparent lockup) -->
+  <rect width="1600" height="512" fill="#0B1020"/>
+
+  <!-- ============================================================
+       ICON: gold U with internal staircase (32-unit grid geometry)
+       Positioned at x 96..416, y 96..416
+       ============================================================ -->
+  <g fill="#F5C542" fill-rule="evenodd">
+    <path d="
+      M 96 96
+      H 416
+      V 368
+      A 48 48 0 0 1 368 416
+      H 144
+      A 48 48 0 0 1 96 368
+      Z
+      M 176 96
+      V 304
+      A 32 32 0 0 0 208 336
+      H 304
+      A 32 32 0 0 0 336 304
+      V 96
+      Z
+    "/>
+    <path d="
+      M 336 96
+      V 336
+      H 208
+      V 304
+      H 240
+      V 272
+      H 272
+      V 240
+      H 304
+      V 208
+      H 336
+      Z
+    "/>
+  </g>
+
+  <!-- ============================================================
+       WORDMARK: two-color, Helvetica-style sans-serif
+       'Stairway' in white, 'U' in gold
+       Cap-height tuned to ~60% of icon height for visual balance
+       Letter-spacing tightened -15 for premium feel
+       In Figma: select text → Cmd/Ctrl+Shift+O to outline to vectors
+       ============================================================ -->
+  <g font-family="Helvetica Neue, Helvetica, Arial, 'Inter', 'Geist', sans-serif"
+     font-weight="700"
+     font-size="220"
+     letter-spacing="-6"
+     dominant-baseline="middle">
+    <text x="500" y="270" fill="#FFFFFF">Stairway</text>
+    <text x="1410" y="270" fill="#F5C542">U</text>
+  </g>
+</svg>

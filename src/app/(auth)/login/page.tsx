@@ -60,9 +60,8 @@ function LoginContent() {
     }}>
       <div className="card-elevated" style={{ width: '100%', maxWidth: 400, padding: '40px 36px' }}>
         <div style={{ marginBottom: 32, textAlign: 'center' }}>
-          <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-primary)', marginBottom: 4, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-            <img src="/stairwayu-logo.svg" alt="" style={{ width: 32, height: 32, borderRadius: 6 }} />
-            Stairway U
+          <div style={{ marginBottom: 4 }}>
+            <img src="/stairwayu-wordmark.svg" alt="Stairway U" style={{ height: 44, width: 'auto', borderRadius: 6 }} />
           </div>
           <div style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
             Your Stairway to College
