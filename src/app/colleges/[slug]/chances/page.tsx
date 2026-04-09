@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getCollegeBySlug, getTopCollegeSlugs, fmtNum, fmtPct } from '@/lib/colleges'
+import { ChancesCalculator } from '@/components/colleges/ChancesCalculator'
 
 export const revalidate = 86400
 export const dynamicParams = true
@@ -130,18 +131,14 @@ export default async function ChancesPage({ params }: PageProps) {
       </section>
 
       <section className="mx-auto max-w-5xl px-6 mt-10">
-        <div className="rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/10 p-8 text-center">
-          <h2 className="text-2xl font-bold">Get your personalized chances</h2>
-          <p className="mt-2 text-white/70">
-            Connect your GPA and scores in 30 seconds. Free — no credit card.
-          </p>
-          <Link
-            href="/signup"
-            className="mt-5 inline-block rounded-lg bg-blue-500 px-6 py-3 font-semibold hover:bg-blue-400"
-          >
-            Calculate My Chances →
-          </Link>
-        </div>
+        <ChancesCalculator
+          schoolName={c.name}
+          schoolSlug={c.slug}
+          admissionRate={c.admission_rate}
+          sat25={c.sat_25}
+          sat75={c.sat_75}
+          actMidpoint={c.act_midpoint}
+        />
       </section>
 
       <section className="mx-auto max-w-5xl px-6 mt-12">
