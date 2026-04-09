@@ -18,9 +18,9 @@ export const viewport: Viewport = {
 }
 
 const SITE_URL = 'https://stairwayu.com'
-const SITE_TITLE = 'Stairway U — College Admissions Chances, Scholarships & Planning'
+const SITE_TITLE = 'Stairway U: College Chances, Scholarships & Essay Coach'
 const SITE_DESC =
-  'Your real odds at every college, AI-matched scholarships, essay coaching, and a financial planner — one dashboard powered by U.S. Dept of Education data. Free to start.'
+  'See your real admission odds at every college, get AI-matched scholarships, essay coaching, and a financial planner — one dashboard powered by U.S. Dept of Education data. $9.99/mo, 7-day free trial.'
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -99,20 +99,14 @@ const JSONLD = {
       applicationCategory: 'EducationalApplication',
       operatingSystem: 'Web',
       description: SITE_DESC,
-      offers: [
-        {
-          '@type': 'Offer',
-          name: 'Free Forever',
-          price: '0',
-          priceCurrency: 'USD',
-        },
-        {
-          '@type': 'Offer',
-          name: 'Pro (Annual)',
-          price: '79',
-          priceCurrency: 'USD',
-        },
-      ],
+      offers: {
+        '@type': 'Offer',
+        name: 'Stairway U Membership',
+        price: '9.99',
+        priceCurrency: 'USD',
+        category: 'subscription',
+        description: '$9.99/month with a 7-day free trial. Includes all features.',
+      },
       featureList: [
         'Admission chancing powered by College Scorecard',
         'AI-matched scholarship finder',
