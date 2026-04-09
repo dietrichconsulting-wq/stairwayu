@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 
 export interface College {
   ipeds_id: string
@@ -37,7 +37,8 @@ export async function getCollegeBySlug(slug: string): Promise<College | null> {
 }
 
 export async function getTopCollegeSlugs(limit = 500): Promise<string[]> {
-  const sb = await createClient()
+  // Service client (no cookies) — safe to call from generateStaticParams at build time.
+  const sb = await createServiceClient()
   const { data } = await sb
     .from('colleges')
     .select('slug')
