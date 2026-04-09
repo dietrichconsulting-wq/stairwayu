@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useCallback, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 
 interface TooltipProps {
   text: string
@@ -112,7 +113,7 @@ export function Tooltip({ text, children, position = 'top', maxWidth = 220, dela
       >
         {children}
       </span>
-      {visible && coords && (
+      {visible && coords && typeof document !== 'undefined' && createPortal(
         <div
           ref={tooltipRef}
           role="tooltip"
@@ -138,7 +139,8 @@ export function Tooltip({ text, children, position = 'top', maxWidth = 220, dela
           }}
         >
           {text}
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   )

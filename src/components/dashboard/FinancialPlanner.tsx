@@ -102,13 +102,21 @@ export function FinancialPlanner({ savedColleges = [], homeState = null }: Finan
   // add them to whichever tuition applies.
   const costBreakdown = useMemo(() => {
     if (!selectedResult) return null
+    // Privates report the same tuition for both fields (or only one). When
+    // they match, residency is irrelevant — show a single tuition line.
+    const inSt = selectedResult.tuitionInState ?? null
+    const oos = selectedResult.tuitionOutOfState ?? null
+    const isPrivate = inSt != null && oos != null && inSt === oos
     const isInState =
+      !isPrivate &&
       !!homeState &&
       !!selectedResult.state &&
       homeState.toUpperCase() === selectedResult.state.toUpperCase()
-    const tuition = isInState
-      ? selectedResult.tuitionInState ?? selectedResult.tuitionOutOfState ?? null
-      : selectedResult.tuitionOutOfState ?? selectedResult.tuitionInState ?? null
+    const tuition = isPrivate
+      ? inSt
+      : isInState
+        ? inSt ?? oos
+        : oos ?? inSt
     const coaInState = selectedResult.costAttendance ?? null
     // Living + fees + books — residency-independent. Scorecard's COA is
     // typically the in-state figure for publics, so subtract in-state tuition
@@ -130,6 +138,7 @@ export function FinancialPlanner({ savedColleges = [], homeState = null }: Finan
         : coaInState // fall back to Scorecard's published COA if we can't decompose
     return {
       isInState,
+      isPrivate,
       schoolState: selectedResult.state ?? null,
       tuition,
       livingAndOther,
@@ -313,7 +322,11 @@ export function FinancialPlanner({ savedColleges = [], homeState = null }: Finan
                 <div style={{ marginTop: 10, padding: '10px 12px', borderRadius: 8, background: 'var(--color-column)', border: '1px solid var(--color-border)' }}>
                   <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-text-muted)', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
                     Cost breakdown
-                    {costBreakdown.schoolState && (
+                    {costBreakdown.isPrivate ? (
+                      <span style={{ padding: '2px 7px', borderRadius: 99, fontSize: 9, fontWeight: 700, background: 'rgba(124, 58, 237, 0.15)', color: '#a78bfa' }}>
+                        PRIVATE
+                      </span>
+                    ) : costBreakdown.schoolState && (
                       <span style={{ padding: '2px 7px', borderRadius: 99, fontSize: 9, fontWeight: 700, background: costBreakdown.isInState ? 'rgba(5, 150, 105, 0.15)' : 'rgba(245, 158, 11, 0.15)', color: costBreakdown.isInState ? '#059669' : '#f59e0b' }}>
                         {costBreakdown.isInState ? `IN-STATE (${costBreakdown.schoolState})` : `OUT-OF-STATE${homeState ? '' : ' — set home state'}`}
                       </span>
@@ -322,7 +335,7 @@ export function FinancialPlanner({ savedColleges = [], homeState = null }: Finan
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12 }}>
                     {costBreakdown.tuition != null && (
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ color: 'var(--color-text-muted)' }}>Tuition {costBreakdown.isInState ? '(in-state)' : '(out-of-state)'}</span>
+                        <span style={{ color: 'var(--color-text-muted)' }}>Tuition{costBreakdown.isPrivate ? '' : costBreakdown.isInState ? ' (in-state)' : ' (out-of-state)'}</span>
                         <span style={{ fontWeight: 600 }}>{fmt$(costBreakdown.tuition)}</span>
                       </div>
                     )}
@@ -342,7 +355,7 @@ export function FinancialPlanner({ savedColleges = [], homeState = null }: Finan
                   <div style={{ fontSize: 10, color: 'var(--color-text-muted)', marginTop: 6, fontStyle: 'italic' }}>
                     Source: U.S. Dept of Education College Scorecard. Sticker price before financial aid.
                   </div>
-                  {!costBreakdown.isInState && costBreakdown.hasInStateData && (() => {
+                  {!costBreakdown.isPrivate && !costBreakdown.isInState && costBreakdown.hasInStateData && (() => {
                     const programs = findApplicablePrograms(homeState, costBreakdown.schoolState)
                     if (programs.length === 0) return null
                     return (
