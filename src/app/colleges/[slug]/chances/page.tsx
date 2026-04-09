@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getCollegeBySlug, getTopCollegeSlugs, fmtNum, fmtPct } from '@/lib/colleges'
 import { ChancesCalculator } from '@/components/colleges/ChancesCalculator'
+import { CollegeHeader } from '@/components/colleges/CollegeHeader'
+import { ProUpsell } from '@/components/colleges/ProUpsell'
 
 export const revalidate = 86400
 export const dynamicParams = true
@@ -102,6 +104,8 @@ export default async function ChancesPage({ params }: PageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
+      <CollegeHeader />
+
       <nav className="mx-auto max-w-5xl px-6 pt-8 text-sm text-white/50">
         <Link href="/" className="hover:text-white">Stairway U</Link>
         <span className="mx-2">/</span>
@@ -165,7 +169,9 @@ export default async function ChancesPage({ params }: PageProps) {
         </div>
       </section>
 
-      <section className="mx-auto max-w-5xl px-6 my-16 text-center">
+      <ProUpsell schoolName={c.name} />
+
+      <section className="mx-auto max-w-5xl px-6 my-12 text-center">
         <Link href={`/colleges/${c.slug}`} className="text-blue-400 hover:text-blue-300">
           ← Back to {c.name} overview
         </Link>

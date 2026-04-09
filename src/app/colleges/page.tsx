@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { fmtPct } from '@/lib/colleges'
+import { CollegeHeader } from '@/components/colleges/CollegeHeader'
+import { ProUpsell } from '@/components/colleges/ProUpsell'
 
 export const revalidate = 3600
 
@@ -32,6 +34,7 @@ export default async function CollegesIndex() {
 
   return (
     <main className="min-h-screen bg-[#0c0e14] text-white">
+      <CollegeHeader />
       <header className="mx-auto max-w-5xl px-6 pt-12 pb-8">
         <h1 className="text-4xl md:text-5xl font-bold tracking-tight">Browse Colleges</h1>
         <p className="mt-3 text-lg text-white/60">
@@ -57,10 +60,14 @@ export default async function CollegesIndex() {
             </Link>
           ))}
         </div>
-        <p className="text-center text-xs text-white/40 mt-10 mb-12">
+        <p className="text-center text-xs text-white/40 mt-10">
           Showing top 200 by enrollment. Data: U.S. Department of Education, College Scorecard.
         </p>
       </section>
+
+      <ProUpsell />
+
+      <div className="h-16" />
     </main>
   )
 }

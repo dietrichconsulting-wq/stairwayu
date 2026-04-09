@@ -9,6 +9,8 @@ import {
   fmtNum,
   fmtPct,
 } from '@/lib/colleges'
+import { CollegeHeader } from '@/components/colleges/CollegeHeader'
+import { ProUpsell } from '@/components/colleges/ProUpsell'
 
 export const revalidate = 86400 // 1 day ISR
 export const dynamicParams = true
@@ -131,6 +133,8 @@ export default async function CollegePage({ params }: PageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
+      <CollegeHeader />
+
       {/* Breadcrumb */}
       <nav className="mx-auto max-w-5xl px-6 pt-8 text-sm text-white/50">
         <Link href="/" className="hover:text-white">Stairway U</Link>
@@ -244,12 +248,12 @@ export default async function CollegePage({ params }: PageProps) {
         </section>
       )}
 
-      {/* Footer CTA */}
-      <section className="mx-auto max-w-5xl px-6 my-16">
+      {/* Free chancing CTA */}
+      <section className="mx-auto max-w-5xl px-6 mt-16">
         <div className="rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/10 p-8 text-center">
           <h2 className="text-2xl font-bold">Get your real odds at {c.name}</h2>
           <p className="mt-2 text-white/70">
-            Connect your GPA and test scores to see exactly how you stack up.
+            Free chancing calculator — enter your GPA and test scores to see how you stack up.
           </p>
           <Link
             href={`/colleges/${c.slug}/chances`}
@@ -258,10 +262,13 @@ export default async function CollegePage({ params }: PageProps) {
             Calculate My Chances →
           </Link>
         </div>
-        <p className="mt-6 text-center text-xs text-white/40">
-          Data: U.S. Department of Education, College Scorecard. Last updated {c.updated_at ? new Date(c.updated_at).toLocaleDateString() : 'recently'}.
-        </p>
       </section>
+
+      <ProUpsell schoolName={c.name} />
+
+      <p className="mx-auto max-w-5xl px-6 mt-10 mb-16 text-center text-xs text-white/40">
+        Data: U.S. Department of Education, College Scorecard. Last updated {c.updated_at ? new Date(c.updated_at).toLocaleDateString() : 'recently'}.
+      </p>
     </main>
   )
 }
