@@ -6,6 +6,12 @@ import type { Profile, UserCollege } from '@/lib/types/database'
 import Link from 'next/link'
 import { Tooltip } from '@/components/ui/Tooltip'
 
+// Mirrors slugify in scripts/ingest-colleges.mjs so dashboard links resolve
+// to the same URLs as the SEO landing pages.
+function collegeSlug(name: string) {
+  return name.toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 80)
+}
+
 interface Insight {
   factor: 'sat' | 'act' | 'gpa' | 'ec' | 'selectivity' | 'test_optional'
   sentiment: 'positive' | 'neutral' | 'negative'
@@ -312,9 +318,14 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
               >
                 {/* School name + tier label */}
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {r.schoolName}
-                  </div>
+                  <Link
+                    href={`/colleges/${collegeSlug(r.schoolName)}`}
+                    onClick={(e) => e.stopPropagation()}
+                    style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', textDecoration: 'none' }}
+                    title={`View ${r.schoolName} profile`}
+                  >
+                    {r.schoolName} ↗
+                  </Link>
                   <Tooltip text={label === 'Safety' ? 'Your stats exceed the average — very likely to get in.' : label === 'Target' ? 'Your profile is a solid match — realistic shot.' : 'A stretch — your stats are below average, but worth trying.'} position="left">
                   <span style={{
                     fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 20,
