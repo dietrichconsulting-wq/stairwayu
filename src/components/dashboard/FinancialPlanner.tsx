@@ -4,6 +4,7 @@ import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { CollegeSelect } from '@/components/CollegeSelect'
 import type { CollegeResult } from '@/components/CollegeSelect'
+import { findApplicablePrograms } from '@/data/tuitionReciprocity'
 
 interface FinancialPlannerProps {
   savedColleges?: string[]
@@ -319,6 +320,25 @@ export function FinancialPlanner({ savedColleges = [], homeState = null }: Finan
                   <div style={{ fontSize: 10, color: 'var(--color-text-muted)', marginTop: 6, fontStyle: 'italic' }}>
                     Source: U.S. Dept of Education College Scorecard. Sticker price before financial aid.
                   </div>
+                  {!costBreakdown.isInState && costBreakdown.hasInStateData && (() => {
+                    const programs = findApplicablePrograms(homeState, costBreakdown.schoolState)
+                    if (programs.length === 0) return null
+                    return (
+                      <div style={{ fontSize: 10, color: '#0ea5e9', marginTop: 6, padding: '8px 10px', borderRadius: 6, background: 'rgba(14, 165, 233, 0.08)', border: '1px solid rgba(14, 165, 233, 0.25)', lineHeight: 1.5 }}>
+                        💡 <strong>You may qualify for reduced tuition.</strong> {homeState} and {costBreakdown.schoolState} both participate in {programs.length === 1 ? 'this regional reciprocity program' : 'these regional reciprocity programs'}:
+                        <ul style={{ margin: '6px 0 4px 0', paddingLeft: 16 }}>
+                          {programs.map(p => (
+                            <li key={p.id} style={{ marginBottom: 4 }}>
+                              <a href={p.url} target="_blank" rel="noopener noreferrer" style={{ color: '#0ea5e9', fontWeight: 700, textDecoration: 'underline' }}>{p.shortName}</a>
+                              {' — '}
+                              <span style={{ color: 'var(--color-text-muted)' }}>{p.caveat}</span>
+                            </li>
+                          ))}
+                        </ul>
+                        In-state tuition at this school would be <strong>{fmt$(selectedResult?.tuitionInState ?? 0)}/yr</strong> if you qualify. Verify eligibility for your specific major with the school&rsquo;s admissions office.
+                      </div>
+                    )
+                  })()}
                 </div>
               )}
             </div>
