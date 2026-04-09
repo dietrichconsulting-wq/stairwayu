@@ -516,7 +516,7 @@ function SchoolCard({ school, tier, index, collegeNames, budget, onAdd }: {
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 2 }}>
           {school.admitRate != null && <Stat label="Admit Rate" value={`${school.admitRate}%`} />}
-          {school.netCost != null && <Stat label="Net Cost/yr" value={`$${(school.netCost / 1000).toFixed(0)}k`} real={school._dataSources?.scorecard} overBudget={budget != null && budget > 0 && school.netCost > budget} />}
+          {school.netCost != null && <Stat label="Tuition/yr" value={`$${(school.netCost / 1000).toFixed(0)}k`} real={school._dataSources?.scorecard} overBudget={budget != null && budget > 0 && school.netCost > budget} labelTooltip="Published tuition only — in-state if your home state matches the school, otherwise out-of-state. Does NOT include room/board, fees, or financial aid. Actual cost after scholarships and need-based aid is usually lower." />}
           {school.gradRate != null && <Stat label="Grad Rate" value={`${school.gradRate}%`} real />}
           {school.usNewsRankDisplay && <Stat label="US News" value={school.usNewsRankDisplay} real />}
           {school.medianEarnings10yr != null && <Stat label="Earnings 10yr" value={`$${(school.medianEarnings10yr / 1000).toFixed(0)}k`} real />}
@@ -569,7 +569,10 @@ function SchoolCard({ school, tier, index, collegeNames, budget, onAdd }: {
   )
 }
 
-function Stat({ label, value, color, real, overBudget }: { label: string; value: string; color?: string; real?: boolean; overBudget?: boolean }) {
+function Stat({ label, value, color, real, overBudget, labelTooltip }: { label: string; value: string; color?: string; real?: boolean; overBudget?: boolean; labelTooltip?: string }) {
+  const labelEl = (
+    <span style={{ fontSize: 10, color: 'var(--color-text-muted)', marginTop: 1, borderBottom: labelTooltip ? '1px dotted var(--color-text-muted)' : 'none', cursor: labelTooltip ? 'help' : 'default' }}>{label}</span>
+  )
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 60 }}>
       <span style={{ fontSize: 13, fontWeight: 700, color: overBudget ? '#f59e0b' : (color || 'var(--color-text)'), display: 'flex', alignItems: 'center', gap: 3 }}>
@@ -577,7 +580,7 @@ function Stat({ label, value, color, real, overBudget }: { label: string; value:
         {overBudget && <Tooltip text="Above your annual budget — scholarships or financial aid will be necessary to attend." position="top" maxWidth={240}><span style={{ fontSize: 11 }}>⚠️</span></Tooltip>}
         {real && <Tooltip text="Pulled from the U.S. Department of Education College Scorecard — real, verified data." position="top" maxWidth={220}><span className="strat-real-badge">live</span></Tooltip>}
       </span>
-      <span style={{ fontSize: 10, color: 'var(--color-text-muted)', marginTop: 1 }}>{label}</span>
+      {labelTooltip ? <Tooltip text={labelTooltip} position="top" maxWidth={260}>{labelEl}</Tooltip> : labelEl}
     </div>
   )
 }
