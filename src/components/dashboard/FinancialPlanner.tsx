@@ -7,6 +7,7 @@ import type { CollegeResult } from '@/components/CollegeSelect'
 
 interface FinancialPlannerProps {
   savedColleges?: string[]
+  homeState?: string | null
 }
 
 // ── helpers ──────────────────────────────────────────────────────────────────
@@ -56,8 +57,9 @@ interface Inputs {
 }
 
 // ── component ────────────────────────────────────────────────────────────────
-export function FinancialPlanner({ savedColleges = [] }: FinancialPlannerProps) {
+export function FinancialPlanner({ savedColleges = [], homeState = null }: FinancialPlannerProps) {
   const [selectedCollege, setSelectedCollege] = useState('')
+  const [selectedResult, setSelectedResult] = useState<CollegeResult | null>(null)
   const [loadingCost, setLoadingCost] = useState(false)
   const [inputs, setInputs] = useState<Inputs>({
     currentTuition: '45000',
@@ -70,6 +72,7 @@ export function FinancialPlanner({ savedColleges = [] }: FinancialPlannerProps) 
   })
 
   function applyCost(result?: CollegeResult) {
+    setSelectedResult(result ?? null)
     if (result?.costAttendance) {
       set('currentTuition', String(Math.round(result.costAttendance)))
     } else if (result?.tuitionOutOfState) {
@@ -95,6 +98,31 @@ export function FinancialPlanner({ savedColleges = [] }: FinancialPlannerProps) 
     } catch { /* keep manual input */ }
     finally { setLoadingCost(false) }
   }, [])
+
+  // ── Cost breakdown for the selected college ──
+  // Picks in-state vs OOS tuition based on the user's home state, then derives
+  // room/board/fees as (Cost of Attendance − tuition).
+  const costBreakdown = useMemo(() => {
+    if (!selectedResult) return null
+    const isInState =
+      !!homeState &&
+      !!selectedResult.state &&
+      homeState.toUpperCase() === selectedResult.state.toUpperCase()
+    const tuition = isInState
+      ? selectedResult.tuitionInState ?? selectedResult.tuitionOutOfState ?? null
+      : selectedResult.tuitionOutOfState ?? selectedResult.tuitionInState ?? null
+    const coa = selectedResult.costAttendance ?? null
+    const livingAndOther = tuition != null && coa != null && coa > tuition ? coa - tuition : null
+    return {
+      isInState,
+      schoolState: selectedResult.state ?? null,
+      tuition,
+      livingAndOther,
+      coa,
+      hasInStateData: selectedResult.tuitionInState != null,
+      hasOosData: selectedResult.tuitionOutOfState != null,
+    }
+  }, [selectedResult, homeState])
 
   // What-if sliders
   const [whatIfContrib, setWhatIfContrib] = useState<number | null>(null)
@@ -171,9 +199,18 @@ export function FinancialPlanner({ savedColleges = [] }: FinancialPlannerProps) 
   return (
     <div style={{ maxWidth: 1200 }}>
       <h1 style={{ fontSize: 26, fontWeight: 800, marginBottom: 6 }}>Finance Plan 💵</h1>
-      <p style={{ fontSize: 14, color: 'var(--color-text-muted)', marginBottom: 32 }}>
+      <p style={{ fontSize: 14, color: 'var(--color-text-muted)', marginBottom: 12 }}>
         See what college will really cost and how savings, aid, and loans cover the gap.
       </p>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24, fontSize: 12, color: 'var(--color-text-muted)' }}>
+        <span style={{ fontWeight: 600 }}>State of residence:</span>
+        {homeState ? (
+          <span style={{ padding: '3px 10px', borderRadius: 99, background: 'color-mix(in srgb, var(--color-primary) 14%, transparent)', color: 'var(--color-primary)', fontWeight: 700, fontSize: 12 }}>{homeState}</span>
+        ) : (
+          <span style={{ color: '#f59e0b' }}>not set — add it on your Profile so we can use in-state tuition</span>
+        )}
+        <span>· determines whether in-state tuition applies to public schools.</span>
+      </div>
 
       <div className="finance-layout" style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: 24, alignItems: 'flex-start' }}>
 
@@ -249,8 +286,43 @@ export function FinancialPlanner({ savedColleges = [] }: FinancialPlannerProps) 
                   {selectedCollege}
                 </div>
               )}
+              {costBreakdown && (
+                <div style={{ marginTop: 10, padding: '10px 12px', borderRadius: 8, background: 'var(--color-column)', border: '1px solid var(--color-border)' }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-text-muted)', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    Cost breakdown
+                    {costBreakdown.schoolState && (
+                      <span style={{ padding: '2px 7px', borderRadius: 99, fontSize: 9, fontWeight: 700, background: costBreakdown.isInState ? 'rgba(5, 150, 105, 0.15)' : 'rgba(245, 158, 11, 0.15)', color: costBreakdown.isInState ? '#059669' : '#f59e0b' }}>
+                        {costBreakdown.isInState ? `IN-STATE (${costBreakdown.schoolState})` : `OUT-OF-STATE${homeState ? '' : ' — set home state'}`}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12 }}>
+                    {costBreakdown.tuition != null && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: 'var(--color-text-muted)' }}>Tuition {costBreakdown.isInState ? '(in-state)' : '(out-of-state)'}</span>
+                        <span style={{ fontWeight: 600 }}>{fmt$(costBreakdown.tuition)}</span>
+                      </div>
+                    )}
+                    {costBreakdown.livingAndOther != null && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: 'var(--color-text-muted)' }}>Room, board, fees & other</span>
+                        <span style={{ fontWeight: 600 }}>{fmt$(costBreakdown.livingAndOther)}</span>
+                      </div>
+                    )}
+                    {costBreakdown.coa != null && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--color-border)', paddingTop: 4, marginTop: 2 }}>
+                        <span style={{ fontWeight: 700 }}>Total cost / year</span>
+                        <span style={{ fontWeight: 800, color: 'var(--color-primary)' }}>{fmt$(costBreakdown.coa)}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ fontSize: 10, color: 'var(--color-text-muted)', marginTop: 6, fontStyle: 'italic' }}>
+                    Source: U.S. Dept of Education College Scorecard. Sticker price before financial aid.
+                  </div>
+                </div>
+              )}
             </div>
-            <Field label="Annual all-in cost today" prefix="$" value={inputs.currentTuition} onChange={v => set('currentTuition', v)} placeholder="45000" hint="Tuition + room + board + fees" />
+            <Field label="Annual all-in cost today" prefix="$" value={inputs.currentTuition} onChange={v => set('currentTuition', v)} placeholder="45000" hint="Tuition + room + board + fees (sticker price)" />
             <Field label="Tuition inflation rate" suffix="%" value={inputs.inflationRate} onChange={v => set('inflationRate', v)} placeholder="4" hint="Avg ~4–6% per year" />
             <Field label="Years until enrollment" value={inputs.yearsUntilEnroll} onChange={v => set('yearsUntilEnroll', v)} placeholder="2" hint="Years until freshman year starts" />
           </motion.div>
