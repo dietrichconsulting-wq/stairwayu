@@ -252,8 +252,13 @@ const NAME_EXPANSIONS: Record<string, string> = {
 export async function lookupByName(schoolName) {
   if (!API_KEY || !schoolName) return null;
 
-  // Expand common short names to full Scorecard names before querying
-  const expanded = NAME_EXPANSIONS[schoolName.trim().toLowerCase()] || schoolName;
+  // Expand common short names to full Scorecard names before querying.
+  // Also normalize "University of X, Y" → "University of X-Y" since Scorecard
+  // uses hyphens for branch campuses (e.g. "University of California-Berkeley").
+  const trimmed = schoolName.trim();
+  const expanded =
+    NAME_EXPANSIONS[trimmed.toLowerCase()] ||
+    trimmed.replace(/^(University of [A-Za-z]+),\s+/i, '$1-');
 
 
   const params = new URLSearchParams({

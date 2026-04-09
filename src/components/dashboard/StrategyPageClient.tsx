@@ -326,7 +326,7 @@ export function StrategyPageClient({ profile, colleges, userId }: StrategyPageCl
                   </div>
                 )}
                 {(['reach', 'target', 'safety'] as Tier[]).map(tier => (
-                  <TierSection key={tier} tier={tier} schools={result[tier]} collegeNames={collegeNames} onAdd={async (name) => {
+                  <TierSection key={tier} tier={tier} schools={result[tier]} collegeNames={collegeNames} budget={form.budget ? Number(form.budget) : null} onAdd={async (name) => {
                     const { createClient } = await import('@/lib/supabase/client')
                     const supabase = createClient()
                     const nextOrder = collegeNames.length + 1
@@ -403,10 +403,11 @@ const TIER_TIPS: Record<Tier, string> = {
   safety: 'Schools where your stats exceed the typical admitted student. Very likely to get in.',
 }
 
-function TierSection({ tier, schools, collegeNames, onAdd }: {
+function TierSection({ tier, schools, collegeNames, budget, onAdd }: {
   tier: Tier
   schools: School[]
   collegeNames: string[]
+  budget: number | null
   onAdd: (name: string) => Promise<void>
 }) {
   const cfg = getTierConfig()[tier]
@@ -422,7 +423,7 @@ function TierSection({ tier, schools, collegeNames, onAdd }: {
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {schools.map((school, i) => (
-          <SchoolCard key={school.name} school={school} tier={tier} index={i} collegeNames={collegeNames} onAdd={onAdd} />
+          <SchoolCard key={school.name} school={school} tier={tier} index={i} collegeNames={collegeNames} budget={budget} onAdd={onAdd} />
         ))}
       </div>
     </div>
@@ -452,11 +453,12 @@ function MatchRing({ chance, color, size = 48 }: { chance: number; color: string
   )
 }
 
-function SchoolCard({ school, tier, index, collegeNames, onAdd }: {
+function SchoolCard({ school, tier, index, collegeNames, budget, onAdd }: {
   school: School
   tier: Tier
   index: number
   collegeNames: string[]
+  budget: number | null
   onAdd: (name: string) => Promise<void>
 }) {
   const cfg = getTierConfig()[tier]
@@ -514,7 +516,7 @@ function SchoolCard({ school, tier, index, collegeNames, onAdd }: {
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 2 }}>
           {school.admitRate != null && <Stat label="Admit Rate" value={`${school.admitRate}%`} />}
-          {school.netCost != null && <Stat label="Net Cost/yr" value={`$${(school.netCost / 1000).toFixed(0)}k`} real={school._dataSources?.scorecard} />}
+          {school.netCost != null && <Stat label="Net Cost/yr" value={`$${(school.netCost / 1000).toFixed(0)}k`} real={school._dataSources?.scorecard} overBudget={budget != null && budget > 0 && school.netCost > budget} />}
           {school.gradRate != null && <Stat label="Grad Rate" value={`${school.gradRate}%`} real />}
           {school.usNewsRankDisplay && <Stat label="US News" value={school.usNewsRankDisplay} real />}
           {school.medianEarnings10yr != null && <Stat label="Earnings 10yr" value={`$${(school.medianEarnings10yr / 1000).toFixed(0)}k`} real />}
@@ -533,6 +535,12 @@ function SchoolCard({ school, tier, index, collegeNames, onAdd }: {
                 <Tooltip text="Live data from the U.S. Department of Education College Scorecard." position="top"><span className="strat-real-badge">live</span></Tooltip>
               </span>
             )}
+          </div>
+        )}
+        {budget != null && budget > 0 && school.netCost != null && school.netCost > budget && (
+          <div style={{ fontSize: 11, fontWeight: 600, color: '#f59e0b', background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: 6, padding: '6px 9px', marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span>⚠️</span>
+            <span>Net cost ${(school.netCost / 1000).toFixed(0)}k exceeds your ${(budget / 1000).toFixed(0)}k budget — scholarships or financial aid will be necessary.</span>
           </div>
         )}
         {school.whyFit && (
@@ -561,11 +569,12 @@ function SchoolCard({ school, tier, index, collegeNames, onAdd }: {
   )
 }
 
-function Stat({ label, value, color, real }: { label: string; value: string; color?: string; real?: boolean }) {
+function Stat({ label, value, color, real, overBudget }: { label: string; value: string; color?: string; real?: boolean; overBudget?: boolean }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 60 }}>
-      <span style={{ fontSize: 13, fontWeight: 700, color: color || 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 3 }}>
+      <span style={{ fontSize: 13, fontWeight: 700, color: overBudget ? '#f59e0b' : (color || 'var(--color-text)'), display: 'flex', alignItems: 'center', gap: 3 }}>
         {value}
+        {overBudget && <Tooltip text="Above your annual budget — scholarships or financial aid will be necessary to attend." position="top" maxWidth={240}><span style={{ fontSize: 11 }}>⚠️</span></Tooltip>}
         {real && <Tooltip text="Pulled from the U.S. Department of Education College Scorecard — real, verified data." position="top" maxWidth={220}><span className="strat-real-badge">live</span></Tooltip>}
       </span>
       <span style={{ fontSize: 10, color: 'var(--color-text-muted)', marginTop: 1 }}>{label}</span>
