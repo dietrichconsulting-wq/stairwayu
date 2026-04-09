@@ -73,14 +73,9 @@ export function FinancialPlanner({ savedColleges = [], homeState = null }: Finan
   })
 
   function applyCost(result?: CollegeResult) {
+    // Just store the result — the costBreakdown useMemo + useEffect below
+    // will compute the residency-correct total and push it into currentTuition.
     setSelectedResult(result ?? null)
-    if (result?.costAttendance) {
-      set('currentTuition', String(Math.round(result.costAttendance)))
-    } else if (result?.tuitionOutOfState) {
-      set('currentTuition', String(Math.round(result.tuitionOutOfState)))
-    } else if (result?.tuitionInState) {
-      set('currentTuition', String(Math.round(result.tuitionInState)))
-    }
   }
 
   function handleCollegeSelect(name: string, result?: CollegeResult) {
@@ -101,8 +96,10 @@ export function FinancialPlanner({ savedColleges = [], homeState = null }: Finan
   }, [])
 
   // ── Cost breakdown for the selected college ──
-  // Picks in-state vs OOS tuition based on the user's home state, then derives
-  // room/board/fees as (Cost of Attendance − tuition).
+  // Picks in-state vs OOS tuition based on the user's home state. Scorecard's
+  // costAttendance field is the IN-STATE COA for publics, so we derive
+  // residency-independent living costs as (COA − in-state tuition) and then
+  // add them to whichever tuition applies.
   const costBreakdown = useMemo(() => {
     if (!selectedResult) return null
     const isInState =
@@ -112,18 +109,43 @@ export function FinancialPlanner({ savedColleges = [], homeState = null }: Finan
     const tuition = isInState
       ? selectedResult.tuitionInState ?? selectedResult.tuitionOutOfState ?? null
       : selectedResult.tuitionOutOfState ?? selectedResult.tuitionInState ?? null
-    const coa = selectedResult.costAttendance ?? null
-    const livingAndOther = tuition != null && coa != null && coa > tuition ? coa - tuition : null
+    const coaInState = selectedResult.costAttendance ?? null
+    // Living + fees + books — residency-independent. Scorecard's COA is
+    // typically the in-state figure for publics, so subtract in-state tuition
+    // when available; for privates (which only have one tuition number),
+    // subtract OOS tuition. As a last resort, estimate as 35% of COA so the
+    // user always sees a non-zero room/board line.
+    let livingAndOther: number | null = null
+    if (coaInState != null) {
+      if (selectedResult.tuitionInState != null) {
+        livingAndOther = Math.max(0, coaInState - selectedResult.tuitionInState)
+      } else if (selectedResult.tuitionOutOfState != null) {
+        livingAndOther = Math.max(0, coaInState - selectedResult.tuitionOutOfState)
+      }
+    }
+    // Total COA for the residency we're displaying.
+    const totalCoa =
+      tuition != null && livingAndOther != null
+        ? tuition + livingAndOther
+        : coaInState // fall back to Scorecard's published COA if we can't decompose
     return {
       isInState,
       schoolState: selectedResult.state ?? null,
       tuition,
       livingAndOther,
-      coa,
+      coa: totalCoa,
       hasInStateData: selectedResult.tuitionInState != null,
       hasOosData: selectedResult.tuitionOutOfState != null,
     }
   }, [selectedResult, homeState])
+
+  // Push the residency-correct total into the editable input.
+  useEffect(() => {
+    if (costBreakdown?.coa != null) {
+      set('currentTuition', String(Math.round(costBreakdown.coa)))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [costBreakdown?.coa])
 
   // What-if sliders
   const [whatIfContrib, setWhatIfContrib] = useState<number | null>(null)
