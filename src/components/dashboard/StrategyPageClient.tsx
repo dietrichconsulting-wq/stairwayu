@@ -191,7 +191,16 @@ export function StrategyPageClient({ profile, colleges, userId }: StrategyPageCl
       const res = await fetch('/api/strategy/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, schools: collegeNames.filter(Boolean) }),
+        body: JSON.stringify({
+          gpa: form.gpa ? Number(form.gpa) : null,
+          gpaWeighted: form.gpaWeighted ? Number(form.gpaWeighted) : null,
+          sat: form.sat ? Number(form.sat) : null,
+          act: form.act ? Number(form.act) : null,
+          major: form.major || null,
+          budget: form.budget ? Number(form.budget) : null,
+          climate: form.climate,
+          schools: collegeNames.filter(Boolean),
+        }),
       })
       if (!res.ok) {
         const errText = await res.text()
