@@ -138,14 +138,35 @@ async function generateSummary(row) {
   return j?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || null;
 }
 
+// Global slug state, populated lazily from existing DB rows on first use.
+const slugByIpeds = new Map();
+const usedSlugs = new Set();
+let slugStateLoaded = false;
+
+async function loadSlugState() {
+  if (slugStateLoaded) return;
+  const { data, error } = await sb.from('colleges').select('ipeds_id, slug');
+  if (error) throw error;
+  for (const row of data || []) {
+    slugByIpeds.set(row.ipeds_id, row.slug);
+    usedSlugs.add(row.slug);
+  }
+  slugStateLoaded = true;
+}
+
 async function upsertBatch(rows) {
-  // Resolve slug collisions in-batch and against existing DB rows.
-  const seen = new Map();
+  await loadSlugState();
   for (const r of rows) {
-    let slug = slugify(r.name, r.ipeds_id);
-    if (seen.has(slug)) slug = `${slug}-${r.ipeds_id}`;
-    seen.set(slug, true);
-    r.slug = slug;
+    const known = slugByIpeds.get(r.ipeds_id);
+    if (known) {
+      r.slug = known;
+    } else {
+      let slug = slugify(r.name, r.ipeds_id);
+      if (usedSlugs.has(slug)) slug = `${slug}-${r.ipeds_id}`;
+      usedSlugs.add(slug);
+      slugByIpeds.set(r.ipeds_id, slug);
+      r.slug = slug;
+    }
     r.data_year = new Date().getFullYear();
   }
   const { error } = await sb.from('colleges').upsert(rows, { onConflict: 'ipeds_id' });
