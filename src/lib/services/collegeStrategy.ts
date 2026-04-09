@@ -28,7 +28,7 @@ function getModel() {
  * Generate a tiered college strategy list.
  * Returns { reach: [], target: [], safety: [], rationale: string }
  */
-export async function generateStrategy({ gpa, gpaWeighted, sat, act, major, budget, climate, schools: userSchools }) {
+export async function generateStrategy({ gpa, gpaWeighted, sat, act, major, budget, climate, schools: userSchools, homeState }) {
   const gemini = getModel();
   if (!gemini) throw new Error('Gemini API key not configured');
 
@@ -193,7 +193,7 @@ Respond ONLY with valid JSON, no markdown:
 
   // ── Step 2: Fetch real data for all recommended schools ─────────────────
   const schoolNames = aiSchools.map(s => s.name);
-  const realProfiles = await batchCollegeProfiles(schoolNames);
+  const realProfiles = await batchCollegeProfiles(schoolNames, homeState);
 
   // ── Step 3: Merge AI recommendations with real data ─────────────────────
   //    For EVERY school, compute yourChance via the logistic model using real

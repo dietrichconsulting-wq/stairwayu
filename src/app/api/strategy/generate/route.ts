@@ -30,7 +30,18 @@ export async function POST(req: Request) {
     const raw = await req.json()
     const parsed = parseBody(strategySchema, raw)
     if ('error' in parsed) return parsed.error
-    const result = await generateStrategy(parsed.data as Parameters<typeof generateStrategy>[0])
+
+    // Look up the user's home state so the aggregator can use in-state tuition.
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('home_state')
+      .eq('id', user.id)
+      .single()
+
+    const result = await generateStrategy({
+      ...(parsed.data as Parameters<typeof generateStrategy>[0]),
+      homeState: profile?.home_state ?? null,
+    })
 
     // Persist so it survives logout/login
     await supabase.from('profiles').update({

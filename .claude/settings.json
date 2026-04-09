@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx supabase db query --linked \"SELECT polname, polcmd, pg_get_expr\\(polqual, polrelid\\) as using_expr, pg_get_expr\\(polwithcheck, polrelid\\) as check_expr FROM pg_policy WHERE polrelid = ''public.user_colleges''::regclass;\")",
+      "Bash(gh api repos/dietrichconsulting-wq/stairwayu/deployments --jq '.[0] | {state: .statuses_url, created_at: .created_at, sha: .sha}')",
+      "Bash(npx vercel ls --prod)",
+      "Bash(npx vercel promote https://stairwayu-9b7upy57d-dietrichconsulting-wqs-projects.vercel.app)",
+      "Bash(npx vercel --prod)",
+      "Bash(npx vercel --prod --yes)",
+      "Bash(npx vercel domains ls)",
+      "Bash(npx vercel project ls)",
+      "Bash(npx vercel --prod --yes --project stairwayu)",
+      "Bash(npx vercel link --project stairwayu --yes)",
+      "Bash(git add src/components/dashboard/ProfileStats.tsx)",
+      "Bash(git add src/components/dashboard/DashboardClient.tsx src/components/dashboard/JourneyClient.tsx src/components/dashboard/Sidebar.tsx)",
+      "Bash(git branch -m master main)",
+      "Bash(git push -u origin main)",
+      "Bash(ls c:/Users/idietric/college-app/src/app/\\\\\\(dashboard\\\\\\)/)",
+      "Bash(ls c:/Users/idietric/college-app/src/app/\\\\\\(dashboard\\\\\\)/dashboard/)",
+      "Bash(git add src/app/\\\\\\(dashboard\\\\\\)/find-major/page.tsx src/components/dashboard/FindMajorClient.tsx src/components/dashboard/DashboardClient.tsx src/components/dashboard/Sidebar.tsx)",
+      "Bash(git push)",
+      "Bash(git add src/app/globals.css src/components/dashboard/EssayStudio.tsx src/components/dashboard/FinancialPlanner.tsx src/components/dashboard/ProfilePageClient.tsx src/components/dashboard/ScholarshipsPageClient.tsx src/components/dashboard/JourneyClient.tsx src/components/dashboard/Sidebar.tsx src/components/dashboard/DashboardClient.tsx src/components/dashboard/FindMajorClient.tsx src/app/\\\\\\(dashboard\\\\\\)/find-major/)",
+      "Bash(git add \"src/app/\\(dashboard\\)/find-major/page.tsx\" src/components/dashboard/FindMajorClient.tsx src/components/dashboard/Sidebar.tsx src/components/dashboard/DashboardClient.tsx src/components/dashboard/JourneyClient.tsx)"
+    ]
+  }
+}
