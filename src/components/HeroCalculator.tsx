@@ -77,14 +77,25 @@ function useSchoolSearch() {
   return { query, search, results, loading }
 }
 
-export function HeroCalculator() {
+interface CalcProps {
+  /** Show student name field and use parent-framed language. */
+  parentMode?: boolean
+}
+
+export function HeroCalculator({ parentMode = false }: CalcProps) {
   const { query, search, results, loading } = useSchoolSearch()
   const [school, setSchool] = useState<SchoolMatch | null>(null)
+  const [studentName, setStudentName] = useState('')
   const [gpa, setGpa] = useState('')
   const [sat, setSat] = useState('')
   const [act, setAct] = useState('')
   const [showDropdown, setShowDropdown] = useState(false)
   const wrapRef = useRef<HTMLDivElement>(null)
+
+  // Display name: "Sarah's" or fallback
+  const nameLabel = studentName.trim()
+    ? `${studentName.trim()}'s`
+    : parentMode ? "your child's" : 'your'
 
   useEffect(() => {
     const close = (e: MouseEvent) => {
@@ -115,8 +126,24 @@ export function HeroCalculator() {
           Free Admission Calculator
         </div>
         <h2 className="mb-5 text-xl font-bold text-white">
-          What are your real odds?
+          What are {nameLabel} real odds?
         </h2>
+
+        {/* Student name (parent mode) */}
+        {parentMode && (
+          <div className="mb-4">
+            <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-white/50">
+              Student&apos;s first name
+            </label>
+            <input
+              type="text"
+              value={studentName}
+              onChange={(e) => setStudentName(e.target.value)}
+              placeholder="e.g. Sarah"
+              className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white outline-none placeholder:text-white/30 focus:border-teal-400"
+            />
+          </div>
+        )}
 
         {/* School search */}
         <div ref={wrapRef} className="relative mb-4">
@@ -200,7 +227,11 @@ export function HeroCalculator() {
           <div className="rounded-xl border border-white/10 bg-black/40 p-4 mb-4">
             <div className="flex items-baseline justify-between">
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-white/40">Your estimated chance</div>
+                <div className="text-[10px] uppercase tracking-wider text-white/40">
+                  {studentName.trim()
+                    ? `${studentName.trim()}'s estimated chance`
+                    : parentMode ? "Your child's estimated chance" : 'Your estimated chance'}
+                </div>
                 <div className="text-4xl font-black mt-0.5" style={{ color: bandColor }}>
                   {result.chance}%
                 </div>
@@ -219,16 +250,22 @@ export function HeroCalculator() {
             </p>
           </div>
         ) : !school ? (
-          <p className="mb-4 text-center text-xs text-white/30">Search for a school to see your chances.</p>
+          <p className="mb-4 text-center text-xs text-white/30">
+            Search for a school to see {nameLabel} chances.
+          </p>
         ) : (
-          <p className="mb-4 text-center text-xs text-white/30">Enter your GPA or test score to see your estimate.</p>
+          <p className="mb-4 text-center text-xs text-white/30">
+            Enter {nameLabel} GPA or test score to see the estimate.
+          </p>
         )}
 
         <Link
-          href={school ? `/colleges/${school.slug}/chances` : '/signup'}
+          href={school ? `/colleges/${school.slug}/chances` : parentMode ? '/signup?ref=parents' : '/signup'}
           className="block w-full rounded-lg bg-white py-3 text-center text-[13px] font-extrabold uppercase tracking-[0.03em] text-slate-900 no-underline hover:bg-white/90"
         >
-          {ready ? 'See Full Report →' : 'Start for Free →'}
+          {ready
+            ? (studentName.trim() ? `See ${studentName.trim()}'s Full Report →` : 'See Full Report →')
+            : 'Start for Free →'}
         </Link>
 
         <div className="mt-3 flex items-center justify-center gap-4 text-[10px] text-white/30">

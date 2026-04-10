@@ -159,7 +159,7 @@ export default function ParentsPage() {
             </div>
           </div>
           <div className="w-full max-w-[540px] shrink-0">
-            <HeroCalculator />
+            <HeroCalculator parentMode />
           </div>
         </div>
       </section>
