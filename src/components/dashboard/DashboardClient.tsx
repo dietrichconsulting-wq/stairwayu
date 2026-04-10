@@ -154,6 +154,27 @@ export function DashboardClient({ userId }: DashboardClientProps) {
     { label: 'Find Scholarships', href: '/scholarships', icon: '🏆', tip: 'Discover scholarships matched to your profile and major.' },
   ]
 
+  // Share with Family
+  const [shareUrl, setShareUrl] = useState<string | null>(null)
+  const [shareCopied, setShareCopied] = useState(false)
+  const [shareLoading, setShareLoading] = useState(false)
+
+  const handleShare = async () => {
+    setShareLoading(true)
+    try {
+      const res = await fetch('/api/share', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' })
+      const data = await res.json()
+      if (data.link?.token) {
+        const url = `${window.location.origin}/share/${data.link.token}`
+        setShareUrl(url)
+        await navigator.clipboard.writeText(url)
+        setShareCopied(true)
+        setTimeout(() => setShareCopied(false), 3000)
+      }
+    } catch {}
+    setShareLoading(false)
+  }
+
   return (
     <div style={{ maxWidth: 900, width: '100%' }}>
       {/* Referral error banner */}
@@ -555,6 +576,50 @@ export function DashboardClient({ userId }: DashboardClientProps) {
           </Tooltip>
         ))}
       </div>
+
+      {/* ── Share with Family ── */}
+      <div style={{
+        marginTop: 16,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        padding: '14px 18px',
+        borderRadius: 12,
+        border: '1.5px solid var(--color-border)',
+        background: 'linear-gradient(135deg, rgba(59,130,246,0.06), rgba(168,85,247,0.06))',
+      }}>
+        <span style={{ fontSize: 20 }}>🎓</span>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
+            Share with Family
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 2 }}>
+            Send your college list to family — they can see your schools, odds, and contribute to your 529.
+          </div>
+        </div>
+        <button
+          onClick={handleShare}
+          disabled={shareLoading}
+          style={{
+            padding: '8px 16px',
+            borderRadius: 8,
+            border: 'none',
+            background: shareCopied ? '#22c55e' : 'var(--color-primary)',
+            color: 'white',
+            fontSize: 12,
+            fontWeight: 700,
+            cursor: shareLoading ? 'wait' : 'pointer',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {shareCopied ? '✓ Link Copied!' : shareLoading ? 'Creating…' : 'Copy Share Link'}
+        </button>
+      </div>
+      {shareUrl && !shareCopied && (
+        <div style={{ marginTop: 6, fontSize: 11, color: 'var(--color-text-muted)', wordBreak: 'break-all' }}>
+          {shareUrl}
+        </div>
+      )}
 
       {/* ── Section 4: Task list (collapsed to 5) ── */}
       <div style={{ marginTop: 20 }}>
