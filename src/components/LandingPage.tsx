@@ -369,8 +369,8 @@ export function LandingPage() {
               <div className="mb-5 text-xs font-extrabold uppercase tracking-[0.12em] text-slate-400">Before Stairway U</div>
               <ul className="m-0 list-none space-y-4 p-0">
                 {[
-                  { tool: 'CollegeVine', task: 'for admission odds' },
                   { tool: 'Niche', task: 'for college reviews' },
+                  { tool: 'Appily', task: 'for admission odds' },
                   { tool: 'Scholarply', task: 'for scholarships' },
                   { tool: 'ChatGPT', task: 'for essay help' },
                   { tool: 'Google Sheets', task: 'for deadlines & costs' },
