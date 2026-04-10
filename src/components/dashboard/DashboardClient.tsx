@@ -154,10 +154,35 @@ export function DashboardClient({ userId }: DashboardClientProps) {
     { label: 'Find Scholarships', href: '/scholarships', icon: '🏆', tip: 'Discover scholarships matched to your profile and major.' },
   ]
 
-  // Share with Family
+  // Share with Family + Pledges
   const [shareUrl, setShareUrl] = useState<string | null>(null)
   const [shareCopied, setShareCopied] = useState(false)
   const [shareLoading, setShareLoading] = useState(false)
+  const [pledgeTotal, setPledgeTotal] = useState(0)
+  const [pledgeCount, setPledgeCount] = useState(0)
+
+  // Load existing share link + pledges on mount
+  useEffect(() => {
+    fetch('/api/share').then(r => r.json()).then(data => {
+      if (data.link?.token) {
+        setShareUrl(`${window.location.origin}/share/${data.link.token}`)
+      }
+    }).catch(() => {})
+    // Load pledge totals
+    const sb = (async () => {
+      const { createClient: cc } = await import('@/lib/supabase/client')
+      const s = cc()
+      const { data } = await s
+        .from('gift_pledges')
+        .select('amount')
+        .eq('user_id', userId)
+      if (data && data.length > 0) {
+        setPledgeTotal(data.reduce((sum: number, p: { amount: number }) => sum + p.amount, 0))
+        setPledgeCount(data.length)
+      }
+    })
+    sb()
+  }, [userId])
 
   const handleShare = async () => {
     setShareLoading(true)
@@ -592,9 +617,16 @@ export function DashboardClient({ userId }: DashboardClientProps) {
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
             Share with Family
+            {pledgeCount > 0 && (
+              <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 800, color: '#2dd4bf', background: 'rgba(45,212,191,0.12)', padding: '2px 8px', borderRadius: 10 }}>
+                ${pledgeTotal.toLocaleString()} pledged
+              </span>
+            )}
           </div>
           <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 2 }}>
-            Send your college list to family — they can see your schools, odds, and contribute to your 529.
+            {pledgeCount > 0
+              ? `${pledgeCount} ${pledgeCount === 1 ? 'person has' : 'people have'} pledged toward your college fund.`
+              : 'Send your college list to family — they can see your schools, odds, and pledge toward your 529.'}
           </div>
         </div>
         <button

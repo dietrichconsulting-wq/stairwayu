@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createServiceClient } from '@/lib/supabase/server'
 import { fmtMoney, fmtPct } from '@/lib/colleges'
+import { PledgeForm } from '@/components/colleges/PledgeForm'
 
 export const revalidate = 0 // always fresh — view_count matters
 
@@ -91,11 +92,19 @@ async function getShareData(token: string) {
     colleges = (data || []) as CollegeRow[]
   }
 
+  // 6. Get existing pledges
+  const { data: pledges } = await sb
+    .from('gift_pledges')
+    .select('pledger_name, pledger_relation, amount, message, created_at')
+    .eq('share_link_id', link.id)
+    .order('created_at', { ascending: false })
+
   return {
     link: link as ShareLink,
     profile: profile as { display_name: string | null; gpa: number | null; sat: number | null; act_score: number | null; proposed_major: string | null; grad_year: number | null; home_state: string | null } | null,
     userSchools: (userSchools || []) as UserCollege[],
     colleges,
+    pledges: (pledges || []) as Array<{ pledger_name: string; pledger_relation: string | null; amount: number; message: string | null; created_at: string }>,
   }
 }
 
@@ -116,8 +125,9 @@ export default async function SharePage({ params }: PageProps) {
   const data = await getShareData(token)
   if (!data) notFound()
 
-  const { link, profile, userSchools, colleges } = data
+  const { link, profile, userSchools, colleges, pledges } = data
   const name = profile?.display_name?.split(' ')[0] || 'This student'
+  const totalPledged = pledges.reduce((sum, p) => sum + p.amount, 0)
   const fullName = profile?.display_name || 'This student'
   const collegeMap = new Map(colleges.map((c) => [c.ipeds_id, c]))
 
@@ -232,27 +242,68 @@ export default async function SharePage({ params }: PageProps) {
         </section>
       )}
 
-      {/* Gift CTA */}
+      {/* Pledge progress */}
+      {(totalPledged > 0 || pledges.length > 0) && (
+        <section className="mx-auto max-w-3xl px-6 mt-8">
+          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-green-500/10 to-teal-500/10 p-6">
+            <div className="flex items-baseline justify-between mb-3">
+              <div>
+                <div className="text-xs font-bold uppercase tracking-wider text-teal-300/80">Family pledges</div>
+                <div className="text-3xl font-black text-white mt-1">
+                  ${totalPledged.toLocaleString()}
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold text-white/60">{pledges.length}</div>
+                <div className="text-xs text-white/40">{pledges.length === 1 ? 'supporter' : 'supporters'}</div>
+              </div>
+            </div>
+            {avgCost4yr && (
+              <div className="mt-2">
+                <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-teal-400 to-green-400"
+                    style={{ width: `${Math.min(100, (totalPledged / avgCost4yr) * 100)}%` }}
+                  />
+                </div>
+                <div className="mt-1 flex justify-between text-[10px] text-white/40">
+                  <span>${totalPledged.toLocaleString()} pledged</span>
+                  <span>{fmtMoney(avgCost4yr)} estimated total</span>
+                </div>
+              </div>
+            )}
+            {pledges.length > 0 && (
+              <div className="mt-4 space-y-2">
+                {pledges.slice(0, 10).map((p, i) => (
+                  <div key={i} className="flex items-center justify-between rounded-lg bg-white/[0.03] px-3 py-2">
+                    <div>
+                      <span className="text-sm font-semibold text-white">{p.pledger_name}</span>
+                      {p.pledger_relation && (
+                        <span className="ml-2 text-xs text-white/40">{p.pledger_relation}</span>
+                      )}
+                      {p.message && (
+                        <div className="text-xs text-white/50 mt-0.5 italic">&ldquo;{p.message}&rdquo;</div>
+                      )}
+                    </div>
+                    <span className="text-sm font-bold text-teal-300">${p.amount.toLocaleString()}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Pledge form */}
       <section className="mx-auto max-w-3xl px-6 mt-8">
-        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-blue-500/15 via-purple-500/10 to-teal-400/10 p-8 text-center">
-          <div className="text-3xl mb-3">🎓</div>
-          <h2 className="text-2xl font-bold">
-            Help fund {name}&apos;s future
-          </h2>
-          <p className="mt-2 text-white/60 max-w-md mx-auto">
-            Instead of a gift card, contribute to {name}&apos;s college fund.
-            Every dollar in a 529 plan grows tax-free and goes directly toward tuition, room &amp; board, and books.
-          </p>
-          <Link
-            href="/gift"
-            className="mt-6 inline-block rounded-lg bg-white px-8 py-3 font-bold text-slate-900 hover:bg-white/90"
-          >
-            Learn How to Contribute →
-          </Link>
-          <p className="mt-3 text-xs text-white/30">
-            529 contributions are tax-advantaged in most states
-          </p>
-        </div>
+        <PledgeForm token={token} studentName={name} />
+      </section>
+
+      {/* 529 info link */}
+      <section className="mx-auto max-w-3xl px-6 mt-4 text-center">
+        <Link href="/gift" className="text-sm text-teal-400 hover:text-teal-300">
+          Learn more about 529 college savings plans →
+        </Link>
       </section>
 
       {/* What is Stairway U */}

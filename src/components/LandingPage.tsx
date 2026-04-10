@@ -354,6 +354,89 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* ── FAMILY GIFTING ── */}
+      <section className="bg-white px-[6%] py-24">
+        <div className="mx-auto max-w-[1000px]">
+          <div className="grid grid-cols-1 items-center gap-14 md:grid-cols-2">
+            {/* Left: visual mockup */}
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-6">
+              <div className="rounded-xl border border-slate-200 bg-white p-5">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="flex size-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-sm font-bold text-white">
+                    SJ
+                  </div>
+                  <div>
+                    <div className="text-sm font-bold text-slate-900">Sarah&apos;s College Plan</div>
+                    <div className="text-xs text-slate-400">Class of 2027 · Texas</div>
+                  </div>
+                </div>
+                <div className="space-y-2 mb-4">
+                  {[
+                    { school: 'UT Austin', pct: '74%', cost: '$12,400/yr' },
+                    { school: 'Texas A&M', pct: '82%', cost: '$11,200/yr' },
+                    { school: 'UC Berkeley', pct: '41%', cost: '$22,800/yr' },
+                  ].map(s => (
+                    <div key={s.school} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
+                      <span className="text-sm font-semibold text-slate-700">{s.school}</span>
+                      <div className="flex gap-3 text-xs text-slate-400">
+                        <span>{s.pct}</span>
+                        <span>{s.cost}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="rounded-lg bg-gradient-to-r from-teal-50 to-green-50 border border-teal-200 p-4">
+                  <div className="flex items-baseline justify-between">
+                    <div>
+                      <div className="text-[10px] font-bold uppercase tracking-wider text-teal-600">Family pledges</div>
+                      <div className="text-2xl font-black text-slate-900">$2,750</div>
+                    </div>
+                    <div className="text-right text-xs text-slate-400">
+                      <div>3 supporters</div>
+                    </div>
+                  </div>
+                  <div className="mt-2 h-1.5 rounded-full bg-teal-100">
+                    <div className="h-full w-[15%] rounded-full bg-gradient-to-r from-teal-400 to-green-400" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            {/* Right: copy */}
+            <div>
+              <div className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.15em] text-teal-600">
+                The College Gift Registry
+              </div>
+              <h2 className="mb-5 text-[clamp(28px,4vw,44px)] font-black leading-[1.05] tracking-tight text-slate-900">
+                Replace gift cards with&nbsp;a&nbsp;future.
+              </h2>
+              <p className="mb-6 text-base leading-relaxed text-slate-500">
+                Share your college plan with grandparents, aunts, uncles, and family friends.
+                They see your schools and odds — and can pledge toward your 529 college savings&nbsp;plan.
+              </p>
+              <div className="space-y-4 mb-8">
+                {[
+                  { icon: '🔗', text: 'One click creates a shareable link from your dashboard' },
+                  { icon: '👀', text: 'Family sees your school list, odds, and estimated costs' },
+                  { icon: '💝', text: 'They pledge a gift amount — every dollar grows tax-free in a 529' },
+                  { icon: '📊', text: 'You see total pledges on your dashboard in real time' },
+                ].map(f => (
+                  <div key={f.text} className="flex gap-3 text-[15px] text-slate-700">
+                    <span className="text-lg">{f.icon}</span>
+                    {f.text}
+                  </div>
+                ))}
+              </div>
+              <Link href="/signup" className="inline-block rounded-md bg-slate-900 px-8 py-3.5 text-[13px] font-extrabold uppercase tracking-[0.05em] text-white no-underline">
+                Share Your Plan →
+              </Link>
+              <div className="mt-3 text-xs text-slate-400">
+                Free with any Stairway U account
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── REPLACE 5 TABS ── */}
       <section className="bg-white px-[6%] py-24">
         <div className="mx-auto max-w-[1000px]">
