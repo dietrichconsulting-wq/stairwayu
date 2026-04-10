@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
+import { HeroCalculator } from '@/components/HeroCalculator'
 
 /**
  * Maps the current month to a phase-aware urgency message.
@@ -250,7 +251,7 @@ export function LandingPage() {
       })()}
 
       {/* ── HERO ── */}
-      <section className="relative h-screen min-h-[600px] overflow-hidden">
+      <section className="relative min-h-screen overflow-hidden">
         <Image
           src="https://images.unsplash.com/photo-1523580846011-d3a5bc25702b?w=1920&q=85"
           alt="High school seniors at college campus"
@@ -261,29 +262,36 @@ export function LandingPage() {
         />
         <div className="landing-hero-overlay absolute inset-0" />
 
-        <div className="absolute bottom-[12%] left-[6%] max-w-[680px]">
-          <div className="mb-4 text-xs font-extrabold uppercase tracking-[0.2em] text-white/60">
-            Your Stairway to College
+        <div className="relative z-10 mx-auto flex min-h-screen max-w-[1200px] flex-col items-center justify-center gap-10 px-[6%] pb-16 pt-[130px] md:flex-row md:items-center md:justify-between md:pt-[100px]">
+          {/* Left: copy */}
+          <div className="max-w-[520px] shrink-0">
+            <div className="mb-4 text-xs font-extrabold uppercase tracking-[0.2em] text-white/60">
+              Your Stairway to College
+            </div>
+            <h1 className="mb-6 text-[clamp(40px,6vw,72px)] font-black leading-[1.02] tracking-tight text-white">
+              Your real odds.<br />Your best schools.
+            </h1>
+            <p className="mb-8 max-w-[440px] text-[clamp(15px,1.8vw,19px)] leading-relaxed text-white/75">
+              Search any college, enter your GPA and scores, and see your estimated chance of admission — instantly, free, powered by U.S. Department of Education data.
+            </p>
+            <div className="flex flex-wrap items-center gap-4">
+              <Link href="/signup" className="rounded-md bg-white px-8 py-3.5 text-[14px] font-extrabold text-slate-900 no-underline">
+                Start for Free
+              </Link>
+              <GoogleSignInButton className="!py-3.5 !px-6 !text-[14px]" />
+              <Link href="/login" className="text-[13px] font-semibold text-white/60 no-underline hover:text-white">
+                Sign In
+              </Link>
+            </div>
           </div>
-          <h1 className="mb-6 text-[clamp(48px,7vw,88px)] font-black leading-none tracking-tight text-white">
-            Your real odds.<br />Your best schools.
-          </h1>
-          <p className="mb-9 max-w-[480px] text-[clamp(16px,2vw,20px)] leading-relaxed text-white/75">
-            Admission odds · scholarships · essays · finances · deadlines&nbsp;&mdash;<br />
-            one dashboard, zero guesswork.
-          </p>
-          <div className="flex flex-wrap gap-3">
-            <Link href="/signup" className="rounded-md bg-white px-10 py-4 text-[15px] font-extrabold text-slate-900 no-underline">
-              Start for Free
-            </Link>
-            <GoogleSignInButton />
-            <Link href="/login" className="rounded-md border-2 border-white/50 bg-transparent px-10 py-4 text-[15px] font-bold text-white no-underline">
-              Sign In
-            </Link>
+
+          {/* Right: live calculator */}
+          <div className="w-full max-w-[540px] shrink-0">
+            <HeroCalculator />
           </div>
         </div>
 
-        <div className="absolute right-12 bottom-8 text-xs uppercase tracking-[0.1em] text-white/40">
+        <div className="absolute right-12 bottom-8 z-10 text-xs uppercase tracking-[0.1em] text-white/40">
           Scroll ↓
         </div>
       </section>
