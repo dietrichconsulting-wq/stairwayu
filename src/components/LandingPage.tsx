@@ -296,6 +296,64 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* ── FOR PARENTS — right after the calculator hook ── */}
+      <section className="bg-slate-50 px-[6%] py-24">
+        <div className="mx-auto max-w-[1000px]">
+          <div className="grid grid-cols-1 items-center gap-14 md:grid-cols-2">
+            <div>
+              <div className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.15em] text-teal-600">
+                For Parents
+              </div>
+              <h2 className="mb-5 text-[clamp(28px,4vw,44px)] font-black leading-[1.05] tracking-tight text-slate-900">
+                Will they get in?<br />What will it cost&nbsp;us?
+              </h2>
+              <p className="mb-8 text-base leading-relaxed text-slate-500">
+                You just saw their odds. Now get the rest of the picture. Stairway U gives your family real answers — not rankings, not guesses — so you can stop worrying and start planning.
+              </p>
+              <div className="space-y-6">
+                {[
+                  { icon: '🎯', title: 'Will they get in?', desc: 'Admission odds for every school on the list, based on federal data — not a marketing quiz.' },
+                  { icon: '💰', title: 'What will it cost us?', desc: 'Net price by income bracket, 529 projections, tuition inflation, and loan estimates for each school.' },
+                  { icon: '📋', title: 'Are we on track?', desc: 'Journey milestones, deadline radar, and task tracking so nothing falls through the cracks.' },
+                ].map(item => (
+                  <div key={item.title} className="flex gap-4">
+                    <span className="mt-0.5 text-xl">{item.icon}</span>
+                    <div>
+                      <div className="text-[15px] font-bold text-slate-900">{item.title}</div>
+                      <div className="mt-1 text-sm leading-relaxed text-slate-500">{item.desc}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-10 flex flex-wrap gap-4">
+                <Link href="/signup" className="rounded-md bg-slate-900 px-8 py-3.5 text-[13px] font-extrabold uppercase tracking-[0.05em] text-white no-underline">
+                  See What College Will Cost →
+                </Link>
+                <Link href="/colleges" className="rounded-md border-2 border-slate-300 bg-transparent px-8 py-3.5 text-[13px] font-bold text-slate-600 no-underline">
+                  Browse 1,500+ Colleges
+                </Link>
+              </div>
+            </div>
+            <div className="space-y-5">
+              <div className="rounded-2xl border border-teal-200 bg-teal-50 px-8 py-10">
+                <div className="mb-5 h-8 w-1 rounded-sm bg-cyan-600" />
+                <p className="mb-6 text-[15px] italic leading-[1.75] text-slate-700">
+                  &ldquo;The Financial Planner finally helped me understand what college will actually cost us. I stopped dreading the conversation and started making a real&nbsp;plan.&rdquo;
+                </p>
+                <div className="text-[13px] font-extrabold text-slate-900">Linda C.</div>
+                <div className="mt-0.5 text-xs font-semibold text-cyan-600">Parent of 2026 applicant</div>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-white px-6 py-5">
+                <div className="mb-2 text-[11px] font-extrabold uppercase tracking-[0.1em] text-slate-400">Your own dashboard</div>
+                <p className="text-sm leading-relaxed text-slate-600">
+                  Parents get their own login. See your child&apos;s school list, costs, and progress — without&nbsp;hovering.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── REPLACE 5 TABS ── */}
       <section className="bg-white px-[6%] py-24">
         <div className="mx-auto max-w-[1000px]">
@@ -499,47 +557,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ── PARENTS ── */}
-      <section className="bg-slate-50 px-[6%] py-24">
-        <div className="mx-auto max-w-[900px]">
-          <div className="grid grid-cols-1 items-center gap-14 md:grid-cols-2">
-            <div>
-              <div className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.15em] text-teal-600">
-                For Parents
-              </div>
-              <h2 className="mb-5 text-[clamp(28px,4vw,44px)] font-black leading-[1.05] tracking-tight text-slate-900">
-                Finally understand what college will actually&nbsp;cost.
-              </h2>
-              <p className="mb-8 text-base leading-relaxed text-slate-500">
-                Your student gets the tools — you get the clarity. One dashboard with the financial answers you can&apos;t find anywhere&nbsp;else.
-              </p>
-              <ul className="m-0 list-none space-y-4 p-0">
-                {[
-                  'Real net cost estimates for every school on the list',
-                  '529 projections & tuition-inflation forecasts',
-                  'Side-by-side cost comparison across schools',
-                ].map(item => (
-                  <li key={item} className="flex items-start gap-3 text-[15px] text-slate-700">
-                    <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-teal-500 text-[10px] text-white">✓</span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/signup" className="mt-10 inline-block rounded-md bg-slate-900 px-8 py-3.5 text-[13px] font-extrabold uppercase tracking-[0.05em] text-white no-underline">
-                See What College Will Cost →
-              </Link>
-            </div>
-            <div className="rounded-2xl border border-teal-200 bg-teal-50 px-8 py-10">
-              <div className="mb-5 h-8 w-1 rounded-sm bg-cyan-600" />
-              <p className="mb-6 text-[15px] italic leading-[1.75] text-slate-700">
-                &ldquo;The Financial Planner finally helped me understand what college will actually cost us. I stopped dreading the conversation and started making a real plan.&rdquo;
-              </p>
-              <div className="text-[13px] font-extrabold text-slate-900">Linda C.</div>
-              <div className="mt-0.5 text-xs font-semibold text-cyan-600">Parent of 2026 applicant</div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Parents section moved above — now appears right after the hero */}
 
       {/* ── PRICING ── */}
       <section id="pricing" className="bg-slate-900 px-[6%] py-24">
