@@ -22,6 +22,41 @@
   --border-card: 1px solid rgba(0,0,0,0.05);
   --radius-card: 16px;
 
+  /* ── Semantic color roles ── */
+  --color-tier-safety: #16a34a;
+  --color-tier-target: #d97706;
+  --color-tier-reach: #dc2626;
+  --color-positive: #059669;
+  --color-caution: #d97706;
+  --color-negative: #dc2626;
+  --color-info: #0891b2;
+
+  /* ── Spacing scale (4px base) ── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* ── Card padding scale ── */
+  --card-padding-compact: 16px;
+  --card-padding-standard: 24px;
+  --card-padding-spacious: 32px;
+
+  /* ── Typography minimums ── */
+  --text-min: 11px;
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-base: 14px;
+  --text-lg: 16px;
+  --text-xl: 20px;
+  --text-2xl: 26px;
+
   /* ── Shadcn aliases (derived from custom palette) ── */
   --background: var(--color-bg);
   --foreground: var(--color-text);
@@ -87,6 +122,15 @@
 
   /* ── Interactive accent (softer than primary for text/links) ── */
   --color-accent-text: #5EEAD4;
+
+  /* ── Semantic color roles (dark) ── */
+  --color-tier-safety: #86EFAC;
+  --color-tier-target: #FDE68A;
+  --color-tier-reach: #FCA5A5;
+  --color-positive: #86EFAC;
+  --color-caution: #FDE68A;
+  --color-negative: #FCA5A5;
+  --color-info: #7DD3FC;
 
   /* ── Shadcn: override only where derived value needs to differ ── */
   --primary-foreground: #0F172A;

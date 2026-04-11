@@ -11,26 +11,19 @@ import { HeroCalculator } from '@/components/HeroCalculator'
  * Aligned with the app's Prep → Research → Apply → Final milestone phases.
  */
 function getSeasonalHook(): { emoji: string; message: string; phase: string } {
-  const month = new Date().getMonth() // 0-indexed
-  // Jan–Feb: Decision season
+  const month = new Date().getMonth()
   if (month <= 1)
     return { emoji: '📬', message: 'Decisions are coming. Make sure your list is airtight.', phase: 'Final' }
-  // Mar–Apr: Commitment season
   if (month <= 3)
     return { emoji: '🎓', message: 'Decision Day is approaching. Do you know your top choice?', phase: 'Final' }
-  // May–Jun: Sophomore/Junior prep
   if (month <= 5)
     return { emoji: '🔬', message: 'Summer is the best time to get ahead. Start your college research now.', phase: 'Prep' }
-  // Jul: Pre-app season
   if (month === 6)
     return { emoji: '✍️', message: 'Essay season starts next month. Get your brainstorm done now.', phase: 'Research' }
-  // Aug–Sep: Application season kicks off
   if (month <= 8)
     return { emoji: '🔥', message: 'Application season is here. Is your list ready?', phase: 'Apply' }
-  // Oct–Nov: Peak application crunch
   if (month <= 10)
     return { emoji: '⏰', message: 'Early deadlines are weeks away. Most students start too late — don\u2019t be most students.', phase: 'Apply' }
-  // Dec: Early results + RD push
   return { emoji: '🚀', message: 'Early decisions are out. Regular deadline is next — finish strong.', phase: 'Apply' }
 }
 
@@ -296,146 +289,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ── FOR PARENTS — right after the calculator hook ── */}
-      <section className="bg-slate-50 px-[6%] py-24">
-        <div className="mx-auto max-w-[1000px]">
-          <div className="grid grid-cols-1 items-center gap-14 md:grid-cols-2">
-            <div>
-              <div className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.15em] text-teal-600">
-                For Parents
-              </div>
-              <h2 className="mb-5 text-[clamp(28px,4vw,44px)] font-black leading-[1.05] tracking-tight text-slate-900">
-                Will they get in?<br />What will it cost&nbsp;us?
-              </h2>
-              <p className="mb-8 text-base leading-relaxed text-slate-500">
-                You just saw their odds. Now get the rest of the picture. Stairway U gives your family real answers — not rankings, not guesses — so you can stop worrying and start planning.
-              </p>
-              <div className="space-y-6">
-                {[
-                  { icon: '🎯', title: 'Will they get in?', desc: 'Admission odds for every school on the list, based on federal data — not a marketing quiz.' },
-                  { icon: '💰', title: 'What will it cost us?', desc: 'Net price by income bracket, 529 projections, tuition inflation, and loan estimates for each school.' },
-                  { icon: '📋', title: 'Are we on track?', desc: 'Journey milestones, deadline radar, and task tracking so nothing falls through the cracks.' },
-                ].map(item => (
-                  <div key={item.title} className="flex gap-4">
-                    <span className="mt-0.5 text-xl">{item.icon}</span>
-                    <div>
-                      <div className="text-[15px] font-bold text-slate-900">{item.title}</div>
-                      <div className="mt-1 text-sm leading-relaxed text-slate-500">{item.desc}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-10 flex flex-wrap gap-4">
-                <Link href="/signup" className="rounded-md bg-slate-900 px-8 py-3.5 text-[13px] font-extrabold uppercase tracking-[0.05em] text-white no-underline">
-                  See What College Will Cost →
-                </Link>
-                <Link href="/colleges" className="rounded-md border-2 border-slate-300 bg-transparent px-8 py-3.5 text-[13px] font-bold text-slate-600 no-underline">
-                  Browse 1,500+ Colleges
-                </Link>
-              </div>
-            </div>
-            <div className="space-y-5">
-              <div className="rounded-2xl border border-teal-200 bg-teal-50 px-8 py-10">
-                <div className="mb-5 h-8 w-1 rounded-sm bg-cyan-600" />
-                <p className="mb-6 text-[15px] italic leading-[1.75] text-slate-700">
-                  &ldquo;The Financial Planner finally helped me understand what college will actually cost us. I stopped dreading the conversation and started making a real&nbsp;plan.&rdquo;
-                </p>
-                <div className="text-[13px] font-extrabold text-slate-900">Linda C.</div>
-                <div className="mt-0.5 text-xs font-semibold text-cyan-600">Parent of 2026 applicant</div>
-              </div>
-              <div className="rounded-xl border border-slate-200 bg-white px-6 py-5">
-                <div className="mb-2 text-[11px] font-extrabold uppercase tracking-[0.1em] text-slate-400">Your own dashboard</div>
-                <p className="text-sm leading-relaxed text-slate-600">
-                  Parents get their own login. See your child&apos;s school list, costs, and progress — without&nbsp;hovering.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* ── FAMILY GIFTING ── */}
-      <section className="bg-white px-[6%] py-24">
-        <div className="mx-auto max-w-[1000px]">
-          <div className="grid grid-cols-1 items-center gap-14 md:grid-cols-2">
-            {/* Left: visual mockup */}
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-6">
-              <div className="rounded-xl border border-slate-200 bg-white p-5">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="flex size-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-sm font-bold text-white">
-                    SJ
-                  </div>
-                  <div>
-                    <div className="text-sm font-bold text-slate-900">Sarah&apos;s College Plan</div>
-                    <div className="text-xs text-slate-400">Class of 2027 · Texas</div>
-                  </div>
-                </div>
-                <div className="space-y-2 mb-4">
-                  {[
-                    { school: 'UT Austin', pct: '74%', cost: '$12,400/yr' },
-                    { school: 'Texas A&M', pct: '82%', cost: '$11,200/yr' },
-                    { school: 'UC Berkeley', pct: '41%', cost: '$22,800/yr' },
-                  ].map(s => (
-                    <div key={s.school} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
-                      <span className="text-sm font-semibold text-slate-700">{s.school}</span>
-                      <div className="flex gap-3 text-xs text-slate-400">
-                        <span>{s.pct}</span>
-                        <span>{s.cost}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="rounded-lg bg-gradient-to-r from-teal-50 to-green-50 border border-teal-200 p-4">
-                  <div className="flex items-baseline justify-between">
-                    <div>
-                      <div className="text-[10px] font-bold uppercase tracking-wider text-teal-600">Family pledges</div>
-                      <div className="text-2xl font-black text-slate-900">$2,750</div>
-                    </div>
-                    <div className="text-right text-xs text-slate-400">
-                      <div>3 supporters</div>
-                    </div>
-                  </div>
-                  <div className="mt-2 h-1.5 rounded-full bg-teal-100">
-                    <div className="h-full w-[15%] rounded-full bg-gradient-to-r from-teal-400 to-green-400" />
-                  </div>
-                </div>
-              </div>
-            </div>
-            {/* Right: copy */}
-            <div>
-              <div className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.15em] text-teal-600">
-                The College Gift Registry
-              </div>
-              <h2 className="mb-5 text-[clamp(28px,4vw,44px)] font-black leading-[1.05] tracking-tight text-slate-900">
-                Replace gift cards with&nbsp;a&nbsp;future.
-              </h2>
-              <p className="mb-6 text-base leading-relaxed text-slate-500">
-                Share your college plan with grandparents, aunts, uncles, and family friends.
-                They see your schools and odds — and can pledge toward your 529 college savings&nbsp;plan.
-              </p>
-              <div className="space-y-4 mb-8">
-                {[
-                  { icon: '🔗', text: 'One click creates a shareable link from your dashboard' },
-                  { icon: '👀', text: 'Family sees your school list, odds, and estimated costs' },
-                  { icon: '💝', text: 'They pledge a gift amount — every dollar grows tax-free in a 529' },
-                  { icon: '📊', text: 'You see total pledges on your dashboard in real time' },
-                ].map(f => (
-                  <div key={f.text} className="flex gap-3 text-[15px] text-slate-700">
-                    <span className="text-lg">{f.icon}</span>
-                    {f.text}
-                  </div>
-                ))}
-              </div>
-              <Link href="/signup" className="inline-block rounded-md bg-slate-900 px-8 py-3.5 text-[13px] font-extrabold uppercase tracking-[0.05em] text-white no-underline">
-                Share Your Plan →
-              </Link>
-              <div className="mt-3 text-xs text-slate-400">
-                Free with any Stairway U account
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* ── REPLACE 5 TABS ── */}
       <section className="bg-white px-[6%] py-24">
@@ -508,23 +362,6 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ── DATA TRUST STRIP ── */}
-      <section className="bg-slate-800 px-[6%] py-5">
-        <div className="mx-auto flex max-w-[900px] flex-wrap items-center justify-center gap-x-10 gap-y-3 text-center">
-          <div className="flex items-center gap-2.5">
-            <span className="text-[11px] font-extrabold uppercase tracking-[0.1em] text-white/30">Data from</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-[13px] font-bold text-white/60">🏛 U.S. Dept of Education</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-[13px] font-bold text-white/60">📊 College Scorecard API</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-[13px] font-bold text-white/60">🎓 IPEDS</span>
-          </div>
-        </div>
-      </section>
 
       {/* ── FEATURE GRID — Nike product tiles ── */}
       <section className="bg-slate-100 p-1">
@@ -555,92 +392,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ── FULL-BLEED SECOND HERO — Journey Tracker ── */}
-      <section className="relative h-[70vh] min-h-[480px] overflow-hidden">
-        <Image
-          src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=1920&q=85"
-          alt="Graduation ceremony"
-          fill
-          sizes="100vw"
-          className="object-cover object-[center_40%]"
-        />
-        <div className="landing-journey-overlay absolute inset-0" />
-        <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
-          <div className="mb-4 text-[11px] font-extrabold uppercase tracking-[0.2em] text-white/50">
-            Journey Tracker
-          </div>
-          <h2 className="mb-5 max-w-[700px] text-[clamp(32px,5vw,64px)] font-black leading-[1.05] tracking-tight text-white">
-            From sophomore year<br />to decision day.
-          </h2>
-          <p className="mb-9 max-w-[440px] text-base leading-relaxed text-white/65">
-            A visual roadmap of every milestone — with a progress ring that shows exactly where you stand.
-          </p>
-          <Link href="/signup" className="rounded-md bg-teal-300 px-11 py-4 text-sm font-extrabold uppercase tracking-[0.05em] text-slate-900 no-underline">
-            Start Your Journey
-          </Link>
-        </div>
-      </section>
 
-      {/* ── CONNECTED DATA ── */}
-      <section className="bg-slate-900 px-[6%] py-24">
-        <div className="mx-auto max-w-[900px] text-center">
-          <div className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.15em] text-teal-300">
-            The Connected Advantage
-          </div>
-          <h2 className="mb-5 text-[clamp(28px,4vw,48px)] font-black leading-[1.05] tracking-tight text-white">
-            Your profile powers everything.
-          </h2>
-          <p className="mx-auto mb-14 max-w-[500px] text-base leading-relaxed text-white/50">
-            Separate tools can&apos;t share context. Stairway U connects your GPA, scores, budget, and school list across every feature — all grounded in real federal data from the College Scorecard.
-          </p>
-          <div className="grid grid-cols-1 gap-6 text-left md:grid-cols-3">
-            {[
-              { highlight: 'Scholarship matches', rest: 'already know your GPA and major.' },
-              { highlight: 'Financial estimates', rest: 'already know the schools on your list.' },
-              { highlight: 'Essay brainstorming', rest: 'already knows which prompts you need.' },
-            ].map(c => (
-              <div key={c.highlight} className="rounded-xl border border-white/10 bg-white/5 px-7 py-8">
-                <div className="mb-2 text-sm font-bold text-teal-300">{c.highlight}</div>
-                <div className="text-sm leading-relaxed text-white/60">{c.rest}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── FIRST-WEEK REACTIONS ── */}
-      <section className="bg-white px-[6%] py-24">
-        <div className="mx-auto max-w-[1100px]">
-          <div className="mb-14">
-            <div className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.15em] text-teal-600">
-              Unfiltered
-            </div>
-            <h2 className="text-[clamp(28px,4vw,52px)] font-black leading-[1.05] tracking-tight text-slate-900">
-              What students say after<br />their first&nbsp;week.
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-            {[
-              { text: 'Wait, is this real? It says I have a 74% chance at UT Austin', who: 'Junior, TX · first session', time: '3 days ago' },
-              { text: "I didn\u2019t know I could get into Berkeley with my GPA. I literally never would have looked at it.", who: 'Senior, CA · exploring matches', time: '5 days ago' },
-              { text: 'There were a lot of schools I didn\u2019t even know about. Found 4 new ones with >60% odds in like 10 min', who: 'Junior, OH · after Admission Snapshot', time: '1 week ago' },
-            ].map((t, i) => (
-              <div key={i} className="rounded-xl border border-slate-200 bg-slate-50 px-6 py-6">
-                <div className="mb-4 flex items-center gap-2">
-                  <div className="size-2 rounded-full bg-green-400" />
-                  <span className="text-[11px] font-semibold text-slate-400">{t.time}</span>
-                </div>
-                <p className="mb-5 text-[15px] leading-[1.7] text-slate-700">
-                  &ldquo;{t.text}&rdquo;
-                </p>
-                <div className="text-[12px] text-slate-400">{t.who}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Parents section moved above — now appears right after the hero */}
 
       {/* ── PRICING ── */}
       <section id="pricing" className="bg-slate-900 px-[6%] py-24">
@@ -659,46 +411,17 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ── COUNSELORS & TEST PREP ── */}
-      <section className="bg-white px-[6%] py-16">
-        <div className="mx-auto max-w-[900px] rounded-2xl border border-slate-200 bg-slate-50 px-8 py-10 md:flex md:items-center md:justify-between md:gap-10 md:px-12">
-          <div className="mb-6 md:mb-0">
-            <div className="mb-2 text-[11px] font-extrabold uppercase tracking-[0.15em] text-slate-400">
-              For Counselors &amp; Test Prep
-            </div>
-            <h3 className="mb-2 text-[clamp(20px,3vw,28px)] font-black leading-tight tracking-tight text-slate-900">
-              One recommendation. 300&nbsp;students&nbsp;helped.
-            </h3>
-            <p className="max-w-[420px] text-sm leading-relaxed text-slate-500">
-              Show students how score improvements translate into better school matches — and give every family a financial plan in&nbsp;minutes.
-            </p>
-          </div>
-          <div className="shrink-0">
-            <a href="mailto:hello@stairwayu.com?subject=Counselor%20%2F%20Test%20Prep%20Partnership" className="inline-block rounded-md bg-slate-900 px-8 py-3.5 text-[13px] font-extrabold uppercase tracking-[0.05em] text-white no-underline">
-              Partner With Us →
-            </a>
-          </div>
-        </div>
-      </section>
 
-      {/* ── FINAL CTA ── */}
-      <section className="relative h-[50vh] min-h-[360px] overflow-hidden">
-        <Image
-          src="https://images.unsplash.com/photo-1592280771190-3e2e4d571952?w=1920&q=85"
-          alt="College campus"
-          fill
-          sizes="100vw"
-          className="object-cover object-[center_60%]"
-        />
-        <div className="landing-cta-overlay absolute inset-0" />
-        <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
-          <h2 className="mb-8 max-w-[600px] text-[clamp(28px,4vw,56px)] font-black leading-[1.05] tracking-tight text-white">
-            Your dream school is waiting.
+      {/* ── FINAL CTA BANNER ── */}
+      <section className="bg-gradient-to-r from-teal-600 to-cyan-600 px-[6%] py-12">
+        <div className="mx-auto max-w-[1000px] text-center">
+          <h2 className="mb-6 text-[clamp(24px,3vw,40px)] font-black leading-tight tracking-tight text-white">
+            Ready to start?
           </h2>
-          <Link href="/signup" className="rounded-md bg-white px-13 py-4.5 text-[15px] font-black uppercase tracking-[0.03em] text-slate-900 no-underline">
+          <Link href="/signup" className="inline-block rounded-md bg-white px-10 py-3.5 text-[14px] font-extrabold uppercase tracking-[0.05em] text-slate-900 no-underline">
             Get Started Free
           </Link>
-          <div className="mt-4 text-xs tracking-[0.05em] text-white/40">
+          <div className="mt-3 text-sm text-white/80">
             No credit card required
           </div>
         </div>
@@ -709,7 +432,7 @@ export function LandingPage() {
         <div className="mx-auto flex max-w-[1100px] flex-wrap items-center justify-between gap-4">
           <img src="/stairwayu-wordmark.png" alt="Stairway U" className="h-9 w-auto" />
           <div className="flex gap-7">
-            {[{ label: 'Browse Colleges', href: '/colleges' }, { label: 'For Parents', href: '/parents' }, { label: 'Sign In', href: '/login' }, { label: 'Sign Up', href: '/signup' }, { label: 'Pricing', href: '/#pricing' }, { label: 'For Counselors', href: 'mailto:hello@stairwayu.com?subject=Counselor%20%2F%20Test%20Prep%20Partnership' }, { label: 'Terms', href: '/terms' }, { label: 'Privacy', href: '/privacy' }].map(l => (
+            {[{ label: 'Browse Colleges', href: '/colleges' }, { label: 'Sign In', href: '/login' }, { label: 'Sign Up', href: '/signup' }, { label: 'Pricing', href: '/#pricing' }, { label: 'Terms', href: '/terms' }, { label: 'Privacy', href: '/privacy' }].map(l => (
               <Link key={l.href} href={l.href} className="text-[13px] font-medium tracking-[0.03em] text-white/35 no-underline">
                 {l.label}
               </Link>

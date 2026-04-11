@@ -8,37 +8,76 @@ import type { Profile, Subscription } from '@/lib/types/database'
 import type { User } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { useXp } from '@/hooks/useXp'
-import { useUsage } from '@/hooks/useCredits'
-import { useViewMode } from '@/hooks/useViewMode'
+import {
+  LayoutDashboard,
+  Map,
+  Zap,
+  SlidersHorizontal,
+  BarChart3,
+  Scale,
+  Compass,
+  PenTool,
+  Trophy,
+  DollarSign,
+  User as UserIcon,
+} from 'lucide-react'
 import { Tooltip } from '@/components/ui/Tooltip'
 
-type NavItem = { href: string; icon: string; label: string; tip: string; proOnly: boolean }
+type NavItem = { href: string; icon: React.ReactNode; label: string; tip: string; proOnly: boolean }
+
+// Icon map for routes
+const ICON_MAP: Record<string, React.ReactNode> = {
+  '/dashboard': <LayoutDashboard size={18} />,
+  '/journey': <Map size={18} />,
+  '/strategy': <Zap size={18} />,
+  '/explore': <SlidersHorizontal size={18} />,
+  '/score-bands': <BarChart3 size={18} />,
+  '/compare': <Scale size={18} />,
+  '/find-major': <Compass size={18} />,
+  '/essays': <PenTool size={18} />,
+  '/scholarships': <Trophy size={18} />,
+  '/finance': <DollarSign size={18} />,
+  '/profile': <UserIcon size={18} />,
+}
 
 // Single source of truth for nav metadata, keyed by href
 const NAV_META: Record<string, NavItem> = {
-  '/dashboard':    { href: '/dashboard',    icon: '⊞',  label: 'Snapshot',        tip: 'Your snapshot — admission chances, stats, and next steps at a glance.', proOnly: false },
-  '/journey':      { href: '/journey',      icon: '🗺️',  label: 'Your Journey',    tip: 'Step-by-step milestones from freshman year through submission.', proOnly: false },
-  '/strategy':     { href: '/strategy',     icon: '⚡',  label: 'Strategy',        tip: 'AI-powered reach/target/safety strategy. Pro feature — uses AI calls.', proOnly: true },
-  '/explore':      { href: '/explore',      icon: '🎚️',  label: 'Explore',         tip: 'Slide your stats and discover matching schools instantly.', proOnly: false },
-  '/score-bands':  { href: '/score-bands',  icon: '📊',  label: 'Score Bands',     tip: 'Browse schools grouped by your admission chance tier.', proOnly: false },
-  '/compare':      { href: '/compare',      icon: '⚖️',  label: 'Compare',         tip: 'Side-by-side comparison of your saved schools. Pro feature.', proOnly: true },
-  '/find-major':   { href: '/find-major',   icon: '🧭', label: 'Find Your Major', tip: 'Explore majors that match your interests and strengths.', proOnly: false },
-  '/essays':       { href: '/essays',       icon: '✍️',  label: 'Essays',          tip: 'AI essay coaching — brainstorm + critique. Pro feature — uses AI calls.', proOnly: true },
-  '/scholarships': { href: '/scholarships', icon: '🏆',  label: 'Scholarships',    tip: 'Discover scholarships matched to your profile. Unlimited with Pro.', proOnly: true },
-  '/finance':      { href: '/finance',      icon: '💵',  label: 'College Cost',    tip: 'Plan how to pay for college — aid, loans, and family contribution.', proOnly: false },
-  '/profile':      { href: '/profile',      icon: '👤',  label: 'Profile',         tip: 'Edit your academic stats, preferences, and account settings.', proOnly: false },
+  '/dashboard':    { href: '/dashboard',    icon: ICON_MAP['/dashboard'],    label: 'Snapshot',        tip: 'Your snapshot — admission chances, stats, and next steps at a glance.', proOnly: false },
+  '/journey':      { href: '/journey',      icon: ICON_MAP['/journey'],      label: 'Your Journey',    tip: 'Step-by-step milestones from freshman year through submission.', proOnly: false },
+  '/strategy':     { href: '/strategy',     icon: ICON_MAP['/strategy'],     label: 'Strategy',        tip: 'AI-powered reach/target/safety strategy. Pro feature — uses AI calls.', proOnly: true },
+  '/explore':      { href: '/explore',      icon: ICON_MAP['/explore'],      label: 'Explore',         tip: 'Slide your stats and discover matching schools instantly.', proOnly: false },
+  '/score-bands':  { href: '/score-bands',  icon: ICON_MAP['/score-bands'],  label: 'Score Bands',     tip: 'Browse schools grouped by your admission chance tier.', proOnly: false },
+  '/compare':      { href: '/compare',      icon: ICON_MAP['/compare'],      label: 'Compare',         tip: 'Side-by-side comparison of your saved schools. Pro feature.', proOnly: true },
+  '/find-major':   { href: '/find-major',   icon: ICON_MAP['/find-major'],   label: 'Find Your Major', tip: 'Explore majors that match your interests and strengths.', proOnly: false },
+  '/essays':       { href: '/essays',       icon: ICON_MAP['/essays'],       label: 'Essays',          tip: 'AI essay coaching — brainstorm + critique. Pro feature — uses AI calls.', proOnly: true },
+  '/scholarships': { href: '/scholarships', icon: ICON_MAP['/scholarships'], label: 'Scholarships',    tip: 'Discover scholarships matched to your profile. Unlimited with Pro.', proOnly: true },
+  '/finance':      { href: '/finance',      icon: ICON_MAP['/finance'],      label: 'College Cost',    tip: 'Plan how to pay for college — aid, loans, and family contribution.', proOnly: false },
+  '/profile':      { href: '/profile',      icon: ICON_MAP['/profile'],      label: 'Profile',         tip: 'Edit your academic stats, preferences, and account settings.', proOnly: false },
 }
 
-const STUDENT_ORDER: string[] = [
-  '/dashboard', '/journey', '/find-major', '/explore', '/essays',
-  '/finance', '/scholarships', '/strategy', '/compare', '/score-bands', '/profile',
-]
+// Single nav structure with grouping
+interface NavGroup {
+  label?: string
+  items: string[]
+}
 
-// Mom mode pushes financial tools up; keeps everything else available below.
-const MOM_ORDER: string[] = [
-  '/dashboard', '/finance', '/scholarships', '/strategy', '/journey',
-  '/explore', '/score-bands', '/essays', '/find-major', '/compare', '/profile',
+const NAV_STRUCTURE: NavGroup[] = [
+  {
+    label: 'DISCOVER',
+    items: ['/explore', '/score-bands', '/find-major'],
+  },
+  {
+    label: 'APPLY',
+    items: ['/essays', '/strategy', '/compare'],
+  },
+  {
+    label: 'PLAN',
+    items: ['/finance', '/scholarships'],
+  },
+  {
+    label: undefined,
+    items: ['/dashboard', '/journey', '/profile'],
+  },
 ]
 
 interface SidebarProps {
@@ -47,28 +86,11 @@ interface SidebarProps {
   subscription: Pick<Subscription, 'tier' | 'status' | 'billing_interval'> | null
 }
 
-const LEVEL_COLORS = [
-  '#94A3B8', // Lv 1 – slate
-  '#94A3B8', // Lv 2 – slate
-  '#38BDF8', // Lv 3 – sky
-  '#38BDF8', // Lv 4 – sky
-  '#A78BFA', // Lv 5 – violet
-  '#A78BFA', // Lv 6 – violet
-  '#FBBF24', // Lv 7 – amber
-  '#FBBF24', // Lv 8 – amber
-  '#F87171', // Lv 9 – red
-  '#F87171', // Lv 10 – red
-]
-
 export function Sidebar({ user, profile, subscription }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
   const [mobileOpen, setMobileOpen] = useState(false)
-  const { level, totalXp, xpIntoLevel, xpForNextLevel, isMaxLevel, isLoading: xpLoading } = useXp(user.id)
-  const { data: usage } = useUsage()
-  const [viewMode] = useViewMode()
-  const navItems = (viewMode === 'mom' ? MOM_ORDER : STUDENT_ORDER).map(href => NAV_META[href])
 
   // Close drawer on route change
   useEffect(() => {
@@ -147,185 +169,90 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
       </div>
 
       <div className="sidebar__nav">
-        {navItems.map(item => {
-          const tourAttr: Record<string, string> = {
-            '/journey': 'nav-journey',
-            '/explore': 'nav-explore',
-            '/score-bands': 'nav-score-bands',
-            '/strategy': 'nav-strategy',
-            '/essays': 'nav-essays',
-            '/scholarships': 'nav-scholarships',
-          }
-          const active = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
-          return (
-            <Tooltip key={item.href} text={item.tip} position="right" delay={500}>
-            <Link href={item.href} className={`sidebar__nav-item ${active ? 'sidebar__nav-item--active' : ''}`} aria-current={active ? 'page' : undefined} data-tour={tourAttr[item.href]}>
-              {active && (
+        {NAV_STRUCTURE.map((group, groupIdx) => (
+          <div key={groupIdx}>
+            {/* Section header (if label exists) */}
+            {group.label && (
+              <div style={{
+                fontSize: 11,
+                fontWeight: 600,
+                letterSpacing: '0.05em',
+                color: 'var(--color-text-muted)',
+                padding: '12px 20px 8px 20px',
+                textTransform: 'uppercase',
+              }}>
+                {group.label}
+              </div>
+            )}
+
+            {/* Nav items in this group */}
+            {group.items.map(href => {
+              const item = NAV_META[href]
+              const tourAttr: Record<string, string> = {
+                '/journey': 'nav-journey',
+                '/explore': 'nav-explore',
+                '/score-bands': 'nav-score-bands',
+                '/strategy': 'nav-strategy',
+                '/essays': 'nav-essays',
+                '/scholarships': 'nav-scholarships',
+              }
+              const active = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
+              return (
+                <Tooltip key={item.href} text={item.tip} position="right" delay={500}>
+                  <Link
+                    href={item.href}
+                    className={`sidebar__nav-item ${active ? 'sidebar__nav-item--active' : ''}`}
+                    aria-current={active ? 'page' : undefined}
+                    data-tour={tourAttr[item.href]}
+                  >
+                    {active && (
+                      <motion.div
+                        layoutId="sidebar-active-bg"
+                        className="sidebar__nav-item-bg"
+                        transition={{ type: 'spring', stiffness: 400, damping: 35 }}
+                      />
+                    )}
+                    <span style={{ position: 'relative' }}>{item.icon}</span>
+                    <span style={{ position: 'relative', flex: 1 }}>{item.label}</span>
+                  </Link>
+                </Tooltip>
+              )
+            })}
+          </div>
+        ))}
+
+        {/* Admin-only nav link */}
+        {profile?.account_tier === 'admin' && (
+          <>
+            <div style={{
+              height: 1,
+              background: 'var(--color-border)',
+              margin: '12px 20px',
+            }} />
+            <Link
+              href="/admin"
+              className={`sidebar__nav-item ${pathname === '/admin' ? 'sidebar__nav-item--active' : ''}`}
+              aria-current={pathname === '/admin' ? 'page' : undefined}
+            >
+              {pathname === '/admin' && (
                 <motion.div
                   layoutId="sidebar-active-bg"
                   className="sidebar__nav-item-bg"
                   transition={{ type: 'spring', stiffness: 400, damping: 35 }}
                 />
               )}
-              <span style={{ fontSize: 15, position: 'relative' }}>{item.icon}</span>
-              <span style={{ position: 'relative', flex: 1 }}>{item.label}</span>
-              {!isPro && item.proOnly && (
-                <span style={{
-                  position: 'relative',
-                  fontSize: 8, fontWeight: 800, letterSpacing: '0.06em',
-                  background: 'linear-gradient(135deg, #6366f1, #a855f7)',
-                  color: '#fff', borderRadius: 4,
-                  padding: '2px 5px', lineHeight: 1,
-                }}>
-                  PRO
-                </span>
-              )}
+              <span style={{ position: 'relative' }}>⚙️</span>
+              <span style={{ position: 'relative', flex: 1 }}>Admin</span>
             </Link>
-            </Tooltip>
-          )
-        })}
-
-        {/* Admin-only nav link */}
-        {profile?.account_tier === 'admin' && (
-          <Link
-            href="/admin"
-            className={`sidebar__nav-item ${pathname === '/admin' ? 'sidebar__nav-item--active' : ''}`}
-            aria-current={pathname === '/admin' ? 'page' : undefined}
-          >
-            {pathname === '/admin' && (
-              <motion.div
-                layoutId="sidebar-active-bg"
-                className="sidebar__nav-item-bg"
-                transition={{ type: 'spring', stiffness: 400, damping: 35 }}
-              />
-            )}
-            <span style={{ fontSize: 15, position: 'relative' }}>🔧</span>
-            <span style={{ position: 'relative', flex: 1 }}>Admin</span>
-          </Link>
+          </>
         )}
       </div>
 
       {/* Footer */}
       <div style={{ padding: '16px 20px', borderTop: '1px solid var(--color-border)' }}>
-        {isPro ? (
-          <Link
-            href="/profile#referrals"
-            style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              padding: '8px 10px', borderRadius: 8, marginBottom: 10,
-              background: 'rgba(94,234,212,0.06)',
-              border: '1px solid rgba(94,234,212,0.15)',
-              textDecoration: 'none', color: 'var(--color-text)',
-              fontSize: 12, fontWeight: 600,
-            }}
-          >
-            <span style={{ fontSize: 14 }}>🎁</span>
-            <div>
-              <div>Suggest to a Friend</div>
-              <div style={{ fontSize: 10, fontWeight: 400, color: 'var(--color-text-muted)' }}>Earn 50 XP + 7 days Pro free</div>
-            </div>
-          </Link>
-        ) : (
-          <Link
-            href="/upgrade"
-            style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              padding: '8px 10px', borderRadius: 8, marginBottom: 10,
-              background: 'linear-gradient(135deg, rgba(99,102,241,0.10), rgba(168,85,247,0.10))',
-              border: '1px solid rgba(99,102,241,0.20)',
-              textDecoration: 'none', color: 'var(--color-text)',
-              fontSize: 12, fontWeight: 600,
-            }}
-          >
-            <span style={{ fontSize: 14 }}>⚡</span>
-            <div>
-              <div style={{ fontWeight: 700 }}>Upgrade to Pro</div>
-              <div style={{ fontSize: 10, fontWeight: 400, color: 'var(--color-text-muted)' }}>Unlimited AI, colleges & more</div>
-            </div>
-          </Link>
-        )}
-
-        {isPro && (
-          <div style={{ fontSize: 11, fontWeight: 700, color: typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'dark' ? '#FCD34D' : '#d97706', background: typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'dark' ? 'rgba(252,211,77,0.10)' : 'rgba(217,119,6,0.1)', borderRadius: 8, padding: '4px 10px', textAlign: 'center', marginBottom: 12 }}>
-            {subscription?.status === 'trialing'
-              ? '⚡ Pro Trial'
-              : subscription?.billing_interval === 'year'
-              ? '⚡ Pro · Annual'
-              : '⚡ Pro · Monthly'}
-          </div>
-        )}
-
-        {usage && (
-          <Tooltip
-            text={usage.isPro ? `${usage.used} AI calls today (unlimited)` : `${usage.used}/${usage.limit} AI calls used today`}
-            position="right" maxWidth={220}
-          >
-            <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '6px 10px', borderRadius: 8, marginBottom: 10,
-              background: 'color-mix(in srgb, var(--color-border) 40%, transparent)',
-              fontSize: 11, fontWeight: 600,
-            }}>
-              <span>
-                {usage.isPro
-                  ? `${usage.used} AI calls today`
-                  : `${usage.remaining} AI calls left today`}
-              </span>
-              {!usage.isPro && usage.remaining === 0 && (
-                <Link
-                  href="/upgrade"
-                  style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-primary)', textDecoration: 'none' }}
-                  onClick={e => e.stopPropagation()}
-                >
-                  Upgrade
-                </Link>
-              )}
-            </div>
-          </Tooltip>
-        )}
-
-        {/* XP Level badge + progress */}
-        {!xpLoading && (
-          <Tooltip text="Earn XP by completing tasks, generating strategies, and logging in daily. Level up to track your progress." position="right" maxWidth={240}>
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 8,
-            padding: '6px 10px', borderRadius: 8, marginBottom: 10,
-            background: 'color-mix(in srgb, var(--color-border) 40%, transparent)',
-          }}>
-            <div
-              style={{
-                width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 11, fontWeight: 800, color: '#fff',
-                background: LEVEL_COLORS[level - 1] ?? LEVEL_COLORS[0],
-              }}
-            >
-              {level}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text)', marginBottom: 2 }}>
-                Level {level} · {totalXp} XP
-              </div>
-              {!isMaxLevel && xpForNextLevel != null && (
-                <div style={{ height: 3, background: 'var(--color-border)', borderRadius: 99, overflow: 'hidden' }}>
-                  <div style={{
-                    height: '100%', borderRadius: 99,
-                    background: LEVEL_COLORS[level - 1] ?? LEVEL_COLORS[0],
-                    width: `${Math.min(100, (xpIntoLevel / xpForNextLevel) * 100)}%`,
-                    transition: 'width 0.4s ease-out',
-                  }} />
-                </div>
-              )}
-              {isMaxLevel && (
-                <div style={{ fontSize: 9, color: 'var(--color-text-muted)', fontWeight: 600 }}>MAX LEVEL</div>
-              )}
-            </div>
-          </div>
-          </Tooltip>
-        )}
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'space-between' }}>
-          <div style={{ overflow: 'hidden' }}>
+        {/* User info */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'space-between', marginBottom: 12 }}>
+          <div style={{ overflow: 'hidden', minWidth: 0 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {profile?.display_name || user.email?.split('@')[0]}
             </div>
@@ -334,15 +261,31 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
             </div>
           </div>
           <Tooltip text="Sign out of your account." position="top">
-          <button
-            onClick={handleSignOut}
-            aria-label="Sign out"
-            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: 'var(--color-text-muted)', padding: '4px', borderRadius: 6, flexShrink: 0 }}
-          >
-            ↩
-          </button>
+            <button
+              onClick={handleSignOut}
+              aria-label="Sign out"
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: 'var(--color-text-muted)', padding: '4px', borderRadius: 6, flexShrink: 0 }}
+            >
+              ↩
+            </button>
           </Tooltip>
         </div>
+
+        {/* Upgrade to Pro link (if not pro) */}
+        {subscription?.tier !== 'pro' && (
+          <Link
+            href="/upgrade"
+            style={{
+              display: 'block',
+              fontSize: 12,
+              color: 'var(--color-primary)',
+              textDecoration: 'none',
+              fontWeight: 500,
+            }}
+          >
+            Upgrade to Pro
+          </Link>
+        )}
       </div>
     </>
   )

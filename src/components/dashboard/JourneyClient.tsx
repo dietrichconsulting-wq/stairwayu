@@ -7,6 +7,7 @@ import { MILESTONES } from '@/lib/milestones'
 import { PhaseUnlockOverlay } from './PhaseUnlockOverlay'
 import { TaskList } from './TaskList'
 import { useTasks } from '@/hooks/useTasks'
+import { useAchievements } from '@/hooks/useAchievements'
 
 const isDark = () => document.documentElement.getAttribute('data-theme') === 'dark'
 const getPhases = () => isDark() ? [
@@ -26,6 +27,7 @@ export function JourneyClient({ userId }: { userId: string }) {
   const milestones: MilestoneRecord[] = milestonesQuery.data ?? []
   const markMilestoneMutation = useMarkMilestone(userId)
   const { data: tasks = [], isLoading: tasksLoading } = useTasks(userId)
+  const { earned, locked, total: achievementTotal } = useAchievements(userId)
 
   const [unlockedPhase, setUnlockedPhase] = useState<string | null>(null)
   const dismissOverlay = useCallback(() => setUnlockedPhase(null), [])
@@ -81,7 +83,7 @@ export function JourneyClient({ userId }: { userId: string }) {
 
       {/* ── Left: milestone list ── */}
       <div className="journey-layout__list" style={{ flex: '0 0 400px', minWidth: 0 }}>
-        <h1 style={{ fontSize: 26, fontWeight: 800, marginBottom: 6 }}>Your Journey 🗺️</h1>
+        <h1 style={{ fontSize: 26, fontWeight: 800, marginBottom: 6 }}>Your Journey</h1>
         <p style={{ fontSize: 14, color: 'var(--color-text-muted)', marginBottom: 32 }}>
           Track your progress toward key milestones on the road to acceptance. · {reached.size} of {MILESTONES.length} reached
         </p>
@@ -130,7 +132,7 @@ export function JourneyClient({ userId }: { userId: string }) {
                       {m.label}
                     </span>
                     <span style={{
-                      fontSize: 9, fontWeight: 700, padding: '1px 7px', borderRadius: 20,
+                      fontSize: 11, fontWeight: 700, padding: '1px 7px', borderRadius: 20,
                       background: phase.bg, color: phase.color,
                     }}>
                       {m.phase}
@@ -164,7 +166,7 @@ export function JourneyClient({ userId }: { userId: string }) {
           </div>
 
           <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg width="172" height="172" viewBox="0 0 172 172" style={{ transform: 'rotate(-90deg)' }}>
+            <svg width="172" height="172" viewBox="0 0 172 172" style={{ transform: 'rotate(-90deg)' }} role="img" aria-label={`${pct}% journey progress`}>
               {/* Render phase segments */}
               {(() => {
                 const R = 72
@@ -236,47 +238,6 @@ export function JourneyClient({ userId }: { userId: string }) {
           </div>
         </motion.div>
 
-        {/* Phase breakdown bars */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
-          className="card-elevated"
-          style={{ padding: '20px 24px' }}
-        >
-          <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 16 }}>
-            Phase Breakdown
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {phaseStats.map((phase, pi) => (
-              <motion.div
-                key={phase.label}
-                initial={{ opacity: 0, x: 12 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 + pi * 0.08 }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: phase.done === phase.total ? phase.color : 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 5 }}>
-                    {phase.done === phase.total && <span style={{ fontSize: 11 }}>✓</span>}
-                    {phase.label}
-                  </span>
-                  <span style={{ fontSize: 12, fontWeight: 800, color: phase.color }}>
-                    {phase.done}/{phase.total}
-                  </span>
-                </div>
-                <div style={{ height: 10, background: 'var(--color-border)', borderRadius: 99, overflow: 'hidden' }}>
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${(phase.done / phase.total) * 100}%` }}
-                    transition={{ duration: 0.9, delay: 0.4 + pi * 0.1, ease: 'easeOut' }}
-                    style={{ height: '100%', background: phase.color, borderRadius: 99 }}
-                  />
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-
         {/* Next up / Complete */}
         {nextMilestone ? (
           <motion.div
@@ -286,7 +247,7 @@ export function JourneyClient({ userId }: { userId: string }) {
             className="card-elevated"
             style={{ padding: '18px 20px', borderLeft: '3px solid var(--color-primary)' }}
           >
-            <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
               Up Next
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
@@ -326,11 +287,56 @@ export function JourneyClient({ userId }: { userId: string }) {
 
       {/* ── Task list — project management lives here, not on the dashboard ── */}
       <div style={{ marginTop: 40, paddingTop: 32, borderTop: '1px solid var(--color-border)' }}>
-        <h2 style={{ fontSize: 20, fontWeight: 800, marginBottom: 6 }}>Task List ✅</h2>
+        <h2 style={{ fontSize: 20, fontWeight: 800, marginBottom: 6 }}>Task List</h2>
         <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 20 }}>
           Track every step of your college application — check them off as you go.
         </p>
         <TaskList tasks={tasks} loading={tasksLoading} userId={userId} collapsedMax={8} />
+      </div>
+
+      {/* ── Achievements ── */}
+      <div style={{ marginTop: 40, paddingTop: 32, borderTop: '1px solid var(--color-border)' }}>
+        <h2 style={{ fontSize: 20, fontWeight: 800, marginBottom: 6 }}>Achievements</h2>
+        <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 20 }}>
+          {earned.length} of {achievementTotal} unlocked
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10 }}>
+          {earned.map(a => (
+            <motion.div
+              key={a.key}
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              style={{
+                background: 'color-mix(in srgb, var(--color-primary) 8%, var(--color-column))',
+                border: '1.5px solid color-mix(in srgb, var(--color-primary) 25%, var(--color-border))',
+                borderRadius: 12,
+                padding: '14px 12px',
+                textAlign: 'center',
+              }}
+            >
+              <div style={{ fontSize: 28, lineHeight: 1, marginBottom: 6 }}>{a.emoji}</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{a.label}</div>
+              <div style={{ fontSize: 10, color: 'var(--color-text-muted)', marginTop: 2, lineHeight: 1.3 }}>{a.description}</div>
+            </motion.div>
+          ))}
+          {locked.map(a => (
+            <div
+              key={a.key}
+              style={{
+                background: 'var(--color-column)',
+                border: '1.5px solid var(--color-border)',
+                borderRadius: 12,
+                padding: '14px 12px',
+                textAlign: 'center',
+                opacity: 0.45,
+              }}
+            >
+              <div style={{ fontSize: 28, lineHeight: 1, marginBottom: 6, filter: 'grayscale(1)' }}>{a.emoji}</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-muted)' }}>{a.label}</div>
+              <div style={{ fontSize: 10, color: 'var(--color-text-muted)', marginTop: 2, lineHeight: 1.3 }}>{a.description}</div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )

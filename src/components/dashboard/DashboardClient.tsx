@@ -11,7 +11,7 @@ import { AdmissionSnapshot } from './AdmissionSnapshot'
 import { useUpdateProfile } from '@/hooks/useProfile'
 import { useStreak } from '@/hooks/useStreak'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { showToast } from '@/components/CelebrationToast'
 import { WelcomeTour } from './WelcomeTour'
 import { DailyChallenges } from './DailyChallenges'
@@ -39,16 +39,10 @@ export function DashboardClient({ userId }: DashboardClientProps) {
     return "You're basically ready to hit submit. Let's go. 🎯"
   }
 
-  // ── Welcome tour ──
+  // ── Welcome tour (kept available via ? button, no auto-trigger) ──
   const [showTour, setShowTour] = useState(false)
 
-  useEffect(() => {
-    if (!profileLoading && profile && profile.onboarding_complete && !profile.walkthrough_complete) {
-      try { if (localStorage.getItem('stairwayu_tour_done')) return } catch {}
-      const timer = setTimeout(() => setShowTour(true), 1500)
-      return () => clearTimeout(timer)
-    }
-  }, [profileLoading, profile])
+  // Removed auto-trigger of welcome tour on mount — users can access via help button if needed
 
   const handleTourComplete = useCallback(() => {
     setShowTour(false)
@@ -137,6 +131,9 @@ export function DashboardClient({ userId }: DashboardClientProps) {
     try { localStorage.setItem('stairwayu_view_mode_hint_seen', '1') } catch {}
   }, [setViewMode])
 
+  // ── Collapsible "More" section ──
+  const [showMoreSection, setShowMoreSection] = useState(false)
+
   const QUICK_ACTIONS_STUDENT = [
     { label: 'Compare Schools', href: '/compare', icon: '⚖️', tip: 'Compare tuition, admit rates, and stats side-by-side for your saved schools.' },
     { label: 'Start Essay', href: '/essays', icon: '✍️', tip: 'Discover your best essay angle and get feedback that keeps your authentic voice.' },
@@ -197,172 +194,17 @@ export function DashboardClient({ userId }: DashboardClientProps) {
 
   return (
     <div style={{ maxWidth: 900, width: '100%' }}>
-      {/* Referral error banner */}
-      {referralError && (
-        <div style={{
-          background: 'rgba(239,68,68,0.08)',
-          border: '1.5px solid rgba(239,68,68,0.25)',
-          borderRadius: 12,
-          padding: '12px 16px',
-          marginBottom: 20,
-          fontSize: 13,
-          color: 'var(--color-text)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 8,
-        }}>
-          <span>Couldn&apos;t process your referral link.</span>
-          <button
-            onClick={() => { fulfillAttempted.current = false; fulfillReferral() }}
-            style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              fontSize: 13, fontWeight: 700, color: '#EF4444', padding: 0, flexShrink: 0,
-            }}
-          >
-            Retry
-          </button>
-        </div>
-      )}
+      {/* ── Page Header with View Mode Toggle (small pill) ── */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
+        <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text)', margin: 0 }}>
+          {profileLoading ? '…' : viewMode === 'mom'
+            ? `${profile?.display_name?.split(' ')[0] || 'Your student'}'s College Plan 🎓`
+            : `Welcome back, ${profile?.display_name?.split(' ')[0] || 'Student'} 👋`}
+        </h1>
 
-      {/* Referral welcome toast */}
-      {referralToast && (
-        <div style={{
-          background: 'rgba(99,102,241,0.15)',
-          border: '1.5px solid rgba(99,102,241,0.35)',
-          borderRadius: 12,
-          padding: '12px 16px',
-          marginBottom: 20,
-          fontSize: 14,
-          fontWeight: 600,
-          color: 'var(--color-text)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 8,
-        }}>
-          <span>{referralToast}</span>
-          <button
-            onClick={() => setReferralToast(null)}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: 'var(--color-text-muted)', padding: 0, lineHeight: 1, flexShrink: 0 }}
-          >
-            ×
-          </button>
-        </div>
-      )}
-
-      {/* ── View mode toggle ── */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 14, position: 'relative' }}>
-        <div
-          role="tablist"
-          aria-label="View mode"
-          style={{
-            display: 'inline-flex',
-            padding: 3,
-            borderRadius: 99,
-            background: 'var(--color-column)',
-            border: '1.5px solid var(--color-border)',
-            gap: 2,
-            position: 'relative',
-            zIndex: 1,
-          }}
-        >
-          {([
-            { key: 'student', label: 'Student', icon: '🎓' },
-            { key: 'mom', label: 'Mom Mode', icon: '👪' },
-          ] as const).map(opt => {
-            const active = viewMode === opt.key
-            return (
-              <button
-                key={opt.key}
-                role="tab"
-                aria-selected={active}
-                onClick={() => handleSetViewMode(opt.key)}
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 6,
-                  padding: '7px 16px', borderRadius: 99, border: 'none',
-                  background: active ? 'var(--color-primary)' : 'transparent',
-                  color: active ? '#fff' : 'var(--color-text-muted)',
-                  fontWeight: 700, fontSize: 13, cursor: 'pointer',
-                  transition: 'all 0.15s',
-                }}
-              >
-                <span style={{ fontSize: 14 }}>{opt.icon}</span>
-                {opt.label}
-              </button>
-            )
-          })}
-        </div>
-
-        {/* Hand-drawn "try Mom Mode" hint — dismisses on first click */}
-        {!hintDismissed && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ delay: 0.8, duration: 0.4 }}
-            aria-hidden
-            style={{
-              position: 'absolute',
-              top: 'calc(100% + 6px)',
-              right: 28,
-              width: 180,
-              pointerEvents: 'none',
-              zIndex: 0,
-              color: 'var(--color-text-muted)',
-              fontFamily: '"Caveat", "Patrick Hand", "Bradley Hand", cursive',
-              fontSize: 18,
-              lineHeight: 1.15,
-              textAlign: 'center',
-            }}
-          >
-            <svg
-              width="80"
-              height="72"
-              viewBox="0 0 80 72"
-              style={{
-                position: 'absolute',
-                top: -4,
-                right: 30,
-                overflow: 'visible',
-              }}
-            >
-              {/* Hand-drawn curved arrow pointing up-right toward the toggle */}
-              <path
-                d="M 60 60 C 55 40, 48 22, 58 6"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeDasharray="0"
-                opacity="0.7"
-              />
-              {/* Arrowhead */}
-              <path
-                d="M 52 12 L 58 4 L 64 14"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                opacity="0.7"
-              />
-            </svg>
-            <div style={{ marginTop: 58 }}>
-              Are you a parent?<br />Try Mom Mode
-            </div>
-          </motion.div>
-        )}
-      </div>
-
-      {/* Header */}
-      <div style={{ marginBottom: 28 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-          <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text)', margin: 0 }}>
-            {profileLoading ? '…' : viewMode === 'mom'
-              ? `${profile?.display_name?.split(' ')[0] || 'Your student'}'s College Plan 🎓`
-              : `Welcome back, ${profile?.display_name?.split(' ')[0] || 'Student'} 👋`}
-          </h1>
+        {/* Small view mode toggle + help button */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {/* Streak badge */}
           {!streakLoading && streak > 0 && (
             <Tooltip text="Your login streak. Visit the dashboard each day to keep it going and earn bonus XP." position="bottom">
             <motion.div
@@ -393,17 +235,76 @@ export function DashboardClient({ userId }: DashboardClientProps) {
             </motion.div>
             </Tooltip>
           )}
+
+          {/* Small view mode pill */}
+          <div
+            role="tablist"
+            aria-label="View mode"
+            style={{
+              display: 'inline-flex',
+              padding: 3,
+              borderRadius: 99,
+              background: 'var(--color-column)',
+              border: '1.5px solid var(--color-border)',
+              gap: 2,
+            }}
+          >
+            {([
+              { key: 'student', label: '🎓', icon: '🎓' },
+              { key: 'mom', label: '👪', icon: '👪' },
+            ] as const).map(opt => {
+              const active = viewMode === opt.key
+              return (
+                <Tooltip key={opt.key} text={opt.key === 'student' ? 'Student View' : 'Mom Mode'} position="bottom">
+                <button
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => handleSetViewMode(opt.key)}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    width: 32, height: 32, borderRadius: 99, border: 'none',
+                    background: active ? 'var(--color-primary)' : 'transparent',
+                    color: active ? '#fff' : 'var(--color-text-muted)',
+                    fontWeight: 700, fontSize: 14, cursor: 'pointer',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  {opt.icon}
+                </button>
+                </Tooltip>
+              )
+            })}
+          </div>
+
+          {/* Help button for tour */}
+          <Tooltip text="Take the tour" position="bottom">
+          <button
+            onClick={() => setShowTour(true)}
+            style={{
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              width: 32, height: 32, borderRadius: 99, border: '1.5px solid var(--color-border)',
+              background: 'transparent',
+              color: 'var(--color-text-muted)',
+              fontWeight: 700, fontSize: 14, cursor: 'pointer',
+              transition: 'all 0.15s',
+            }}
+          >
+            ?
+          </button>
+          </Tooltip>
         </div>
-        <p style={{ fontSize: 14, color: 'var(--color-text-muted)', marginTop: 4 }}>
-          {scoreLoading
-            ? 'Loading your progress…'
-            : viewMode === 'mom'
-              ? 'Chances of admission and how to pay for it — all in one place.'
-              : getSubtitle(readinessTotal)}
-        </p>
       </div>
 
-      {/* ── Hero: Admission Chances (always first — it's what both audiences care most about) ── */}
+      {/* Subtitle */}
+      <p style={{ fontSize: 14, color: 'var(--color-text-muted)', marginBottom: 20 }}>
+        {scoreLoading
+          ? 'Loading your progress…'
+          : viewMode === 'mom'
+            ? 'Chances of admission and how to pay for it — all in one place.'
+            : getSubtitle(readinessTotal)}
+      </p>
+
+      {/* ── Hero: Admission Chances (always first) ── */}
       <AdmissionSnapshot
         profile={profile}
         colleges={colleges}
@@ -411,227 +312,283 @@ export function DashboardClient({ userId }: DashboardClientProps) {
         onAddSchool={name => addCollege.mutate({ name })}
       />
 
-      {/* ── Sections below hero reorder based on view mode ── */}
-      {(() => {
-        const statsSection = (
-          <div key="stats" style={{ marginTop: 20 }}>
-            <ProfileStats profile={profile} loading={profileLoading} tasks={tasks} userId={userId} />
-          </div>
-        )
-        const challengesSection = (
-          <div key="challenges" style={{ marginTop: 20 }}>
-            <DailyChallenges userId={userId} />
-          </div>
-        )
+      {/* ── ABOVE FOLD: Quick Stats ── */}
+      <div style={{ marginBottom: 20 }}>
+        <ProfileStats profile={profile} loading={profileLoading} tasks={tasks} userId={userId} />
+      </div>
 
-        const ecEntries = profile?.ec_entries?.filter(e => e.name.trim()) ?? []
-        const ecScore = scoreECs(ecEntries)
-        const hasECs = ecEntries.length > 0
-        const ecSection = profileLoading ? null : (
-          <motion.div
-            key="ec"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="card-elevated"
-            style={{ padding: '16px 20px', marginTop: 20 }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 0 }}>
-                <Tooltip text="Your extracurricular score is computed from your top 5 activities by tier. This factors directly into your admission odds." position="bottom" maxWidth={260}>
-                <div style={{
-                  width: 44, height: 44, borderRadius: 12,
-                  background: hasECs
-                    ? 'color-mix(in srgb, var(--color-primary) 10%, var(--color-column))'
-                    : 'var(--color-column)',
-                  border: hasECs
-                    ? '1.5px solid color-mix(in srgb, var(--color-primary) 25%, var(--color-border))'
-                    : '1.5px solid var(--color-border)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 20, flexShrink: 0,
-                }}>
-                  {hasECs ? '🏆' : '📋'}
-                </div>
-                </Tooltip>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>
-                    {hasECs ? (
-                      <>Extracurricular Score: <span style={{ color: 'var(--color-primary)' }}>{ecScore}/15</span></>
-                    ) : (
-                      'Add your extracurriculars'
+      {/* ── Next Steps Section (Next 2-3 incomplete tasks) ── */}
+      {tasks && tasks.length > 0 && (
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>
+            Next Steps
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {tasks
+              .filter(t => !t.completed_at)
+              .slice(0, 3)
+              .map(task => (
+                <motion.div key={task.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    padding: '12px 14px',
+                    background: 'var(--color-card)',
+                    border: '1.5px solid var(--color-border)',
+                    borderRadius: 10,
+                  }}>
+                  <input type="checkbox" checked={!!task.completed_at} readOnly style={{ width: 18, height: 18, cursor: 'pointer' }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{task.title}</div>
+                    {task.description && (
+                      <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 2 }}>{task.description}</div>
                     )}
                   </div>
-                  <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 1 }}>
-                    {hasECs ? (
-                      <>
-                        {ecEntries.length} activit{ecEntries.length === 1 ? 'y' : 'ies'} tracked
-                        {ecScore < 15 && ' — add stronger activities to boost your score'}
-                      </>
-                    ) : (
-                      'Activities factor into your admission odds — higher tiers = more impact'
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {hasECs && (
-                <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-                  {[1, 2, 3, 4].map(tier => {
-                    const count = ecEntries.filter(e => e.tier === tier).length
-                    if (count === 0) return null
-                    const colors = tier === 1
-                      ? { bg: 'rgba(251,191,36,0.12)', text: '#D97706', border: 'rgba(251,191,36,0.3)' }
-                      : tier === 2
-                        ? { bg: 'rgba(52,211,153,0.10)', text: '#059669', border: 'rgba(52,211,153,0.25)' }
-                        : tier === 3
-                          ? { bg: 'rgba(96,165,250,0.10)', text: '#2563EB', border: 'rgba(96,165,250,0.25)' }
-                          : { bg: 'rgba(148,163,184,0.10)', text: '#64748B', border: 'rgba(148,163,184,0.25)' }
-                    return (
-                      <Tooltip key={tier} text={`${count} Tier ${tier} activit${count === 1 ? 'y' : 'ies'} (+${EC_TIER_POINTS[tier]} pts each)`} position="top">
-                      <span style={{
-                        fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 12,
-                        background: colors.bg, color: colors.text, border: `1px solid ${colors.border}`,
-                        whiteSpace: 'nowrap',
-                      }}>
-                        T{tier} ×{count}
-                      </span>
-                      </Tooltip>
-                    )
-                  })}
-                </div>
-              )}
-
-              <Link
-                href="/profile"
-                style={{
-                  fontSize: 12, fontWeight: 700, color: 'var(--color-primary)',
-                  textDecoration: 'none', flexShrink: 0, whiteSpace: 'nowrap',
-                }}
-              >
-                {hasECs ? 'Edit activities →' : '+ Add activities →'}
-              </Link>
-            </div>
-          </motion.div>
-        )
-
-        const quickActionsSection = (
-          <div key="actions" data-tour="quick-actions" style={{
-            display: 'flex', gap: 12, marginTop: 20, flexWrap: 'wrap',
-          }}>
-            {QUICK_ACTIONS.map(({ label, href, icon, tip }) => (
-          <Tooltip key={href} text={tip} position="bottom">
-          <Link
-            href={href}
-            style={{
-              flex: '1 1 0',
-              minWidth: 140,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-              padding: '12px 16px',
-              borderRadius: 12,
-              border: '1.5px solid var(--color-border)',
-              background: 'var(--color-card)',
-              color: 'var(--color-text)',
-              textDecoration: 'none',
-              fontSize: 13,
-              fontWeight: 700,
-              transition: 'border-color 0.15s, background 0.15s',
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.borderColor = 'var(--color-primary)'
-              e.currentTarget.style.background = 'color-mix(in srgb, var(--color-primary) 6%, var(--color-card))'
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.borderColor = 'var(--color-border)'
-              e.currentTarget.style.background = 'var(--color-card)'
-            }}
-          >
-            <span style={{ fontSize: 16 }}>{icon}</span>
-            {label}
-          </Link>
-          </Tooltip>
-            ))}
-          </div>
-        )
-
-        const shareSection = (
-          <div key="share" style={{
-            marginTop: 16,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            padding: '14px 18px',
-            borderRadius: 12,
-            border: '1.5px solid var(--color-border)',
-            background: 'linear-gradient(135deg, rgba(59,130,246,0.06), rgba(168,85,247,0.06))',
-          }}>
-        <span style={{ fontSize: 20 }}>🎓</span>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
-            Share with Family
-            {pledgeCount > 0 && (
-              <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 800, color: '#2dd4bf', background: 'rgba(45,212,191,0.12)', padding: '2px 8px', borderRadius: 10 }}>
-                ${pledgeTotal.toLocaleString()} pledged
-              </span>
-            )}
-          </div>
-          <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 2 }}>
-            {pledgeCount > 0
-              ? `${pledgeCount} ${pledgeCount === 1 ? 'person has' : 'people have'} pledged toward your college fund.`
-              : 'Send your college list to family — they can see your schools, odds, and pledge toward your 529.'}
+                </motion.div>
+              ))}
           </div>
         </div>
-        <button
-          onClick={handleShare}
-          disabled={shareLoading}
-          style={{
-            padding: '8px 16px',
-            borderRadius: 8,
-            border: 'none',
-            background: shareCopied ? '#22c55e' : 'var(--color-primary)',
-            color: 'white',
-            fontSize: 12,
-            fontWeight: 700,
-            cursor: shareLoading ? 'wait' : 'pointer',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {shareCopied ? '✓ Link Copied!' : shareLoading ? 'Creating…' : 'Copy Share Link'}
-        </button>
-          </div>
-        )
+      )}
 
-        const shareUrlLine = shareUrl && !shareCopied ? (
-          <div key="shareurl" style={{ marginTop: 6, fontSize: 11, color: 'var(--color-text-muted)', wordBreak: 'break-all' }}>
-            {shareUrl}
-          </div>
-        ) : null
+      {/* ── Quick Actions (always visible) ── */}
+      <div data-tour="quick-actions" style={{
+        display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap',
+      }}>
+        {QUICK_ACTIONS.map(({ label, href, icon, tip }) => (
+      <Tooltip key={href} text={tip} position="bottom">
+      <Link
+        href={href}
+        style={{
+          flex: '1 1 0',
+          minWidth: 140,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8,
+          padding: '12px 16px',
+          borderRadius: 12,
+          border: '1.5px solid var(--color-border)',
+          background: 'var(--color-card)',
+          color: 'var(--color-text)',
+          textDecoration: 'none',
+          fontSize: 13,
+          fontWeight: 700,
+          transition: 'border-color 0.15s, background 0.15s',
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.borderColor = 'var(--color-primary)'
+          e.currentTarget.style.background = 'color-mix(in srgb, var(--color-primary) 6%, var(--color-card))'
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.borderColor = 'var(--color-border)'
+          e.currentTarget.style.background = 'var(--color-card)'
+        }}
+      >
+        <span style={{ fontSize: 16 }}>{icon}</span>
+        {label}
+      </Link>
+      </Tooltip>
+        ))}
+      </div>
 
-        // Order per mode — Student leads with engagement, Mom leads with finance/family tools
-        if (viewMode === 'mom') {
-          return [
-            statsSection,
-            shareSection,
-            shareUrlLine,
-            quickActionsSection,
-            ecSection,
-            challengesSection,
-          ]
-        }
-        return [
-          statsSection,
-          challengesSection,
-          ecSection,
-          quickActionsSection,
-          shareSection,
-          shareUrlLine,
-        ]
-      })()}
+      {/* ── Collapsible "More" Section ── */}
+      <button
+        onClick={() => setShowMoreSection(!showMoreSection)}
+        style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 12,
+          padding: '12px 14px',
+          background: 'transparent',
+          border: '1.5px solid var(--color-border)',
+          borderRadius: 10,
+          cursor: 'pointer',
+          fontSize: 13,
+          fontWeight: 700,
+          color: 'var(--color-text)',
+          transition: 'all 0.2s',
+          marginBottom: 20,
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.borderColor = 'var(--color-primary)'
+          e.currentTarget.style.background = 'color-mix(in srgb, var(--color-primary) 6%, transparent)'
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.borderColor = 'var(--color-border)'
+          e.currentTarget.style.background = 'transparent'
+        }}
+      >
+        <span>More Options</span>
+        <span style={{ fontSize: 14 }}>{showMoreSection ? '▲' : '▼'}</span>
+      </button>
 
-      {/* ── Welcome tour (fires once after onboarding) ── */}
+      <AnimatePresence>
+        {showMoreSection && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} style={{ overflow: 'hidden', marginBottom: 20 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {/* Daily Goals (renamed from Daily Challenges) */}
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>
+                  Daily Goals
+                </div>
+                <DailyChallenges userId={userId} />
+              </div>
+
+              {/* EC Score Widget */}
+              {(() => {
+                const ecEntries = profile?.ec_entries?.filter(e => e.name.trim()) ?? []
+                const ecScore = scoreECs(ecEntries)
+                const hasECs = ecEntries.length > 0
+                return !profileLoading ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className="card-elevated"
+                    style={{ padding: '16px 20px' }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 0 }}>
+                        <Tooltip text="Your extracurricular score is computed from your top 5 activities by tier. This factors directly into your admission odds." position="bottom" maxWidth={260}>
+                        <div style={{
+                          width: 44, height: 44, borderRadius: 12,
+                          background: hasECs
+                            ? 'color-mix(in srgb, var(--color-primary) 10%, var(--color-column))'
+                            : 'var(--color-column)',
+                          border: hasECs
+                            ? '1.5px solid color-mix(in srgb, var(--color-primary) 25%, var(--color-border))'
+                            : '1.5px solid var(--color-border)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: 20, flexShrink: 0,
+                        }}>
+                          {hasECs ? '🏆' : '📋'}
+                        </div>
+                        </Tooltip>
+                        <div>
+                          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>
+                            {hasECs ? (
+                              <>Extracurricular Score: <span style={{ color: 'var(--color-primary)' }}>{ecScore}/15</span></>
+                            ) : (
+                              'Add your extracurriculars'
+                            )}
+                          </div>
+                          <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 1 }}>
+                            {hasECs ? (
+                              <>
+                                {ecEntries.length} activit{ecEntries.length === 1 ? 'y' : 'ies'} tracked
+                                {ecScore < 15 && ' — add stronger activities to boost your score'}
+                              </>
+                            ) : (
+                              'Activities factor into your admission odds — higher tiers = more impact'
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {hasECs && (
+                        <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                          {[1, 2, 3, 4].map(tier => {
+                            const count = ecEntries.filter(e => e.tier === tier).length
+                            if (count === 0) return null
+                            const colors = tier === 1
+                              ? { bg: 'rgba(251,191,36,0.12)', text: '#D97706', border: 'rgba(251,191,36,0.3)' }
+                              : tier === 2
+                                ? { bg: 'rgba(52,211,153,0.10)', text: '#059669', border: 'rgba(52,211,153,0.25)' }
+                                : tier === 3
+                                  ? { bg: 'rgba(96,165,250,0.10)', text: '#2563EB', border: 'rgba(96,165,250,0.25)' }
+                                  : { bg: 'rgba(148,163,184,0.10)', text: '#64748B', border: 'rgba(148,163,184,0.25)' }
+                            return (
+                              <Tooltip key={tier} text={`${count} Tier ${tier} activit${count === 1 ? 'y' : 'ies'} (+${EC_TIER_POINTS[tier]} pts each)`} position="top">
+                              <span style={{
+                                fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 12,
+                                background: colors.bg, color: colors.text, border: `1px solid ${colors.border}`,
+                                whiteSpace: 'nowrap',
+                              }}>
+                                T{tier} ×{count}
+                              </span>
+                              </Tooltip>
+                            )
+                          })}
+                        </div>
+                      )}
+
+                      <Link
+                        href="/profile"
+                        style={{
+                          fontSize: 12, fontWeight: 700, color: 'var(--color-primary)',
+                          textDecoration: 'none', flexShrink: 0, whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {hasECs ? 'Edit activities →' : '+ Add activities →'}
+                      </Link>
+                    </div>
+                  </motion.div>
+                ) : null
+              })()}
+
+              {/* Share with Family CTA */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                padding: '14px 18px',
+                borderRadius: 12,
+                border: '1.5px solid var(--color-border)',
+                background: 'linear-gradient(135deg, rgba(59,130,246,0.06), rgba(168,85,247,0.06))',
+              }}>
+            <span style={{ fontSize: 20 }}>🎓</span>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
+                Share with Family
+                {pledgeCount > 0 && (
+                  <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 800, color: '#2dd4bf', background: 'rgba(45,212,191,0.12)', padding: '2px 8px', borderRadius: 10 }}>
+                    ${pledgeTotal.toLocaleString()} pledged
+                  </span>
+                )}
+              </div>
+              <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 2 }}>
+                {pledgeCount > 0
+                  ? `${pledgeCount} ${pledgeCount === 1 ? 'person has' : 'people have'} pledged toward your college fund.`
+                  : 'Send your college list to family — they can see your schools, odds, and pledge toward your 529.'}
+              </div>
+            </div>
+            <button
+              onClick={handleShare}
+              disabled={shareLoading}
+              style={{
+                padding: '8px 16px',
+                borderRadius: 8,
+                border: 'none',
+                background: shareCopied ? '#22c55e' : 'var(--color-primary)',
+                color: 'white',
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: shareLoading ? 'wait' : 'pointer',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {shareCopied ? '✓ Link Copied!' : shareLoading ? 'Creating…' : 'Copy Share Link'}
+            </button>
+              </div>
+
+              {shareUrl && !shareCopied && (
+                <div style={{ fontSize: 11, color: 'var(--color-text-muted)', wordBreak: 'break-all', padding: '8px 12px', background: 'var(--color-column)', borderRadius: 8 }}>
+                  {shareUrl}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Welcome tour (available via ? button) ── */}
       {showTour && <WelcomeTour onComplete={handleTourComplete} />}
     </div>
+  )
+}
+
   )
 }

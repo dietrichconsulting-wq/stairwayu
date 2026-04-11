@@ -64,7 +64,7 @@ export function EssayStudio({ profile, colleges, userId }: EssayStudioProps) {
 
   return (
     <div style={{ maxWidth: 1200 }}>
-      <h1 style={{ fontSize: 26, fontWeight: 800, marginBottom: 4 }}>Essay Studio ✍️</h1>
+      <h1 style={{ fontSize: 26, fontWeight: 800, marginBottom: 4 }}>Essay Studio</h1>
       <p style={{ fontSize: 14, color: 'var(--color-text-muted)', marginBottom: 24 }}>
         Your essay, your voice — AI helps you find the right story angle and sharpen every draft.
       </p>
@@ -87,7 +87,7 @@ export function EssayStudio({ profile, colleges, userId }: EssayStudioProps) {
               transition: 'all 0.15s',
             }}
           >
-            {t === 'brainstorm' ? '💡 Brainstorm' : '🔍 Critique Draft'}
+            {t === 'brainstorm' ? 'Brainstorm' : 'Critique Draft'}
           </button>
         ))}
       </div>
@@ -197,7 +197,7 @@ function BrainstormTab({ schools, profile, onXp }: { schools: string[]; profile:
           <>
             {error && <div style={{ color: '#EF4444', fontSize: 12, marginBottom: 12 }}>{error}</div>}
             <button onClick={fetchQuestions} disabled={loading || !school} style={primaryBtn(loading || !school)}>
-              {loading ? <><Spinner /> Thinking…</> : <>💡 Start Brainstorm</>}
+              {loading ? <><Spinner /> Thinking…</> : <>Start Brainstorm</>}
             </button>
           </>
         )}
@@ -246,7 +246,7 @@ function BrainstormTab({ schools, profile, onXp }: { schools: string[]; profile:
               </div>
               {error && <div style={{ color: '#EF4444', fontSize: 12, margin: '12px 0 0' }}>{error}</div>}
               <button onClick={fetchPrompts} disabled={loading} style={{ ...primaryBtn(loading), marginTop: 20 }}>
-                {loading ? <><Spinner /> Generating ideas…</> : <>✨ Generate Essay Ideas</>}
+                {loading ? <><Spinner /> Generating ideas…</> : <>Generate Essay Ideas</>}
               </button>
             </div>
           </motion.div>
@@ -393,7 +393,7 @@ function CritiqueTab({ schools, profile, onXp }: { schools: string[]; profile: P
           {error && <div style={{ color: '#EF4444', fontSize: 12, margin: '10px 0 0' }}>{error}</div>}
 
           <button onClick={handleCritique} disabled={loading} style={{ ...primaryBtn(loading), marginTop: 16, width: '100%', justifyContent: 'center' }}>
-            {loading ? <><Spinner /> Analyzing your essay…</> : <>🔍 Critique My Essay</>}
+            {loading ? <><Spinner /> Analyzing your essay…</> : <>Critique My Essay</>}
           </button>
         </div>
       </div>
@@ -529,7 +529,7 @@ function SelectField({ label, value, onChange, options, disabled }: {
 function InfoBlock({ label, text }: { label: string; text: string }) {
   return (
     <div style={{ background: 'var(--color-column)', borderRadius: 8, padding: '10px 12px' }}>
-      <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 5 }}>{label}</div>
+      <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 5 }}>{label}</div>
       <div style={{ fontSize: 12, color: 'var(--color-text)', lineHeight: 1.5 }}>{text}</div>
     </div>
   )

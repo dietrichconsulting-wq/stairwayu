@@ -67,6 +67,10 @@ export function ScholarshipsPageClient({ userId, profile }: Props) {
   const [searchError, setSearchError] = useState('')
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set())
 
+  // Progressive disclosure
+  const [showProfileFields, setShowProfileFields] = useState(false)
+  const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set())
+
   const totalWon = scholarships.filter(s => s.stage === 'Won').reduce((sum, s) => sum + (s.amount ?? 0), 0)
   const totalApplied = scholarships.filter(s => s.stage !== 'Researching').length
 
@@ -163,7 +167,7 @@ export function ScholarshipsPageClient({ userId, profile }: Props) {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
-          <h1 style={{ fontSize: 26, fontWeight: 800, margin: 0 }}>Scholarships 🏆</h1>
+          <h1 style={{ fontSize: 26, fontWeight: 800, margin: 0 }}>Scholarships</h1>
           <p style={{ fontSize: 14, color: 'var(--color-text-muted)', marginTop: 4 }}>
             Track every scholarship from research to award so nothing slips through the cracks. · {totalApplied} in pipeline{totalWon > 0 ? ` · $${totalWon.toLocaleString()} won` : ''}
           </p>
@@ -179,8 +183,8 @@ export function ScholarshipsPageClient({ userId, profile }: Props) {
       {/* Tab Switcher */}
       <div style={{ display: 'flex', gap: 4, background: 'var(--color-column)', borderRadius: 12, padding: 4, marginBottom: 24, width: 'fit-content' }}>
         {([
-          { id: 'find', label: '🎯 Find Scholarships' },
-          { id: 'pipeline', label: '📋 My Pipeline' },
+          { id: 'find', label: 'Find Scholarships' },
+          { id: 'pipeline', label: 'My Pipeline' },
         ] as const).map(t => (
           <button key={t.id} onClick={() => setTab(t.id)} style={{
             background: tab === t.id ? 'var(--color-card)' : 'transparent',
@@ -220,36 +224,77 @@ export function ScholarshipsPageClient({ userId, profile }: Props) {
             <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 16 }}>
               Step 1 — Confirm your profile
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 12, marginBottom: 12 }}>
-              <div>
-                <label style={labelS}>UW GPA (4.0)</label>
-                <input value={finderProfile.gpa} onChange={e => setFinderProfile(p => ({ ...p, gpa: e.target.value }))} placeholder="e.g. 3.8" style={iS} />
+
+            {/* Collapsible Profile Fields Section */}
+            {!showProfileFields && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 12,
+                padding: '12px 14px',
+                background: 'color-mix(in srgb, var(--color-primary) 4%, transparent)',
+                border: '1.5px solid color-mix(in srgb, var(--color-primary) 15%, transparent)',
+                borderRadius: 10,
+                marginBottom: 12,
+              }}>
+                <div style={{ fontSize: 13, color: 'var(--color-text)' }}>
+                  Using your profile: GPA <span style={{ fontWeight: 700 }}>{finderProfile.gpa}</span>, SAT <span style={{ fontWeight: 700 }}>{finderProfile.sat}</span>, {finderProfile.major && <span>{finderProfile.major}</span>}
+                </div>
+                <button
+                  onClick={() => setShowProfileFields(true)}
+                  style={{
+                    background: 'var(--color-primary)',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 6,
+                    padding: '6px 14px',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                  }}
+                >
+                  Edit
+                </button>
               </div>
-              <div>
-                <label style={labelS}>W GPA (5.0)</label>
-                <input value={finderProfile.gpa_weighted} onChange={e => setFinderProfile(p => ({ ...p, gpa_weighted: e.target.value }))} placeholder="e.g. 4.3" style={iS} />
+            )}
+
+            {/* Profile fields grid (shown when expanded) */}
+            {showProfileFields && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 12, marginBottom: 12 }}>
+                <div>
+                  <label style={labelS}>UW GPA (4.0)</label>
+                  <input value={finderProfile.gpa} onChange={e => setFinderProfile(p => ({ ...p, gpa: e.target.value }))} placeholder="e.g. 3.8" style={iS} />
+                </div>
+                <div>
+                  <label style={labelS}>W GPA (5.0)</label>
+                  <input value={finderProfile.gpa_weighted} onChange={e => setFinderProfile(p => ({ ...p, gpa_weighted: e.target.value }))} placeholder="e.g. 4.3" style={iS} />
+                </div>
+                <div>
+                  <label style={labelS}>SAT Score</label>
+                  <input value={finderProfile.sat} onChange={e => setFinderProfile(p => ({ ...p, sat: e.target.value }))} placeholder="e.g. 1350" style={iS} />
+                </div>
+                <div>
+                  <label style={labelS}>ACT Score</label>
+                  <input value={finderProfile.act} onChange={e => setFinderProfile(p => ({ ...p, act: e.target.value }))} placeholder="e.g. 29" style={iS} />
+                </div>
+                <div>
+                  <label style={labelS}>Intended Major</label>
+                  <MajorSelect value={finderProfile.major} onChange={v => setFinderProfile(p => ({ ...p, major: v }))} />
+                </div>
+                <div>
+                  <label style={labelS}>Home State</label>
+                  <input value={finderProfile.homeState} onChange={e => setFinderProfile(p => ({ ...p, homeState: e.target.value }))} placeholder="e.g. TX" style={iS} />
+                </div>
+                <div>
+                  <label style={labelS}>Graduation Year</label>
+                  <input value={finderProfile.gradYear} onChange={e => setFinderProfile(p => ({ ...p, gradYear: e.target.value }))} placeholder="e.g. 2026" style={iS} />
+                </div>
               </div>
-              <div>
-                <label style={labelS}>SAT Score</label>
-                <input value={finderProfile.sat} onChange={e => setFinderProfile(p => ({ ...p, sat: e.target.value }))} placeholder="e.g. 1350" style={iS} />
-              </div>
-              <div>
-                <label style={labelS}>ACT Score</label>
-                <input value={finderProfile.act} onChange={e => setFinderProfile(p => ({ ...p, act: e.target.value }))} placeholder="e.g. 29" style={iS} />
-              </div>
-              <div>
-                <label style={labelS}>Intended Major</label>
-                <MajorSelect value={finderProfile.major} onChange={v => setFinderProfile(p => ({ ...p, major: v }))} />
-              </div>
-              <div>
-                <label style={labelS}>Home State</label>
-                <input value={finderProfile.homeState} onChange={e => setFinderProfile(p => ({ ...p, homeState: e.target.value }))} placeholder="e.g. TX" style={iS} />
-              </div>
-              <div>
-                <label style={labelS}>Graduation Year</label>
-                <input value={finderProfile.gradYear} onChange={e => setFinderProfile(p => ({ ...p, gradYear: e.target.value }))} placeholder="e.g. 2026" style={iS} />
-              </div>
-            </div>
+            )}
+
+            {/* Unique fields always shown */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
               <div>
                 <label style={labelS}>Extracurriculars & Activities</label>
@@ -294,7 +339,7 @@ export function ScholarshipsPageClient({ userId, profile }: Props) {
               {searching ? (
                 <><span className="strategy-spinner" /> Matching scholarships…</>
               ) : (
-                <>🎯 Find My Scholarships</>
+                <>Find My Scholarships</>
               )}
             </button>
           </div>
@@ -314,15 +359,34 @@ export function ScholarshipsPageClient({ userId, profile }: Props) {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
                   {suggestions.map((s, i) => {
                     const isAdded = addedIds.has(s.name)
+                    const isExpanded = expandedCards.has(i)
+                    const toggleExpand = () => {
+                      setExpandedCards(prev => {
+                        const next = new Set(prev)
+                        if (next.has(i)) next.delete(i)
+                        else next.add(i)
+                        return next
+                      })
+                    }
                     return (
                       <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-                        className="card-elevated" style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        className="card-elevated" style={{
+                          padding: '18px 20px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 10,
+                          cursor: 'pointer',
+                          transition: 'border-color 0.2s',
+                        }}
+                        onClick={toggleExpand}
+                        onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
+                        onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--color-border)'}
+                      >
 
                         {/* Top row */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
                           <div style={{ flex: 1 }}>
                             <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.3 }}>{s.name}</div>
-                            <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 2 }}>{s.org}</div>
                           </div>
                           {s.amount && s.amount > 0 ? (
                             <div style={{ fontSize: 18, fontWeight: 900, color: '#16a34a', flexShrink: 0 }}>{s.amountLabel}</div>
@@ -331,16 +395,11 @@ export function ScholarshipsPageClient({ userId, profile }: Props) {
                           )}
                         </div>
 
-                        {/* Badges row */}
+                        {/* Difficulty badge + deadline (always shown) */}
                         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
                           <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 20, background: `${getDiffColors()[s.difficulty]}22`, color: getDiffColors()[s.difficulty] }}>
                             {s.difficulty}
                           </span>
-                          {s.essayRequired && (
-                            <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 20, background: 'rgba(245,158,11,0.1)', color: '#d97706' }}>
-                              ✍️ Essay
-                            </span>
-                          )}
                           {s.deadlineLabel && (
                             <span style={{ fontSize: 11, color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
                               📅 {s.deadlineLabel}
@@ -348,25 +407,14 @@ export function ScholarshipsPageClient({ userId, profile }: Props) {
                           )}
                         </div>
 
-                        {/* Eligibility */}
-                        <div style={{ fontSize: 12, color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
-                          {s.eligibility}
-                        </div>
-
-                        {/* Why match */}
-                        <div style={{ background: 'color-mix(in srgb, var(--color-primary) 6%, transparent)', border: '1px solid color-mix(in srgb, var(--color-primary) 15%, transparent)', borderRadius: 8, padding: '8px 10px' }}>
-                          <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 3 }}>Why you match</div>
-                          <div style={{ fontSize: 12, color: 'var(--color-text)', lineHeight: 1.5 }}>{s.whyMatch}</div>
-                        </div>
-
-                        {/* Actions */}
+                        {/* Action buttons (always shown) */}
                         <div style={{ display: 'flex', gap: 8, marginTop: 2 }}>
-                          <a href={s.url} target="_blank" rel="noopener noreferrer"
+                          <a href={s.url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
                             style={{ flex: 1, textAlign: 'center', background: 'var(--color-primary)', color: '#fff', textDecoration: 'none', borderRadius: 8, padding: '9px 12px', fontWeight: 700, fontSize: 12 }}>
                             Apply Now →
                           </a>
                           <button
-                            onClick={() => addToMyPipeline(s)}
+                            onClick={e => { e.stopPropagation(); addToMyPipeline(s) }}
                             disabled={isAdded}
                             style={{
                               flex: 1, background: isAdded ? 'rgba(34,197,94,0.1)' : 'var(--color-column)',
@@ -378,6 +426,40 @@ export function ScholarshipsPageClient({ userId, profile }: Props) {
                             {isAdded ? '✓ Added' : '+ Pipeline'}
                           </button>
                         </div>
+
+                        {/* Expanded content */}
+                        {isExpanded && (
+                          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingTop: 10, borderTop: '1px solid var(--color-border)' }}>
+                            {/* Organization name */}
+                            <div>
+                              <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>Organization</div>
+                              <div style={{ fontSize: 12, color: 'var(--color-text)' }}>{s.org}</div>
+                            </div>
+
+                            {/* Eligibility */}
+                            <div>
+                              <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>Eligibility</div>
+                              <div style={{ fontSize: 12, color: 'var(--color-text)', lineHeight: 1.5 }}>
+                                {s.eligibility}
+                              </div>
+                            </div>
+
+                            {/* Why match */}
+                            <div style={{ background: 'color-mix(in srgb, var(--color-primary) 6%, transparent)', border: '1px solid color-mix(in srgb, var(--color-primary) 15%, transparent)', borderRadius: 8, padding: '8px 10px' }}>
+                              <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 3 }}>Why you match</div>
+                              <div style={{ fontSize: 12, color: 'var(--color-text)', lineHeight: 1.5 }}>{s.whyMatch}</div>
+                            </div>
+
+                            {/* Essay badge if present */}
+                            {s.essayRequired && (
+                              <div style={{ display: 'flex', gap: 6 }}>
+                                <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 20, background: 'rgba(245,158,11,0.1)', color: '#d97706' }}>
+                                  ✍️ Essay required
+                                </span>
+                              </div>
+                            )}
+                          </motion.div>
+                        )}
                       </motion.div>
                     )
                   })}

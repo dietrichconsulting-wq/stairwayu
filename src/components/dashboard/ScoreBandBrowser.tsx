@@ -204,27 +204,31 @@ export function ScoreBandBrowser({ profile, collegeNames: initialColleges, userI
       </p>
 
       {/* Sort controls */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-muted)' }}>Sort by:</span>
-        {SORT_OPTIONS.map(opt => (
-          <button
-            key={opt.value}
-            onClick={() => setSortBy(opt.value)}
-            style={{
-              fontSize: 12,
-              fontWeight: sortBy === opt.value ? 700 : 500,
-              padding: '5px 12px',
-              borderRadius: 20,
-              border: `1.5px solid ${sortBy === opt.value ? 'var(--color-primary)' : 'var(--color-border)'}`,
-              background: sortBy === opt.value ? 'color-mix(in srgb, var(--color-primary) 10%, transparent)' : 'var(--color-card)',
-              color: sortBy === opt.value ? 'var(--color-primary)' : 'var(--color-text-muted)',
-              cursor: 'pointer',
-              transition: 'all 0.15s',
-            }}
-          >
-            {opt.label}
-          </button>
-        ))}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+        <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-muted)' }}>
+          Sort by:
+        </label>
+        <select
+          value={sortBy}
+          onChange={e => setSortBy(e.target.value as SortOption)}
+          style={{
+            padding: '9px 12px',
+            border: '1.5px solid var(--color-border)',
+            borderRadius: 8,
+            background: 'var(--color-column)',
+            color: 'var(--color-text)',
+            fontSize: 12,
+            fontWeight: 500,
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+          }}
+        >
+          {SORT_OPTIONS.map(opt => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       {loading ? (
@@ -245,14 +249,6 @@ export function ScoreBandBrowser({ profile, collegeNames: initialColleges, userI
           {tiers.map(({ tier, schools }) => {
             const cfg = getTierConfig()[tier]
             const isExpanded = expandedTiers.has(tier)
-
-            // Group by region
-            const byRegion = new Map<string, typeof schools>()
-            for (const s of schools) {
-              const regionName = s.regionId != null ? (REGION_LABELS[s.regionId] ?? 'Other') : 'Other'
-              if (!byRegion.has(regionName)) byRegion.set(regionName, [])
-              byRegion.get(regionName)!.push(s)
-            }
 
             return (
               <div key={tier}>
@@ -304,34 +300,18 @@ export function ScoreBandBrowser({ profile, collegeNames: initialColleges, userI
                           No schools found in this tier. Try adjusting your scores on the Explore page.
                         </div>
                       ) : (
-                        Array.from(byRegion.entries()).map(([regionName, regionSchools]) => (
-                          <div key={regionName} style={{ marginBottom: 16 }}>
-                            <div style={{
-                              fontSize: 11,
-                              fontWeight: 800,
-                              color: 'var(--color-text-muted)',
-                              textTransform: 'uppercase',
-                              letterSpacing: '0.06em',
-                              padding: '4px 0',
-                              marginBottom: 8,
-                              borderBottom: '1px solid var(--color-border)',
-                            }}>
-                              {regionName} · {regionSchools.length}
-                            </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                              {regionSchools.map((school, i) => (
-                                <BandCard
-                                  key={school.id}
-                                  school={school}
-                                  tier={tier}
-                                  index={i}
-                                  alreadySaved={collegeNames.includes(school.name) || savedIds.has(school.id)}
-                                  onSave={() => handleSave(school)}
-                                />
-                              ))}
-                            </div>
-                          </div>
-                        ))
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                          {schools.map((school, i) => (
+                            <BandCard
+                              key={school.id}
+                              school={school}
+                              tier={tier}
+                              index={i}
+                              alreadySaved={collegeNames.includes(school.name) || savedIds.has(school.id)}
+                              onSave={() => handleSave(school)}
+                            />
+                          ))}
+                        </div>
                       )}
                     </motion.div>
                   )}
@@ -387,7 +367,7 @@ function BandCard({ school, tier, index, alreadySaved, onSave }: {
       {/* Match ring */}
       {school.chance != null && (
         <div style={{ position: 'relative', width: 40, height: 40, flexShrink: 0 }}>
-          <svg width={40} height={40} style={{ transform: 'rotate(-90deg)' }}>
+          <svg width={40} height={40} style={{ transform: 'rotate(-90deg)' }} role="img" aria-label={`${school.chance}% admission chance`}>
             <circle cx={20} cy={20} r={17} fill="none" stroke="currentColor" strokeWidth={2.5} opacity={0.12} />
             <circle
               cx={20} cy={20} r={17} fill="none" stroke={cfg.color} strokeWidth={2.5}
@@ -397,7 +377,7 @@ function BandCard({ school, tier, index, alreadySaved, onSave }: {
             />
           </svg>
           <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ fontSize: 10, fontWeight: 800, color: cfg.color }}>{school.chance}%</span>
+            <span style={{ fontSize: 11, fontWeight: 800, color: cfg.color }}>{school.chance}%</span>
           </div>
         </div>
       )}
@@ -415,19 +395,19 @@ function BandCard({ school, tier, index, alreadySaved, onSave }: {
         {school.avgNetPrice != null && (
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>${(school.avgNetPrice / 1000).toFixed(0)}k</div>
-            <div style={{ fontSize: 9, color: 'var(--color-text-muted)' }}>Cost</div>
+            <div style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>Cost</div>
           </div>
         )}
         {school.gradRate4yr != null && (
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{school.gradRate4yr}%</div>
-            <div style={{ fontSize: 9, color: 'var(--color-text-muted)' }}>Grad</div>
+            <div style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>Grad</div>
           </div>
         )}
         {school.medianEarnings10yr != null && (
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>${(school.medianEarnings10yr / 1000).toFixed(0)}k</div>
-            <div style={{ fontSize: 9, color: 'var(--color-text-muted)' }}>Earnings</div>
+            <div style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>Earnings</div>
           </div>
         )}
       </div>
@@ -435,7 +415,7 @@ function BandCard({ school, tier, index, alreadySaved, onSave }: {
       {/* Save */}
       <div style={{ flexShrink: 0 }}>
         {saved || alreadySaved ? (
-          <span style={{ fontSize: 10, fontWeight: 700, color: saved ? '#059669' : 'var(--color-text-muted)' }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: saved ? '#059669' : 'var(--color-text-muted)' }}>
             {saved ? '\u2713' : 'Saved'}
           </span>
         ) : (
@@ -443,7 +423,7 @@ function BandCard({ school, tier, index, alreadySaved, onSave }: {
             onClick={handleSave}
             disabled={saving}
             style={{
-              fontSize: 10,
+              fontSize: 11,
               fontWeight: 700,
               padding: '4px 10px',
               borderRadius: 7,

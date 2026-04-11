@@ -199,6 +199,7 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
                 value={satValue}
                 onChange={e => { setSatValue(Number(e.target.value)); handleInteraction() }}
                 style={{ width: '100%', accentColor: 'var(--color-primary)' }}
+                aria-label={`SAT Score: ${effectiveSAT}`}
               />
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--color-text-muted)', marginTop: 2 }}>
                 <span>400</span><span>1600</span>
@@ -222,6 +223,7 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
                 value={gpaValue}
                 onChange={e => { setGpaValue(Number(e.target.value)); handleInteraction() }}
                 style={{ width: '100%', accentColor: 'var(--color-primary)' }}
+                aria-label={`GPA: ${effectiveGPA.toFixed(1)}`}
               />
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--color-text-muted)', marginTop: 2 }}>
                 <span>2.0</span><span>4.0</span>
@@ -358,6 +360,7 @@ function ExploreCard({ school, index, alreadySaved, onSave }: {
 }) {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [expanded, setExpanded] = useState(false)
   const cfg = school.tier ? getTierConfig()[school.tier] : null
 
   async function handleSave() {
@@ -414,24 +417,60 @@ function ExploreCard({ school, index, alreadySaved, onSave }: {
         )}
       </div>
 
-      {/* Stats row */}
+      {/* Key stats row (always visible) */}
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        {school.admissionRate != null && <MiniStat label="Admit" value={`${school.admissionRate}%`} />}
-        {school.avgSAT != null && <MiniStat label="Avg SAT" value={String(school.avgSAT)} />}
         {school.avgNetPrice != null && <MiniStat label="Net Cost" value={`$${(school.avgNetPrice / 1000).toFixed(0)}k`} />}
-        {school.gradRate4yr != null && <MiniStat label="Grad Rate" value={`${school.gradRate4yr}%`} />}
-        {school.medianEarnings10yr != null && <MiniStat label="Earnings" value={`$${(school.medianEarnings10yr / 1000).toFixed(0)}k`} />}
+        {school.admissionRate != null && <MiniStat label="Admit" value={`${school.admissionRate}%`} />}
       </div>
 
-      {/* SAT range */}
-      {school.sat25 && school.sat75 && (
-        <div style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>
-          SAT range: {school.sat25}–{school.sat75}
-        </div>
-      )}
+      {/* Expandable stats */}
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+            style={{ overflow: 'hidden' }}
+          >
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 4 }}>
+              {school.avgSAT != null && <MiniStat label="Avg SAT" value={String(school.avgSAT)} />}
+              {school.gradRate4yr != null && <MiniStat label="Grad Rate" value={`${school.gradRate4yr}%`} />}
+              {school.medianEarnings10yr != null && <MiniStat label="Earnings" value={`$${(school.medianEarnings10yr / 1000).toFixed(0)}k`} />}
+            </div>
 
-      {/* Save button */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 2 }}>
+            {/* SAT range */}
+            {school.sat25 && school.sat75 && (
+              <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginBottom: 4 }}>
+                SAT range: {school.sat25}–{school.sat75}
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Expand/collapse button and Save button */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 2 }}>
+        <button
+          onClick={() => setExpanded(!expanded)}
+          style={{
+            background: 'none',
+            border: 'none',
+            padding: '2px 4px',
+            cursor: 'pointer',
+            color: 'var(--color-text-muted)',
+            fontSize: 14,
+            display: 'flex',
+            alignItems: 'center',
+            fontWeight: 500,
+            transition: 'color 0.2s',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-text)')}
+          onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-muted)')}
+        >
+          {expanded ? '▾' : '▸'}
+        </button>
+
         {saved || alreadySaved ? (
           <span style={{ fontSize: 11, fontWeight: 700, color: saved ? '#059669' : 'var(--color-text-muted)' }}>
             {saved ? '\u2713 Saved!' : 'In your collection'}
@@ -467,7 +506,7 @@ function MatchRingSmall({ chance, color }: { chance: number; color: string }) {
   const offset = circ - (chance / 100) * circ
   return (
     <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
-      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }} role="img" aria-label={`${chance}% admission chance`}>
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="currentColor" strokeWidth={2.5} opacity={0.12} />
         <motion.circle
           cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={2.5}
@@ -488,7 +527,7 @@ function MiniStat({ label, value }: { label: string; value: string }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 50 }}>
       <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{value}</span>
-      <span style={{ fontSize: 9, color: 'var(--color-text-muted)', marginTop: 1 }}>{label}</span>
+      <span style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 1 }}>{label}</span>
     </div>
   )
 }

@@ -9,12 +9,13 @@ import { MajorSelect } from '@/components/MajorSelect'
 import { CollegeSelect } from '@/components/CollegeSelect'
 import { createClient } from '@/lib/supabase/client'
 import type { UserCollege, ExtracurricularEntry } from '@/lib/types/database'
-import { useAchievements } from '@/hooks/useAchievements'
 import { ECPicker } from '@/components/ECPicker'
 import { EC_TIER_LABELS, EC_TIER_POINTS } from '@/lib/services/admissionChance'
 import type { ECTier } from '@/lib/types/database'
 
 const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY']
+
+type ProfileTab = 'academic' | 'schools' | 'settings'
 
 export function ProfilePageClient({ userId }: { userId: string }) {
   const { data: profile, isLoading } = useProfile(userId)
@@ -26,7 +27,7 @@ export function ProfilePageClient({ userId }: { userId: string }) {
   const updateProfile = useUpdateProfile(userId)
   const seedTasks = useSeedTasks(userId)
   const [saved, setSaved] = useState(false)
-  const { earned, locked, total: achievementTotal } = useAchievements(userId)
+  const [activeTab, setActiveTab] = useState<ProfileTab>('academic')
 
   const [form, setForm] = useState({
     display_name: '', gpa: '', gpa_weighted: '', sat: '', act_score: '', proposed_major: '', home_state: '',
@@ -223,236 +224,307 @@ export function ProfilePageClient({ userId }: { userId: string }) {
         Update your stats and schools here — every tool in the app uses this info.
       </p>
 
-      <div className="card-elevated" style={{ padding: '28px 28px 32px', marginBottom: 24 }}>
-        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20 }}>Academic Info</h2>
-        <div className="profile-grid grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="Display Name" value={form.display_name} onChange={v => setForm(f => ({ ...f, display_name: v }))} placeholder="Your name" />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <label style={labelStyle}>Home State</label>
-            <select value={form.home_state} onChange={e => setForm(f => ({ ...f, home_state: e.target.value }))} style={inputStyle}>
-              <option value="">Select state</option>
-              {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </div>
-          <Field label="Unweighted GPA (4.0)" type="number" step="0.01" min="0" max="4.0" value={form.gpa} onChange={v => setForm(f => ({ ...f, gpa: v }))} placeholder="3.9" />
-          <Field label="Weighted GPA (5.0)" type="number" step="0.01" min="0" max="5.0" value={form.gpa_weighted} onChange={v => setForm(f => ({ ...f, gpa_weighted: v }))} placeholder="4.3" />
-          <Field label="SAT Score" type="number" min="400" max="1600" value={form.sat} onChange={v => setForm(f => ({ ...f, sat: v }))} placeholder="1400" />
-          <Field label="ACT Score" type="number" min="1" max="36" step="1" value={form.act_score} onChange={v => setForm(f => ({ ...f, act_score: v }))} placeholder="30" />
-          <div className="sm:col-span-2" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <label style={labelStyle}>Intended Major</label>
-            <MajorSelect value={form.proposed_major} onChange={v => setForm(f => ({ ...f, proposed_major: v }))} />
-          </div>
-          <div className="sm:col-span-2">
-            <ECPicker
-              entries={form.ec_entries}
-              onChange={ec_entries => setForm(f => ({ ...f, ec_entries }))}
-            />
-          </div>
-        </div>
+      {/* Tab Navigation */}
+      <div style={{ display: 'flex', gap: 12, marginBottom: 28 }}>
+        {(['academic', 'schools', 'settings'] as const).map(tab => {
+          const labels: Record<ProfileTab, string> = {
+            academic: 'Academic Profile',
+            schools: 'My Schools',
+            settings: 'Settings',
+          }
+          return (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              style={{
+                padding: '10px 20px',
+                borderRadius: 20,
+                border: 'none',
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                background: activeTab === tab ? 'var(--color-primary)' : 'var(--color-column)',
+                color: activeTab === tab ? '#fff' : 'var(--color-text)',
+              }}
+            >
+              {labels[tab]}
+            </button>
+          )
+        })}
       </div>
 
-      {/* Achievements */}
-      <div className="card-elevated" style={{ padding: '28px 28px 32px', marginBottom: 24 }}>
-        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Achievements</h2>
-        <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 20 }}>
-          {earned.length} of {achievementTotal} unlocked
-        </p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10 }}>
-          {earned.map(a => (
-            <motion.div
-              key={a.key}
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              style={{
-                background: 'color-mix(in srgb, var(--color-primary) 8%, var(--color-column))',
-                border: '1.5px solid color-mix(in srgb, var(--color-primary) 25%, var(--color-border))',
-                borderRadius: 12,
-                padding: '14px 12px',
-                textAlign: 'center',
-              }}
-            >
-              <div style={{ fontSize: 28, lineHeight: 1, marginBottom: 6 }}>{a.emoji}</div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{a.label}</div>
-              <div style={{ fontSize: 10, color: 'var(--color-text-muted)', marginTop: 2, lineHeight: 1.3 }}>{a.description}</div>
-            </motion.div>
-          ))}
-          {locked.map(a => (
-            <div
-              key={a.key}
-              style={{
-                background: 'var(--color-column)',
-                border: '1.5px solid var(--color-border)',
-                borderRadius: 12,
-                padding: '14px 12px',
-                textAlign: 'center',
-                opacity: 0.45,
-              }}
-            >
-              <div style={{ fontSize: 28, lineHeight: 1, marginBottom: 6, filter: 'grayscale(1)' }}>{a.emoji}</div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-muted)' }}>{a.label}</div>
-              <div style={{ fontSize: 10, color: 'var(--color-text-muted)', marginTop: 2, lineHeight: 1.3 }}>{a.description}</div>
+      {/* Academic Profile Tab */}
+      {activeTab === 'academic' && (
+        <div className="card-elevated" style={{ padding: '28px 28px 32px', marginBottom: 24 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20 }}>Academic Info</h2>
+          <div className="profile-grid grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Field label="Display Name" value={form.display_name} onChange={v => setForm(f => ({ ...f, display_name: v }))} placeholder="Your name" />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <label style={labelStyle}>Home State</label>
+              <select value={form.home_state} onChange={e => setForm(f => ({ ...f, home_state: e.target.value }))} style={inputStyle}>
+                <option value="">Select state</option>
+                {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
             </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="card-elevated" style={{ padding: '28px 28px 32px', marginBottom: 24 }}>
-        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20 }}>Schools That Want You</h2>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {colleges.map((college, i) => (
-            <CollegeRow
-              key={college.id}
-              college={college}
-              index={i}
-              onUpdate={(name) => updateCollege.mutate({ id: college.id, name })}
-              onRemove={() => removeCollege.mutate(college.id)}
-            />
-          ))}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <label style={labelStyle}>
-              {colleges.length === 0 ? 'Add your first school' : 'Add another school'}
-            </label>
-            <CollegeSelect
-              value=""
-              onChange={v => { if (v) addCollege.mutate({ name: v }) }}
-              placeholder="Search for a college…"
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="card-elevated" style={{ padding: '24px 28px', marginBottom: 24 }}>
-        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Email Notifications</h2>
-        <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 16 }}>
-          Get a personalized weekly recap of upcoming tasks and scholarship deadlines.
-        </p>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div>
-            <span style={{ fontSize: 14, fontWeight: 600 }}>Weekly email updates</span>
-            {lastNudgeSent && (
-              <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--color-text-muted)' }}>
-                Last email sent: {new Date(lastNudgeSent).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-              </p>
-            )}
-          </div>
-          <button
-            onClick={() => handleToggleNudge(!weeklyNudge)}
-            disabled={nudgeSaving}
-            aria-pressed={weeklyNudge}
-            style={{
-              width: 44, height: 24, borderRadius: 12, border: 'none', cursor: nudgeSaving ? 'default' : 'pointer',
-              background: weeklyNudge ? 'var(--color-primary)' : 'var(--color-border)',
-              position: 'relative', transition: 'background 0.2s', flexShrink: 0,
-              opacity: nudgeSaving ? 0.6 : 1,
-            }}
-          >
-            <span style={{
-              position: 'absolute', top: 3, left: weeklyNudge ? 23 : 3, width: 18, height: 18,
-              borderRadius: '50%', background: '#fff', transition: 'left 0.2s',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
-            }} />
-          </button>
-        </div>
-      </div>
-
-      {/* Subscription Management */}
-      <div id="subscription" className="card-elevated" style={{ padding: '28px 28px 32px', marginBottom: 24 }}>
-        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span>💳</span> Subscription
-        </h2>
-        <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 16 }}>
-          Manage your plan, update payment info, or cancel your subscription.
-        </p>
-        <button
-          onClick={async () => {
-            try {
-              const res = await fetch('/api/stripe/portal', { method: 'POST' })
-              const data = await res.json()
-              if (data.url) {
-                window.location.href = data.url
-              }
-            } catch {}
-          }}
-          style={{
-            background: 'var(--color-primary)', color: '#fff', border: 'none',
-            borderRadius: 10, padding: '10px 24px', fontWeight: 700, fontSize: 13, cursor: 'pointer',
-          }}
-        >
-          Manage Subscription
-        </button>
-      </div>
-
-      {/* Suggest to a Friend */}
-      <div id="referrals" className="card-elevated" style={{ padding: '28px 28px 32px', marginBottom: 24 }}>
-        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span>🎁</span> Suggest to a Friend
-        </h2>
-        <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 20 }}>
-          Earn <strong>50 XP</strong> and <strong>7 extra days free</strong> for every friend who signs up.
-        </p>
-
-        {referralLoading ? (
-          <div>
-            <div className="skeleton" style={{ height: 40, borderRadius: 8, marginBottom: 12 }} />
-            <div className="skeleton" style={{ height: 16, width: '60%', borderRadius: 6 }} />
-          </div>
-        ) : referralLink ? (
-          <>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
-              <input
-                readOnly
-                value={referralLink}
-                style={{ ...inputStyle, flex: 1, fontSize: 12, color: 'var(--color-text-muted)', userSelect: 'all' }}
-                onFocus={e => e.target.select()}
+            <Field label="Unweighted GPA (4.0)" type="number" step="0.01" min="0" max="4.0" value={form.gpa} onChange={v => setForm(f => ({ ...f, gpa: v }))} placeholder="3.9" />
+            <Field label="Weighted GPA (5.0)" type="number" step="0.01" min="0" max="5.0" value={form.gpa_weighted} onChange={v => setForm(f => ({ ...f, gpa_weighted: v }))} placeholder="4.3" />
+            <Field label="SAT Score" type="number" min="400" max="1600" value={form.sat} onChange={v => setForm(f => ({ ...f, sat: v }))} placeholder="1400" />
+            <Field label="ACT Score" type="number" min="1" max="36" step="1" value={form.act_score} onChange={v => setForm(f => ({ ...f, act_score: v }))} placeholder="30" />
+            <div className="sm:col-span-2" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <label style={labelStyle}>Intended Major</label>
+              <MajorSelect value={form.proposed_major} onChange={v => setForm(f => ({ ...f, proposed_major: v }))} />
+            </div>
+            <div className="sm:col-span-2">
+              <ECPicker
+                entries={form.ec_entries}
+                onChange={ec_entries => setForm(f => ({ ...f, ec_entries }))}
               />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* My Schools Tab */}
+      {activeTab === 'schools' && (
+        <div className="card-elevated" style={{ padding: '28px 28px 32px', marginBottom: 24 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20 }}>Schools That Want You</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {colleges.map((college, i) => (
+              <CollegeRow
+                key={college.id}
+                college={college}
+                index={i}
+                onUpdate={(name) => updateCollege.mutate({ id: college.id, name })}
+                onRemove={() => removeCollege.mutate(college.id)}
+              />
+            ))}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <label style={labelStyle}>
+                {colleges.length === 0 ? 'Add your first school' : 'Add another school'}
+              </label>
+              <CollegeSelect
+                value=""
+                onChange={v => { if (v) addCollege.mutate({ name: v }) }}
+                placeholder="Search for a college…"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Settings Tab */}
+      {activeTab === 'settings' && (
+        <>
+          <div className="card-elevated" style={{ padding: '24px 28px', marginBottom: 24 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Email Notifications</h2>
+            <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 16 }}>
+              Get a personalized weekly recap of upcoming tasks and scholarship deadlines.
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <span style={{ fontSize: 14, fontWeight: 600 }}>Weekly email updates</span>
+                {lastNudgeSent && (
+                  <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--color-text-muted)' }}>
+                    Last email sent: {new Date(lastNudgeSent).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                  </p>
+                )}
+              </div>
               <button
-                onClick={async () => {
-                  try {
-                    await navigator.clipboard.writeText(referralLink)
-                    setCopied(true)
-                    setTimeout(() => setCopied(false), 2000)
-                  } catch {}
-                }}
+                onClick={() => handleToggleNudge(!weeklyNudge)}
+                disabled={nudgeSaving}
+                aria-pressed={weeklyNudge}
                 style={{
-                  background: copied ? 'var(--color-primary)' : 'var(--color-column)',
-                  color: copied ? '#fff' : 'var(--color-text)',
-                  border: '1.5px solid var(--color-border)',
-                  borderRadius: 8, padding: '0 14px', fontWeight: 700, fontSize: 13,
-                  cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, transition: 'background 0.2s',
+                  width: 44, height: 24, borderRadius: 12, border: 'none', cursor: nudgeSaving ? 'default' : 'pointer',
+                  background: weeklyNudge ? 'var(--color-primary)' : 'var(--color-border)',
+                  position: 'relative', transition: 'background 0.2s', flexShrink: 0,
+                  opacity: nudgeSaving ? 0.6 : 1,
                 }}
               >
-                {copied ? 'Copied!' : 'Copy'}
+                <span style={{
+                  position: 'absolute', top: 3, left: weeklyNudge ? 23 : 3, width: 18, height: 18,
+                  borderRadius: '50%', background: '#fff', transition: 'left 0.2s',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+                }} />
               </button>
-              {typeof navigator !== 'undefined' && typeof (navigator as { share?: unknown }).share === 'function' && (
-                <button
-                  onClick={() => {
-                    navigator.share?.({
-                      title: 'Stairway U',
-                      text: `I'm using Stairway U to plan my college apps — check it out: ${referralLink}`,
-                      url: referralLink,
-                    }).catch(() => {})
-                  }}
-                  style={{
-                    background: 'var(--color-column)', color: 'var(--color-text)',
-                    border: '1.5px solid var(--color-border)',
-                    borderRadius: 8, padding: '0 14px', fontWeight: 700, fontSize: 13,
-                    cursor: 'pointer', flexShrink: 0,
-                  }}
-                >
-                  Share
-                </button>
-              )}
             </div>
-            <p style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
-              {referralCount === 0
-                ? 'Know someone applying to college? Share the link and earn XP + 7 free days.'
-                : `You've referred ${referralCount} friend${referralCount === 1 ? '' : 's'} — ${referralCount * 50} XP earned 🎉`}
+          </div>
+
+          {/* Subscription Management */}
+          <div id="subscription" className="card-elevated" style={{ padding: '28px 28px 32px', marginBottom: 24 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span>💳</span> Subscription
+            </h2>
+            <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 16 }}>
+              Manage your plan, update payment info, or cancel your subscription.
             </p>
-          </>
-        ) : (
-          <p style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>Could not load referral link.</p>
-        )}
-      </div>
+            <button
+              onClick={async () => {
+                try {
+                  const res = await fetch('/api/stripe/portal', { method: 'POST' })
+                  const data = await res.json()
+                  if (data.url) {
+                    window.location.href = data.url
+                  }
+                } catch {}
+              }}
+              style={{
+                background: 'var(--color-primary)', color: '#fff', border: 'none',
+                borderRadius: 10, padding: '10px 24px', fontWeight: 700, fontSize: 13, cursor: 'pointer',
+              }}
+            >
+              Manage Subscription
+            </button>
+          </div>
+
+          {/* Suggest to a Friend */}
+          <div id="referrals" className="card-elevated" style={{ padding: '28px 28px 32px', marginBottom: 24 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span>🎁</span> Suggest to a Friend
+            </h2>
+            <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 20 }}>
+              Earn <strong>50 XP</strong> and <strong>7 extra days free</strong> for every friend who signs up.
+            </p>
+
+            {referralLoading ? (
+              <div>
+                <div className="skeleton" style={{ height: 40, borderRadius: 8, marginBottom: 12 }} />
+                <div className="skeleton" style={{ height: 16, width: '60%', borderRadius: 6 }} />
+              </div>
+            ) : referralLink ? (
+              <>
+                <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+                  <input
+                    readOnly
+                    value={referralLink}
+                    style={{ ...inputStyle, flex: 1, fontSize: 12, color: 'var(--color-text-muted)', userSelect: 'all' }}
+                    onFocus={e => e.target.select()}
+                  />
+                  <button
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(referralLink)
+                        setCopied(true)
+                        setTimeout(() => setCopied(false), 2000)
+                      } catch {}
+                    }}
+                    style={{
+                      background: copied ? 'var(--color-primary)' : 'var(--color-column)',
+                      color: copied ? '#fff' : 'var(--color-text)',
+                      border: '1.5px solid var(--color-border)',
+                      borderRadius: 8, padding: '0 14px', fontWeight: 700, fontSize: 13,
+                      cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, transition: 'background 0.2s',
+                    }}
+                  >
+                    {copied ? 'Copied!' : 'Copy'}
+                  </button>
+                  {typeof navigator !== 'undefined' && typeof (navigator as { share?: unknown }).share === 'function' && (
+                    <button
+                      onClick={() => {
+                        navigator.share?.({
+                          title: 'Stairway U',
+                          text: `I'm using Stairway U to plan my college apps — check it out: ${referralLink}`,
+                          url: referralLink,
+                        }).catch(() => {})
+                      }}
+                      style={{
+                        background: 'var(--color-column)', color: 'var(--color-text)',
+                        border: '1.5px solid var(--color-border)',
+                        borderRadius: 8, padding: '0 14px', fontWeight: 700, fontSize: 13,
+                        cursor: 'pointer', flexShrink: 0,
+                      }}
+                    >
+                      Share
+                    </button>
+                  )}
+                </div>
+                <p style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
+                  {referralCount === 0
+                    ? 'Know someone applying to college? Share the link and earn XP + 7 free days.'
+                    : `You've referred ${referralCount} friend${referralCount === 1 ? '' : 's'} — ${referralCount * 50} XP earned 🎉`}
+            </p>
+              </>
+            ) : (
+              <p style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>Could not load referral link.</p>
+            )}
+          </div>
+
+          {/* Delete Account */}
+          <div className="card-elevated" style={{ padding: '28px 28px 32px', borderColor: 'var(--color-danger, #ef4444)' }}>
+            <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4, color: 'var(--color-danger, #ef4444)' }}>Delete Account</h2>
+            <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 16 }}>
+              Permanently delete your account and all data (profile, tasks, scholarships, schools). This cannot be undone.
+            </p>
+
+            {!showDeleteConfirm ? (
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                style={{
+                  background: 'none', color: 'var(--color-danger, #ef4444)',
+                  border: '1.5px solid var(--color-danger, #ef4444)',
+                  borderRadius: 10, padding: '10px 24px', fontWeight: 700, fontSize: 13, cursor: 'pointer',
+                }}
+              >
+                Delete My Account
+              </button>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <p style={{ fontSize: 13, fontWeight: 600 }}>
+                  Type <strong>delete my account</strong> to confirm:
+                </p>
+                <input
+                  value={deleteConfirmText}
+                  onChange={e => setDeleteConfirmText(e.target.value)}
+                  placeholder="delete my account"
+                  style={inputStyle}
+                  autoFocus
+                  autoCapitalize="off"
+                  autoCorrect="off"
+                  spellCheck={false}
+                />
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    onClick={async () => {
+                      setDeleting(true)
+                      try {
+                        const res = await fetch('/api/account/delete', { method: 'POST' })
+                        if (res.ok) {
+                          window.location.href = '/login'
+                        } else {
+                          alert('Failed to delete account. Please try again.')
+                        }
+                      } catch {
+                        alert('Failed to delete account. Please try again.')
+                      }
+                      setDeleting(false)
+                    }}
+                    disabled={deleteConfirmText.trim().toLowerCase() !== 'delete my account' || deleting}
+                    style={{
+                      background: deleteConfirmText.trim().toLowerCase() === 'delete my account' ? 'var(--color-danger, #ef4444)' : 'var(--color-border)',
+                      color: '#fff', border: 'none',
+                      borderRadius: 10, padding: '10px 24px', fontWeight: 700, fontSize: 13,
+                      cursor: deleteConfirmText.trim().toLowerCase() === 'delete my account' && !deleting ? 'pointer' : 'not-allowed',
+                      opacity: deleteConfirmText.trim().toLowerCase() === 'delete my account' ? 1 : 0.5,
+                    }}
+                  >
+                    {deleting ? 'Deleting…' : 'Permanently Delete'}
+                  </button>
+                  <button
+                    onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText('') }}
+                    style={{
+                      background: 'var(--color-column)', color: 'var(--color-text)',
+                      border: '1.5px solid var(--color-border)',
+                      borderRadius: 10, padding: '10px 24px', fontWeight: 600, fontSize: 13, cursor: 'pointer',
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </>
+      )}
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
         <div style={{
@@ -471,81 +543,6 @@ export function ProfilePageClient({ userId }: { userId: string }) {
           >
             {seedTasks.isPending ? 'Seeding…' : '+ Seed Default Tasks (29)'}
           </button>
-        )}
-      </div>
-
-      {/* Delete Account */}
-      <div className="card-elevated" style={{ padding: '28px 28px 32px', borderColor: 'var(--color-danger, #ef4444)' }}>
-        <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4, color: 'var(--color-danger, #ef4444)' }}>Delete Account</h2>
-        <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 16 }}>
-          Permanently delete your account and all data (profile, tasks, scholarships, schools). This cannot be undone.
-        </p>
-
-        {!showDeleteConfirm ? (
-          <button
-            onClick={() => setShowDeleteConfirm(true)}
-            style={{
-              background: 'none', color: 'var(--color-danger, #ef4444)',
-              border: '1.5px solid var(--color-danger, #ef4444)',
-              borderRadius: 10, padding: '10px 24px', fontWeight: 700, fontSize: 13, cursor: 'pointer',
-            }}
-          >
-            Delete My Account
-          </button>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <p style={{ fontSize: 13, fontWeight: 600 }}>
-              Type <strong>delete my account</strong> to confirm:
-            </p>
-            <input
-              value={deleteConfirmText}
-              onChange={e => setDeleteConfirmText(e.target.value)}
-              placeholder="delete my account"
-              style={inputStyle}
-              autoFocus
-              autoCapitalize="off"
-              autoCorrect="off"
-              spellCheck={false}
-            />
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button
-                onClick={async () => {
-                  setDeleting(true)
-                  try {
-                    const res = await fetch('/api/account/delete', { method: 'POST' })
-                    if (res.ok) {
-                      window.location.href = '/login'
-                    } else {
-                      alert('Failed to delete account. Please try again.')
-                    }
-                  } catch {
-                    alert('Failed to delete account. Please try again.')
-                  }
-                  setDeleting(false)
-                }}
-                disabled={deleteConfirmText.trim().toLowerCase() !== 'delete my account' || deleting}
-                style={{
-                  background: deleteConfirmText.trim().toLowerCase() === 'delete my account' ? 'var(--color-danger, #ef4444)' : 'var(--color-border)',
-                  color: '#fff', border: 'none',
-                  borderRadius: 10, padding: '10px 24px', fontWeight: 700, fontSize: 13,
-                  cursor: deleteConfirmText.trim().toLowerCase() === 'delete my account' && !deleting ? 'pointer' : 'not-allowed',
-                  opacity: deleteConfirmText.trim().toLowerCase() === 'delete my account' ? 1 : 0.5,
-                }}
-              >
-                {deleting ? 'Deleting…' : 'Permanently Delete'}
-              </button>
-              <button
-                onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText('') }}
-                style={{
-                  background: 'var(--color-column)', color: 'var(--color-text)',
-                  border: '1.5px solid var(--color-border)',
-                  borderRadius: 10, padding: '10px 24px', fontWeight: 600, fontSize: 13, cursor: 'pointer',
-                }}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
         )}
       </div>
     </motion.div>
