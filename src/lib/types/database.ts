@@ -16,6 +16,8 @@ export interface ExtracurricularEntry {
   tier: ECTier
 }
 
+export type AccountTier = 'free' | 'pilot_free' | 'paid' | 'admin'
+
 export interface Profile {
   id: string
   display_name: string | null
@@ -33,6 +35,7 @@ export interface Profile {
   extracurriculars: string | null
   ec_entries: ExtracurricularEntry[] | null
   career_interests: string | null
+  account_tier: AccountTier
   onboarding_complete: boolean
   walkthrough_complete: boolean
   created_at: string

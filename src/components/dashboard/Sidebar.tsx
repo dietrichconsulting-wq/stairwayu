@@ -167,6 +167,25 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
             </Tooltip>
           )
         })}
+
+        {/* Admin-only nav link */}
+        {profile?.account_tier === 'admin' && (
+          <Link
+            href="/admin"
+            className={`sidebar__nav-item ${pathname === '/admin' ? 'sidebar__nav-item--active' : ''}`}
+            aria-current={pathname === '/admin' ? 'page' : undefined}
+          >
+            {pathname === '/admin' && (
+              <motion.div
+                layoutId="sidebar-active-bg"
+                className="sidebar__nav-item-bg"
+                transition={{ type: 'spring', stiffness: 400, damping: 35 }}
+              />
+            )}
+            <span style={{ fontSize: 15, position: 'relative' }}>🔧</span>
+            <span style={{ position: 'relative', flex: 1 }}>Admin</span>
+          </Link>
+        )}
       </div>
 
       {/* Footer */}
