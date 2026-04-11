@@ -123,11 +123,30 @@ export function DashboardClient({ userId }: DashboardClientProps) {
     }
   }, [readinessTotal, scoreLoading])
 
-  const QUICK_ACTIONS = [
+  // ── View mode (Student / Family) — persists in localStorage ──
+  const [viewMode, setViewModeState] = useState<'student' | 'family'>('student')
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('stairwayu_view_mode')
+      if (saved === 'family' || saved === 'student') setViewModeState(saved)
+    } catch {}
+  }, [])
+  const setViewMode = useCallback((next: 'student' | 'family') => {
+    setViewModeState(next)
+    try { localStorage.setItem('stairwayu_view_mode', next) } catch {}
+  }, [])
+
+  const QUICK_ACTIONS_STUDENT = [
     { label: 'Compare Schools', href: '/compare', icon: '⚖️', tip: 'Compare tuition, admit rates, and stats side-by-side for your saved schools.' },
     { label: 'Start Essay', href: '/essays', icon: '✍️', tip: 'Discover your best essay angle and get feedback that keeps your authentic voice.' },
     { label: 'Find Scholarships', href: '/scholarships', icon: '🏆', tip: 'Discover scholarships matched to your profile and major.' },
   ]
+  const QUICK_ACTIONS_FAMILY = [
+    { label: 'Finance Plan', href: '/finance', icon: '💵', tip: 'Plan how to pay for college — aid, loans, and family contribution.' },
+    { label: 'Find Scholarships', href: '/scholarships', icon: '🏆', tip: 'Discover scholarships matched to your student\'s profile and major.' },
+    { label: 'Compare Costs', href: '/compare', icon: '⚖️', tip: 'Compare tuition and net price side-by-side for your saved schools.' },
+  ]
+  const QUICK_ACTIONS = viewMode === 'family' ? QUICK_ACTIONS_FAMILY : QUICK_ACTIONS_STUDENT
 
   // Share with Family + Pledges
   const [shareUrl, setShareUrl] = useState<string | null>(null)
@@ -231,11 +250,55 @@ export function DashboardClient({ userId }: DashboardClientProps) {
         </div>
       )}
 
+      {/* ── View mode toggle ── */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 14 }}>
+        <div
+          role="tablist"
+          aria-label="View mode"
+          style={{
+            display: 'inline-flex',
+            padding: 3,
+            borderRadius: 99,
+            background: 'var(--color-column)',
+            border: '1.5px solid var(--color-border)',
+            gap: 2,
+          }}
+        >
+          {([
+            { key: 'student', label: 'Student', icon: '🎓' },
+            { key: 'family', label: 'Family', icon: '👪' },
+          ] as const).map(opt => {
+            const active = viewMode === opt.key
+            return (
+              <button
+                key={opt.key}
+                role="tab"
+                aria-selected={active}
+                onClick={() => setViewMode(opt.key)}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  padding: '7px 16px', borderRadius: 99, border: 'none',
+                  background: active ? 'var(--color-primary)' : 'transparent',
+                  color: active ? '#fff' : 'var(--color-text-muted)',
+                  fontWeight: 700, fontSize: 13, cursor: 'pointer',
+                  transition: 'all 0.15s',
+                }}
+              >
+                <span style={{ fontSize: 14 }}>{opt.icon}</span>
+                {opt.label}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
       {/* Header */}
       <div style={{ marginBottom: 28 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
           <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text)', margin: 0 }}>
-            {profileLoading ? '…' : `Welcome back, ${profile?.display_name?.split(' ')[0] || 'Student'} 👋`}
+            {profileLoading ? '…' : viewMode === 'family'
+              ? `${profile?.display_name?.split(' ')[0] || 'Your student'}'s College Plan 🎓`
+              : `Welcome back, ${profile?.display_name?.split(' ')[0] || 'Student'} 👋`}
           </h1>
           {!streakLoading && streak > 0 && (
             <Tooltip text="Your login streak. Visit the dashboard each day to keep it going and earn bonus XP." position="bottom">
@@ -269,31 +332,36 @@ export function DashboardClient({ userId }: DashboardClientProps) {
           )}
         </div>
         <p style={{ fontSize: 14, color: 'var(--color-text-muted)', marginTop: 4 }}>
-          {scoreLoading ? 'Loading your progress…' : getSubtitle(readinessTotal)}
+          {scoreLoading
+            ? 'Loading your progress…'
+            : viewMode === 'family'
+              ? 'Chances of admission and how to pay for it — all in one place.'
+              : getSubtitle(readinessTotal)}
         </p>
       </div>
 
-      {/* ── Hero: Admission Chances (the one thing that's actually true today) ── */}
+      {/* ── Hero: Admission Chances (always first — it's what both audiences care most about) ── */}
       <AdmissionSnapshot profile={profile} colleges={colleges} loading={profileLoading || collegesLoading} />
 
-      {/* ── Profile Stats (GPA/SAT/ACT/Major — the inputs behind the chances) ── */}
-      <div style={{ marginTop: 20 }}>
-        <ProfileStats profile={profile} loading={profileLoading} tasks={tasks} userId={userId} />
-      </div>
+      {/* ── Sections below hero reorder based on view mode ── */}
+      {(() => {
+        const statsSection = (
+          <div key="stats" style={{ marginTop: 20 }}>
+            <ProfileStats profile={profile} loading={profileLoading} tasks={tasks} userId={userId} />
+          </div>
+        )
+        const challengesSection = (
+          <div key="challenges" style={{ marginTop: 20 }}>
+            <DailyChallenges userId={userId} />
+          </div>
+        )
 
-      {/* ── Daily Challenges (engagement) ── */}
-      <div style={{ marginTop: 20 }}>
-        <DailyChallenges userId={userId} />
-      </div>
-
-      {/* ── EC Score Summary ── */}
-      {!profileLoading && (() => {
         const ecEntries = profile?.ec_entries?.filter(e => e.name.trim()) ?? []
         const ecScore = scoreECs(ecEntries)
         const hasECs = ecEntries.length > 0
-
-        return (
+        const ecSection = profileLoading ? null : (
           <motion.div
+            key="ec"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
@@ -377,16 +445,12 @@ export function DashboardClient({ userId }: DashboardClientProps) {
             </div>
           </motion.div>
         )
-      })()}
 
-      {/* ── Section 3: Quick Actions ── */}
-      <div data-tour="quick-actions" style={{
-        display: 'flex',
-        gap: 12,
-        marginTop: 20,
-        flexWrap: 'wrap',
-      }}>
-        {QUICK_ACTIONS.map(({ label, href, icon, tip }) => (
+        const quickActionsSection = (
+          <div key="actions" data-tour="quick-actions" style={{
+            display: 'flex', gap: 12, marginTop: 20, flexWrap: 'wrap',
+          }}>
+            {QUICK_ACTIONS.map(({ label, href, icon, tip }) => (
           <Tooltip key={href} text={tip} position="bottom">
           <Link
             href={href}
@@ -420,20 +484,21 @@ export function DashboardClient({ userId }: DashboardClientProps) {
             {label}
           </Link>
           </Tooltip>
-        ))}
-      </div>
+            ))}
+          </div>
+        )
 
-      {/* ── Share with Family ── */}
-      <div style={{
-        marginTop: 16,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        padding: '14px 18px',
-        borderRadius: 12,
-        border: '1.5px solid var(--color-border)',
-        background: 'linear-gradient(135deg, rgba(59,130,246,0.06), rgba(168,85,247,0.06))',
-      }}>
+        const shareSection = (
+          <div key="share" style={{
+            marginTop: 16,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '14px 18px',
+            borderRadius: 12,
+            border: '1.5px solid var(--color-border)',
+            background: 'linear-gradient(135deg, rgba(59,130,246,0.06), rgba(168,85,247,0.06))',
+          }}>
         <span style={{ fontSize: 20 }}>🎓</span>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
@@ -467,12 +532,35 @@ export function DashboardClient({ userId }: DashboardClientProps) {
         >
           {shareCopied ? '✓ Link Copied!' : shareLoading ? 'Creating…' : 'Copy Share Link'}
         </button>
-      </div>
-      {shareUrl && !shareCopied && (
-        <div style={{ marginTop: 6, fontSize: 11, color: 'var(--color-text-muted)', wordBreak: 'break-all' }}>
-          {shareUrl}
-        </div>
-      )}
+          </div>
+        )
+
+        const shareUrlLine = shareUrl && !shareCopied ? (
+          <div key="shareurl" style={{ marginTop: 6, fontSize: 11, color: 'var(--color-text-muted)', wordBreak: 'break-all' }}>
+            {shareUrl}
+          </div>
+        ) : null
+
+        // Order per mode — Student leads with engagement, Family leads with finance/family tools
+        if (viewMode === 'family') {
+          return [
+            statsSection,
+            shareSection,
+            shareUrlLine,
+            quickActionsSection,
+            ecSection,
+            challengesSection,
+          ]
+        }
+        return [
+          statsSection,
+          challengesSection,
+          ecSection,
+          quickActionsSection,
+          shareSection,
+          shareUrlLine,
+        ]
+      })()}
 
       {/* ── Welcome tour (fires once after onboarding) ── */}
       {showTour && <WelcomeTour onComplete={handleTourComplete} />}

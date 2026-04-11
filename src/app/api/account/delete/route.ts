@@ -12,7 +12,9 @@ export async function POST() {
   const service = await createServiceClient()
   const uid = user.id
 
-  // Delete all user data from every table (order matters for FK constraints)
+  // Delete all user data from every table (order matters for FK constraints).
+  // NOTE: public.trial_claims is intentionally NOT listed — it persists past
+  // deletion to prevent trial farming via delete-and-resignup. Do not add it.
   const tables = [
     { table: 'referral_completions', column: 'referrer_id' },
     { table: 'referral_completions', column: 'referred_id' },
