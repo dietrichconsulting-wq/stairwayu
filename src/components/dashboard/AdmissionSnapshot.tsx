@@ -69,15 +69,28 @@ export function AdmissionSnapshot({ profile, colleges, loading, onAddSchool }: A
   const schools = colleges.map(c => ({ name: c.college_name, id: c.college_id }))
   const [adding, setAdding] = useState(false)
   const [addHintDismissed, setAddHintDismissed] = useState(true)
+  const [strategyHintDismissed, setStrategyHintDismissed] = useState(true)
   useEffect(() => {
     try {
       setAddHintDismissed(localStorage.getItem('stairwayu_add_school_hint_seen') === '1')
+      setStrategyHintDismissed(localStorage.getItem('stairwayu_strategy_hint_seen') === '1')
     } catch {}
   }, [])
   const dismissAddHint = useCallback(() => {
     setAddHintDismissed(true)
     try { localStorage.setItem('stairwayu_add_school_hint_seen', '1') } catch {}
   }, [])
+  const dismissStrategyHint = useCallback(() => {
+    setStrategyHintDismissed(true)
+    try { localStorage.setItem('stairwayu_strategy_hint_seen', '1') } catch {}
+  }, [])
+
+  // Arrow rules:
+  //  - 1–3 schools → point at "+ Add school" with "Try adding more schools"
+  //  - 4 schools  → point at "Full strategy →" with "Try creating an application strategy"
+  //  - 0 or 5+    → no arrow
+  const showAddArrow = colleges.length >= 1 && colleges.length <= 3 && !addHintDismissed && !adding
+  const showStrategyArrow = colleges.length === 4 && !strategyHintDismissed
 
   const validECs = profile?.ec_entries?.filter(e => e.name?.trim()) ?? []
   const ecKey = validECs.length > 0 ? JSON.stringify(validECs) : ''
@@ -264,9 +277,11 @@ export function AdmissionSnapshot({ profile, colleges, loading, onAddSchool }: A
                   value=""
                   placeholder="Search for a college…"
                   onChange={v => {
-                    if (v) onAddSchool(v)
+                    if (v) {
+                      onAddSchool(v)
+                      dismissAddHint() // only dismiss on successful add
+                    }
                     setAdding(false)
-                    dismissAddHint()
                   }}
                 />
               </div>
@@ -274,7 +289,7 @@ export function AdmissionSnapshot({ profile, colleges, loading, onAddSchool }: A
               <Tooltip text="Add another school to your list to see your admission chances for it." position="bottom" maxWidth={220}>
               <button
                 data-tour="add-school"
-                onClick={() => { setAdding(true); dismissAddHint() }}
+                onClick={() => setAdding(true)}
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: 5,
                   padding: '6px 12px', borderRadius: 99,
@@ -291,13 +306,17 @@ export function AdmissionSnapshot({ profile, colleges, loading, onAddSchool }: A
             )
           )}
           <Tooltip text="Generate a 3-tier application strategy (reach, target & safety) with these schools." position="left" maxWidth={220}>
-          <Link href="/strategy" style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-primary)', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+          <Link
+            href="/strategy"
+            onClick={() => { if (showStrategyArrow) dismissStrategyHint() }}
+            style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-primary)', textDecoration: 'none', whiteSpace: 'nowrap' }}
+          >
             Full strategy →
           </Link>
           </Tooltip>
 
-          {/* Hand-drawn "Add more schools here" hint — dismisses on first add */}
-          {onAddSchool && !adding && !addHintDismissed && colleges.length > 0 && (
+          {/* Hand-drawn hint — points at + Add school (≤3 schools) or Full strategy (=4 schools) */}
+          {(showAddArrow || showStrategyArrow) && (
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -306,8 +325,9 @@ export function AdmissionSnapshot({ profile, colleges, loading, onAddSchool }: A
               style={{
                 position: 'absolute',
                 top: 'calc(100% + 4px)',
-                right: 10,
-                width: 170,
+                // Add button sits left of Full strategy; point arrow accordingly
+                right: showAddArrow ? 120 : 14,
+                width: 180,
                 pointerEvents: 'none',
                 zIndex: 5,
                 color: 'var(--color-text-muted)',
@@ -321,9 +341,8 @@ export function AdmissionSnapshot({ profile, colleges, loading, onAddSchool }: A
                 width="70"
                 height="60"
                 viewBox="0 0 70 60"
-                style={{ position: 'absolute', top: -2, right: 46, overflow: 'visible' }}
+                style={{ position: 'absolute', top: -2, right: 56, overflow: 'visible' }}
               >
-                {/* Hand-drawn curved arrow pointing up toward the Add button */}
                 <path
                   d="M 50 52 C 46 34, 40 18, 48 4"
                   fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.75"
@@ -334,7 +353,7 @@ export function AdmissionSnapshot({ profile, colleges, loading, onAddSchool }: A
                 />
               </svg>
               <div style={{ marginTop: 50 }}>
-                Add more schools here
+                {showAddArrow ? 'Try adding more schools' : 'Try creating an application strategy'}
               </div>
             </motion.div>
           )}

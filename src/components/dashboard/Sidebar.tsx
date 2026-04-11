@@ -10,20 +10,35 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useXp } from '@/hooks/useXp'
 import { useUsage } from '@/hooks/useCredits'
+import { useViewMode } from '@/hooks/useViewMode'
 import { Tooltip } from '@/components/ui/Tooltip'
 
-const NAV_ITEMS = [
-  { href: '/dashboard',      icon: '⊞',  label: 'Dashboard',        tip: 'Your home base — stats, progress, and next steps at a glance.', proOnly: false },
-  { href: '/journey',        icon: '🗺️',  label: 'Your Journey',     tip: 'Step-by-step milestones from freshman year through submission.', proOnly: false },
-  { href: '/strategy',       icon: '⚡',  label: 'Strategy',         tip: 'AI-powered reach/target/safety strategy. Pro feature — uses AI calls.', proOnly: true },
-  { href: '/explore',         icon: '🎚️',  label: 'Explore',           tip: 'Slide your stats and discover matching schools instantly.', proOnly: false },
-  { href: '/score-bands',    icon: '📊',  label: 'Score Bands',      tip: 'Browse schools grouped by your admission chance tier.', proOnly: false },
-  { href: '/compare',        icon: '⚖️',  label: 'Compare',          tip: 'Side-by-side comparison of your saved schools. Pro feature.', proOnly: true },
-  { href: '/find-major',     icon: '🧭', label: 'Find Your Major',  tip: 'Explore majors that match your interests and strengths.', proOnly: false },
-  { href: '/essays',         icon: '✍️',  label: 'Essays',           tip: 'AI essay coaching — brainstorm + critique. Pro feature — uses AI calls.', proOnly: true },
-  { href: '/scholarships',   icon: '🏆',  label: 'Scholarships',     tip: 'Discover scholarships matched to your profile. Unlimited with Pro.', proOnly: true },
-  { href: '/finance',        icon: '💵',  label: 'Finance Plan',     tip: 'Plan how to pay for college — aid, loans, and family contribution.', proOnly: false },
-  { href: '/profile',        icon: '👤',  label: 'Profile',          tip: 'Edit your academic stats, preferences, and account settings.', proOnly: false },
+type NavItem = { href: string; icon: string; label: string; tip: string; proOnly: boolean }
+
+// Single source of truth for nav metadata, keyed by href
+const NAV_META: Record<string, NavItem> = {
+  '/dashboard':    { href: '/dashboard',    icon: '⊞',  label: 'Snapshot',        tip: 'Your snapshot — admission chances, stats, and next steps at a glance.', proOnly: false },
+  '/journey':      { href: '/journey',      icon: '🗺️',  label: 'Your Journey',    tip: 'Step-by-step milestones from freshman year through submission.', proOnly: false },
+  '/strategy':     { href: '/strategy',     icon: '⚡',  label: 'Strategy',        tip: 'AI-powered reach/target/safety strategy. Pro feature — uses AI calls.', proOnly: true },
+  '/explore':      { href: '/explore',      icon: '🎚️',  label: 'Explore',         tip: 'Slide your stats and discover matching schools instantly.', proOnly: false },
+  '/score-bands':  { href: '/score-bands',  icon: '📊',  label: 'Score Bands',     tip: 'Browse schools grouped by your admission chance tier.', proOnly: false },
+  '/compare':      { href: '/compare',      icon: '⚖️',  label: 'Compare',         tip: 'Side-by-side comparison of your saved schools. Pro feature.', proOnly: true },
+  '/find-major':   { href: '/find-major',   icon: '🧭', label: 'Find Your Major', tip: 'Explore majors that match your interests and strengths.', proOnly: false },
+  '/essays':       { href: '/essays',       icon: '✍️',  label: 'Essays',          tip: 'AI essay coaching — brainstorm + critique. Pro feature — uses AI calls.', proOnly: true },
+  '/scholarships': { href: '/scholarships', icon: '🏆',  label: 'Scholarships',    tip: 'Discover scholarships matched to your profile. Unlimited with Pro.', proOnly: true },
+  '/finance':      { href: '/finance',      icon: '💵',  label: 'College Cost',    tip: 'Plan how to pay for college — aid, loans, and family contribution.', proOnly: false },
+  '/profile':      { href: '/profile',      icon: '👤',  label: 'Profile',         tip: 'Edit your academic stats, preferences, and account settings.', proOnly: false },
+}
+
+const STUDENT_ORDER: string[] = [
+  '/dashboard', '/journey', '/find-major', '/explore', '/essays',
+  '/finance', '/scholarships', '/strategy', '/compare', '/score-bands', '/profile',
+]
+
+// Mom mode pushes financial tools up; keeps everything else available below.
+const MOM_ORDER: string[] = [
+  '/dashboard', '/finance', '/scholarships', '/strategy', '/journey',
+  '/explore', '/score-bands', '/essays', '/find-major', '/compare', '/profile',
 ]
 
 interface SidebarProps {
@@ -52,6 +67,8 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const { level, totalXp, xpIntoLevel, xpForNextLevel, isMaxLevel, isLoading: xpLoading } = useXp(user.id)
   const { data: usage } = useUsage()
+  const [viewMode] = useViewMode()
+  const navItems = (viewMode === 'mom' ? MOM_ORDER : STUDENT_ORDER).map(href => NAV_META[href])
 
   // Close drawer on route change
   useEffect(() => {
@@ -130,7 +147,7 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
       </div>
 
       <div className="sidebar__nav">
-        {NAV_ITEMS.map(item => {
+        {navItems.map(item => {
           const tourAttr: Record<string, string> = {
             '/journey': 'nav-journey',
             '/explore': 'nav-explore',

@@ -230,7 +230,7 @@ export function FinancialPlanner({ savedColleges = [], homeState = null }: Finan
 
   return (
     <div style={{ maxWidth: 1200 }}>
-      <h1 style={{ fontSize: 26, fontWeight: 800, marginBottom: 6 }}>Finance Plan 💵</h1>
+      <h1 style={{ fontSize: 26, fontWeight: 800, marginBottom: 6 }}>College Cost 💵</h1>
       <p style={{ fontSize: 14, color: 'var(--color-text-muted)', marginBottom: 12 }}>
         See what college will really cost and how savings, aid, and loans cover the gap.
       </p>

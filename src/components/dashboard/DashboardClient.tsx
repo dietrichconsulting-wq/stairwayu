@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useProfile } from '@/hooks/useProfile'
 import { useUserColleges, useAddCollege } from '@/hooks/useUserColleges'
+import { useViewMode } from '@/hooks/useViewMode'
 import { useTasks } from '@/hooks/useTasks'
 import { useReadinessScore } from '@/hooks/useReadinessScore'
 import { ProfileStats } from './ProfileStats'
@@ -124,44 +125,29 @@ export function DashboardClient({ userId }: DashboardClientProps) {
     }
   }, [readinessTotal, scoreLoading])
 
-  // ── View mode (Student / Family) — persists in localStorage ──
-  // Student → dark theme; Family → light theme (swapped via data-theme on <html>)
-  const [viewMode, setViewModeState] = useState<'student' | 'family'>('student')
+  // ── View mode (Student / Mom) — persists in localStorage, theme syncs automatically ──
+  const [viewMode, setViewMode] = useViewMode()
   const [hintDismissed, setHintDismissed] = useState(true) // default hidden until mount check
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('stairwayu_view_mode')
-      if (saved === 'family' || saved === 'student') setViewModeState(saved)
-      setHintDismissed(localStorage.getItem('stairwayu_view_mode_hint_seen') === '1')
-    } catch {}
+    try { setHintDismissed(localStorage.getItem('stairwayu_view_mode_hint_seen') === '1') } catch {}
   }, [])
-  useEffect(() => {
-    // Sync theme to view mode — family always renders in light so the switch is unmistakable
-    const html = document.documentElement
-    if (viewMode === 'family') html.removeAttribute('data-theme')
-    else html.setAttribute('data-theme', 'dark')
-    return () => { html.setAttribute('data-theme', 'dark') }
-  }, [viewMode])
-  const setViewMode = useCallback((next: 'student' | 'family') => {
-    setViewModeState(next)
+  const handleSetViewMode = useCallback((next: 'student' | 'mom') => {
+    setViewMode(next)
     setHintDismissed(true)
-    try {
-      localStorage.setItem('stairwayu_view_mode', next)
-      localStorage.setItem('stairwayu_view_mode_hint_seen', '1')
-    } catch {}
-  }, [])
+    try { localStorage.setItem('stairwayu_view_mode_hint_seen', '1') } catch {}
+  }, [setViewMode])
 
   const QUICK_ACTIONS_STUDENT = [
     { label: 'Compare Schools', href: '/compare', icon: '⚖️', tip: 'Compare tuition, admit rates, and stats side-by-side for your saved schools.' },
     { label: 'Start Essay', href: '/essays', icon: '✍️', tip: 'Discover your best essay angle and get feedback that keeps your authentic voice.' },
     { label: 'Find Scholarships', href: '/scholarships', icon: '🏆', tip: 'Discover scholarships matched to your profile and major.' },
   ]
-  const QUICK_ACTIONS_FAMILY = [
-    { label: 'Finance Plan', href: '/finance', icon: '💵', tip: 'Plan how to pay for college — aid, loans, and family contribution.' },
+  const QUICK_ACTIONS_MOM = [
+    { label: 'College Cost', href: '/finance', icon: '💵', tip: 'Plan how to pay for college — aid, loans, and family contribution.' },
     { label: 'Find Scholarships', href: '/scholarships', icon: '🏆', tip: 'Discover scholarships matched to your student\'s profile and major.' },
     { label: 'Compare Costs', href: '/compare', icon: '⚖️', tip: 'Compare tuition and net price side-by-side for your saved schools.' },
   ]
-  const QUICK_ACTIONS = viewMode === 'family' ? QUICK_ACTIONS_FAMILY : QUICK_ACTIONS_STUDENT
+  const QUICK_ACTIONS = viewMode === 'mom' ? QUICK_ACTIONS_MOM : QUICK_ACTIONS_STUDENT
 
   // Share with Family + Pledges
   const [shareUrl, setShareUrl] = useState<string | null>(null)
@@ -283,7 +269,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
         >
           {([
             { key: 'student', label: 'Student', icon: '🎓' },
-            { key: 'family', label: 'Family', icon: '👪' },
+            { key: 'mom', label: 'Mom Mode', icon: '👪' },
           ] as const).map(opt => {
             const active = viewMode === opt.key
             return (
@@ -291,7 +277,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
                 key={opt.key}
                 role="tab"
                 aria-selected={active}
-                onClick={() => setViewMode(opt.key)}
+                onClick={() => handleSetViewMode(opt.key)}
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: 6,
                   padding: '7px 16px', borderRadius: 99, border: 'none',
@@ -308,7 +294,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
           })}
         </div>
 
-        {/* Hand-drawn "try Family mode" hint — dismisses on first click */}
+        {/* Hand-drawn "try Mom Mode" hint — dismisses on first click */}
         {!hintDismissed && (
           <motion.div
             initial={{ opacity: 0, y: -8 }}
@@ -363,7 +349,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
               />
             </svg>
             <div style={{ marginTop: 58 }}>
-              Are you a parent?<br />Try Family Mode
+              Are you a parent?<br />Try Mom Mode
             </div>
           </motion.div>
         )}
@@ -373,7 +359,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
       <div style={{ marginBottom: 28 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
           <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text)', margin: 0 }}>
-            {profileLoading ? '…' : viewMode === 'family'
+            {profileLoading ? '…' : viewMode === 'mom'
               ? `${profile?.display_name?.split(' ')[0] || 'Your student'}'s College Plan 🎓`
               : `Welcome back, ${profile?.display_name?.split(' ')[0] || 'Student'} 👋`}
           </h1>
@@ -411,7 +397,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
         <p style={{ fontSize: 14, color: 'var(--color-text-muted)', marginTop: 4 }}>
           {scoreLoading
             ? 'Loading your progress…'
-            : viewMode === 'family'
+            : viewMode === 'mom'
               ? 'Chances of admission and how to pay for it — all in one place.'
               : getSubtitle(readinessTotal)}
         </p>
@@ -623,8 +609,8 @@ export function DashboardClient({ userId }: DashboardClientProps) {
           </div>
         ) : null
 
-        // Order per mode — Student leads with engagement, Family leads with finance/family tools
-        if (viewMode === 'family') {
+        // Order per mode — Student leads with engagement, Mom leads with finance/family tools
+        if (viewMode === 'mom') {
           return [
             statsSection,
             shareSection,
