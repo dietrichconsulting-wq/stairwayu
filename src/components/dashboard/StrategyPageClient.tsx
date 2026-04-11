@@ -174,6 +174,7 @@ export function StrategyPageClient({ profile, colleges, userId }: StrategyPageCl
   const [freshResult, setFreshResult] = useState(false)
   const [error, setError] = useState('')
   const [formOpen, setFormOpen] = useState(true)
+  const [flexibleOnPrice, setFlexibleOnPrice] = useState(false)
   const resultsRef = useRef<HTMLDivElement>(null)
   const isFirstGeneration = useRef(!profile?.strategy_generated_at)
 
@@ -325,8 +326,47 @@ export function StrategyPageClient({ profile, colleges, userId }: StrategyPageCl
                     {freshResult ? <TypewriterText text={result.rationale} /> : result.rationale}
                   </div>
                 )}
-                {(['reach', 'target', 'safety'] as Tier[]).map(tier => (
-                  <TierSection key={tier} tier={tier} schools={result[tier]} collegeNames={collegeNames} budget={form.budget ? Number(form.budget) : null} onAdd={async (name) => {
+                {/* Budget filter toggle */}
+                {form.budget && Number(form.budget) > 0 && (() => {
+                  const budgetNum = Number(form.budget)
+                  const totalSchools = result.reach.length + result.target.length + result.safety.length
+                  const overBudgetCount = [...result.reach, ...result.target, ...result.safety].filter(s => s.netCost != null && s.netCost > budgetNum).length
+                  return overBudgetCount > 0 ? (
+                    <div style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+                      padding: '10px 14px', borderRadius: 10, marginBottom: 20,
+                      background: flexibleOnPrice ? 'color-mix(in srgb, var(--color-primary) 6%, transparent)' : 'color-mix(in srgb, #f59e0b 8%, transparent)',
+                      border: `1px solid ${flexibleOnPrice ? 'color-mix(in srgb, var(--color-primary) 15%, transparent)' : 'rgba(245, 158, 11, 0.25)'}`,
+                      transition: 'background 0.2s, border-color 0.2s',
+                    }}>
+                      <div style={{ fontSize: 12, color: 'var(--color-text)', lineHeight: 1.4 }}>
+                        {flexibleOnPrice ? (
+                          <span>Showing all {totalSchools} schools <span style={{ color: 'var(--color-text-muted)' }}>— {overBudgetCount} exceed your ${(budgetNum / 1000).toFixed(0)}k budget</span></span>
+                        ) : (
+                          <span><strong>{overBudgetCount} school{overBudgetCount !== 1 ? 's' : ''} hidden</strong> <span style={{ color: 'var(--color-text-muted)' }}>— above your ${(budgetNum / 1000).toFixed(0)}k/yr budget</span></span>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => setFlexibleOnPrice(f => !f)}
+                        style={{
+                          fontSize: 11, fontWeight: 700, padding: '5px 12px', borderRadius: 8, whiteSpace: 'nowrap',
+                          border: '1.5px solid var(--color-border)', cursor: 'pointer',
+                          background: flexibleOnPrice ? 'var(--color-column)' : 'var(--color-primary)',
+                          color: flexibleOnPrice ? 'var(--color-text)' : '#fff',
+                          transition: 'background 0.15s, color 0.15s',
+                        }}
+                      >
+                        {flexibleOnPrice ? 'Enforce Budget' : 'Flexible on Price'}
+                      </button>
+                    </div>
+                  ) : null
+                })()}
+                {(['reach', 'target', 'safety'] as Tier[]).map(tier => {
+                  const budgetNum = form.budget ? Number(form.budget) : null
+                  const filtered = (!flexibleOnPrice && budgetNum && budgetNum > 0)
+                    ? result[tier].filter(s => s.netCost == null || s.netCost <= budgetNum)
+                    : result[tier]
+                  return <TierSection key={tier} tier={tier} schools={filtered} collegeNames={collegeNames} budget={budgetNum} onAdd={async (name) => {
                     const { createClient } = await import('@/lib/supabase/client')
                     const supabase = createClient()
                     const nextOrder = collegeNames.length + 1
@@ -336,7 +376,7 @@ export function StrategyPageClient({ profile, colleges, userId }: StrategyPageCl
                     )
                     setCollegeNames(prev => prev.includes(name) ? prev : [...prev, name])
                   }} />
-                ))}
+                })}
               </motion.div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 340, textAlign: 'center', padding: 40 }}>
@@ -551,7 +591,7 @@ function SchoolCard({ school, tier, index, collegeNames, budget, onAdd }: {
         {/* Save to collection */}
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 2 }}>
           {saved ? (
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#059669', whiteSpace: 'nowrap' }}>✓ Collected!</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#059669', whiteSpace: 'nowrap' }}>\u2713 Collected!</span>
           ) : alreadyAdded ? (
             <span style={{ fontSize: 11, color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>In your collection</span>
           ) : (
@@ -560,7 +600,7 @@ function SchoolCard({ school, tier, index, collegeNames, budget, onAdd }: {
               disabled={saving}
               style={{ fontSize: 11, fontWeight: 700, padding: '5px 12px', borderRadius: 8, border: '1.5px solid var(--color-border)', background: 'var(--color-column)', color: 'var(--color-text)', cursor: saving ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap' }}
             >
-              {saving ? 'Saving…' : '♥ Save to Collection'}
+              {saving ? 'Saving\u2026' : '\u2665 Save to Collection'}
             </button>
           )}
         </div>
@@ -577,8 +617,8 @@ function Stat({ label, value, color, real, overBudget, labelTooltip }: { label: 
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 60 }}>
       <span style={{ fontSize: 13, fontWeight: 700, color: overBudget ? '#f59e0b' : (color || 'var(--color-text)'), display: 'flex', alignItems: 'center', gap: 3 }}>
         {value}
-        {overBudget && <Tooltip text="Above your annual budget — scholarships or financial aid will be necessary to attend." position="top" maxWidth={240}><span style={{ fontSize: 11 }}>⚠️</span></Tooltip>}
-        {real && <Tooltip text="Pulled from the U.S. Department of Education College Scorecard — real, verified data." position="top" maxWidth={220}><span className="strat-real-badge">live</span></Tooltip>}
+        {overBudget && <Tooltip text="Above your annual budget \u2014 scholarships or financial aid will be necessary to attend." position="top" maxWidth={240}><span style={{ fontSize: 11 }}>\u26a0\ufe0f</span></Tooltip>}
+        {real && <Tooltip text="Pulled from the U.S. Department of Education College Scorecard \u2014 real, verified data." position="top" maxWidth={220}><span className="strat-real-badge">live</span></Tooltip>}
       </span>
       {labelTooltip ? <Tooltip text={labelTooltip} position="top" maxWidth={260}>{labelEl}</Tooltip> : labelEl}
     </div>
