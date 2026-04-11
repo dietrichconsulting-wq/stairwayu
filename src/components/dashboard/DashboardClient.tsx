@@ -22,6 +22,216 @@ interface DashboardClientProps {
   userId: string
 }
 
+// ── Editable Stat Card Row Component ──
+function StatCardRow({ profile, updateProfile, profileLoading }: {
+  profile: any
+  updateProfile: any
+  profileLoading: boolean
+}) {
+  const [editingCard, setEditingCard] = useState<'gpa' | 'sat' | 'act' | 'ec' | null>(null)
+  const [editValues, setEditValues] = useState({
+    gpa: profile?.gpa?.toString() || '',
+    sat: profile?.sat?.toString() || '',
+    act: profile?.act_score?.toString() || '',
+  })
+  const [showSaveFlash, setShowSaveFlash] = useState<string | null>(null)
+
+  // Update local state when profile changes
+  useEffect(() => {
+    setEditValues({
+      gpa: profile?.gpa?.toString() || '',
+      sat: profile?.sat?.toString() || '',
+      act: profile?.act_score?.toString() || '',
+    })
+  }, [profile?.gpa, profile?.sat, profile?.act_score])
+
+  const handleSaveStat = (stat: 'gpa' | 'sat' | 'act' | 'ec', value: string) => {
+    if (stat === 'ec') return // EC is not editable
+    const numValue = parseFloat(value)
+    if (isNaN(numValue)) {
+      setEditingCard(null)
+      return
+    }
+
+    // Validate ranges
+    if (stat === 'gpa' && (numValue < 0 || numValue > 4.0)) {
+      setEditingCard(null)
+      return
+    }
+    if (stat === 'sat' && (numValue < 400 || numValue > 1600)) {
+      setEditingCard(null)
+      return
+    }
+    if (stat === 'act' && (numValue < 1 || numValue > 36)) {
+      setEditingCard(null)
+      return
+    }
+
+    updateProfile.mutate({ [stat]: numValue })
+    setShowSaveFlash(stat)
+    setTimeout(() => setShowSaveFlash(null), 1500)
+    setEditingCard(null)
+  }
+
+  const StatCard = ({ label, value, unit, stat, subtitle, editable, link }: {
+    label: string
+    value: number | null
+    unit: string
+    stat: 'gpa' | 'sat' | 'act' | 'ec'
+    subtitle: string
+    editable: boolean
+    link?: string
+  }) => {
+    const isEditing = editingCard === stat
+    const hasFlash = showSaveFlash === stat
+    const displayValue = value !== null && value !== undefined ? value : 'Add'
+
+    const cardStyle = {
+      background: 'var(--color-card)',
+      border: '1.5px solid var(--color-border)',
+      borderRadius: 12,
+      padding: '14px 16px',
+      flex: '1 1 0',
+      minWidth: 120,
+      display: 'flex',
+      flexDirection: 'column' as const,
+      gap: 8,
+    }
+
+    const labelStyle = {
+      fontSize: 11,
+      fontWeight: 800,
+      color: 'var(--color-text-muted)',
+      textTransform: 'uppercase' as const,
+      letterSpacing: '0.05em',
+    }
+
+    const valueStyle = {
+      fontSize: 22,
+      fontWeight: 800,
+      color: hasFlash ? '#22c55e' : 'var(--color-text)',
+      transition: 'color 0.2s',
+    }
+
+    const inputStyle = {
+      fontSize: 22,
+      fontWeight: 800,
+      background: 'transparent',
+      border: 'none',
+      borderBottom: '2px solid var(--color-primary)',
+      color: 'var(--color-text)',
+      padding: '4px 0',
+      width: '100%',
+      fontFamily: 'inherit',
+    }
+
+    const subtitleStyle = {
+      fontSize: 11,
+      color: 'var(--color-text-muted)',
+      lineHeight: 1.3,
+    }
+
+    if (link) {
+      return (
+        <Link href={link} style={{ textDecoration: 'none', flex: '1 1 0', minWidth: 120 }}>
+          <div style={cardStyle}>
+            <div style={labelStyle}>{label}</div>
+            <div style={valueStyle}>{displayValue}{unit}</div>
+            <div style={subtitleStyle}>{subtitle}</div>
+          </div>
+        </Link>
+      )
+    }
+
+    return (
+      <motion.div
+        style={cardStyle}
+        whileHover={editable && !isEditing ? { borderColor: 'var(--color-primary)' } : {}}
+        transition={{ duration: 0.2 }}
+      >
+        <div style={labelStyle}>{label}</div>
+        {isEditing ? (
+          <input
+            autoFocus
+            type="number"
+            style={inputStyle}
+            value={editValues[stat as keyof typeof editValues]}
+            onChange={e => setEditValues({ ...editValues, [stat]: e.target.value })}
+            onBlur={() => handleSaveStat(stat, editValues[stat as keyof typeof editValues])}
+            onKeyDown={e => {
+              if (e.key === 'Enter') {
+                handleSaveStat(stat, editValues[stat as keyof typeof editValues])
+              } else if (e.key === 'Escape') {
+                setEditingCard(null)
+              }
+            }}
+            step={stat === 'gpa' ? 0.1 : stat === 'sat' ? 10 : 1}
+            min={stat === 'gpa' ? 0 : stat === 'sat' ? 400 : 1}
+            max={stat === 'gpa' ? 4.0 : stat === 'sat' ? 1600 : 36}
+          />
+        ) : (
+          <div
+            onClick={editable ? () => setEditingCard(stat) : undefined}
+            style={{
+              ...valueStyle,
+              cursor: editable ? 'pointer' : 'default',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            {displayValue}{unit}
+            {editable && <span style={{ fontSize: 14, opacity: 0.5 }}>✎</span>}
+          </div>
+        )}
+        <div style={subtitleStyle}>{subtitle}</div>
+      </motion.div>
+    )
+  }
+
+  const ecEntries = profile?.ec_entries?.filter((e: any) => e.name.trim()) ?? []
+  const ecScore = scoreECs(ecEntries)
+  const ecSubtitle = `${ecEntries.length} activit${ecEntries.length === 1 ? 'y' : 'ies'} tracked`
+
+  return (
+    <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
+      <StatCard
+        label="GPA"
+        value={profile?.gpa}
+        unit=""
+        stat="gpa"
+        subtitle="Affects all schools"
+        editable={true}
+      />
+      <StatCard
+        label="SAT"
+        value={profile?.sat}
+        unit=""
+        stat="sat"
+        subtitle="Key factor for admissions"
+        editable={true}
+      />
+      <StatCard
+        label="ACT"
+        value={profile?.act_score}
+        unit=""
+        stat="act"
+        subtitle="Alternative to SAT"
+        editable={true}
+      />
+      <StatCard
+        label="EC Score"
+        value={ecScore}
+        unit="/15"
+        stat="ec"
+        subtitle={ecSubtitle}
+        editable={false}
+        link="/profile"
+      />
+    </div>
+  )
+}
+
 export function DashboardClient({ userId }: DashboardClientProps) {
   const { data: profile, isLoading: profileLoading } = useProfile(userId)
   const { data: colleges = [], isLoading: collegesLoading } = useUserColleges(userId)
@@ -304,6 +514,9 @@ export function DashboardClient({ userId }: DashboardClientProps) {
             : getSubtitle(readinessTotal)}
       </p>
 
+      {/* ── Editable Stat Cards ── */}
+      <StatCardRow profile={profile} updateProfile={updateProfile} profileLoading={profileLoading} />
+
       {/* ── Hero: Admission Chances (always first) ── */}
       <AdmissionSnapshot
         profile={profile}
@@ -311,45 +524,6 @@ export function DashboardClient({ userId }: DashboardClientProps) {
         loading={profileLoading || collegesLoading}
         onAddSchool={name => addCollege.mutate({ name })}
       />
-
-      {/* ── ABOVE FOLD: Quick Stats ── */}
-      <div style={{ marginBottom: 20 }}>
-        <ProfileStats profile={profile} loading={profileLoading} tasks={tasks} userId={userId} />
-      </div>
-
-      {/* ── Next Steps Section (Next 2-3 incomplete tasks) ── */}
-      {tasks && tasks.length > 0 && (
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>
-            Next Steps
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {tasks
-              .filter(t => !t.completed_at)
-              .slice(0, 3)
-              .map(task => (
-                <motion.div key={task.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    padding: '12px 14px',
-                    background: 'var(--color-card)',
-                    border: '1.5px solid var(--color-border)',
-                    borderRadius: 10,
-                  }}>
-                  <input type="checkbox" checked={!!task.completed_at} readOnly style={{ width: 18, height: 18, cursor: 'pointer' }} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{task.title}</div>
-                    {task.description && (
-                      <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 2 }}>{task.description}</div>
-                    )}
-                  </div>
-                </motion.div>
-              ))}
-          </div>
-        </div>
-      )}
 
       {/* ── Quick Actions (always visible) ── */}
       <div data-tour="quick-actions" style={{
@@ -392,6 +566,11 @@ export function DashboardClient({ userId }: DashboardClientProps) {
         ))}
       </div>
 
+      {/* ── Daily Goals (compact, always visible) ── */}
+      <div style={{ marginBottom: 20 }}>
+        <DailyChallenges userId={userId} />
+      </div>
+
       {/* ── Collapsible "More" Section ── */}
       <button
         onClick={() => setShowMoreSection(!showMoreSection)}
@@ -429,13 +608,46 @@ export function DashboardClient({ userId }: DashboardClientProps) {
         {showMoreSection && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} style={{ overflow: 'hidden', marginBottom: 20 }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              {/* Daily Goals (renamed from Daily Challenges) */}
+              {/* Quick Stats */}
               <div>
-                <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>
-                  Daily Goals
-                </div>
-                <DailyChallenges userId={userId} />
+                <ProfileStats profile={profile} loading={profileLoading} tasks={tasks} userId={userId} />
               </div>
+
+              {/* Next Steps */}
+              {tasks && tasks.length > 0 && (
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>
+                    Next Steps
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {tasks
+                      .filter(t => !t.completed_at)
+                      .slice(0, 3)
+                      .map(task => (
+                        <motion.div key={task.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 12,
+                            padding: '12px 14px',
+                            background: 'var(--color-card)',
+                            border: '1.5px solid var(--color-border)',
+                            borderRadius: 10,
+                          }}>
+                          <input type="checkbox" checked={!!task.completed_at} readOnly style={{ width: 18, height: 18, cursor: 'pointer' }} />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{task.title}</div>
+                            {task.description && (
+                              <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 2 }}>{task.description}</div>
+                            )}
+                          </div>
+                        </motion.div>
+                      ))}
+                  </div>
+                </div>
+              )}
+
+
 
               {/* EC Score Widget */}
               {(() => {
@@ -584,9 +796,8 @@ export function DashboardClient({ userId }: DashboardClientProps) {
         )}
       </AnimatePresence>
 
-      {/* ── Welcome tour (available via ? button) ── */}
+      {/* Welcome tour (available via ? button) */}
       {showTour && <WelcomeTour onComplete={handleTourComplete} />}
     </div>
   )
 }
-

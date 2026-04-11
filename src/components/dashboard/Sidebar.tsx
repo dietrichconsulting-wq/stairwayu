@@ -22,6 +22,7 @@ import {
   User as UserIcon,
 } from 'lucide-react'
 import { Tooltip } from '@/components/ui/Tooltip'
+import { useViewMode } from '@/hooks/useViewMode'
 
 type NavItem = { href: string; icon: React.ReactNode; label: string; tip: string; proOnly: boolean }
 
@@ -61,23 +62,21 @@ interface NavGroup {
   items: string[]
 }
 
-const NAV_STRUCTURE: NavGroup[] = [
-  {
-    label: 'DISCOVER',
-    items: ['/explore', '/score-bands', '/find-major'],
-  },
-  {
-    label: 'APPLY',
-    items: ['/essays', '/strategy', '/compare'],
-  },
-  {
-    label: 'PLAN',
-    items: ['/finance', '/scholarships'],
-  },
-  {
-    label: undefined,
-    items: ['/dashboard', '/journey', '/profile'],
-  },
+// Dashboard is pinned at top; Journey + Profile are in the trailing group
+const NAV_STUDENT: NavGroup[] = [
+  { label: undefined,   items: ['/dashboard'] },
+  { label: 'DISCOVER', items: ['/explore', '/score-bands', '/find-major'] },
+  { label: 'APPLY',    items: ['/essays', '/strategy', '/compare'] },
+  { label: 'PLAN',     items: ['/finance', '/scholarships'] },
+  { label: undefined,   items: ['/journey', '/profile'] },
+]
+
+const NAV_MOM: NavGroup[] = [
+  { label: undefined,   items: ['/dashboard'] },
+  { label: 'PLAN',     items: ['/finance', '/scholarships'] },
+  { label: 'APPLY',    items: ['/essays', '/strategy', '/compare'] },
+  { label: 'DISCOVER', items: ['/explore', '/score-bands', '/find-major'] },
+  { label: undefined,   items: ['/journey', '/profile'] },
 ]
 
 interface SidebarProps {
@@ -91,6 +90,8 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
   const router = useRouter()
   const supabase = createClient()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [viewMode, setViewMode] = useViewMode()
+  const NAV_STRUCTURE = viewMode === 'mom' ? NAV_MOM : NAV_STUDENT
 
   // Close drawer on route change
   useEffect(() => {
@@ -214,6 +215,21 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
                     )}
                     <span style={{ position: 'relative' }}>{item.icon}</span>
                     <span style={{ position: 'relative', flex: 1 }}>{item.label}</span>
+                    {item.proOnly && !isPro && (
+                      <span style={{
+                        fontSize: 9,
+                        fontWeight: 700,
+                        padding: '1px 5px',
+                        borderRadius: 4,
+                        background: 'color-mix(in srgb, var(--color-primary) 12%, transparent)',
+                        color: 'var(--color-primary)',
+                        letterSpacing: '0.03em',
+                        flexShrink: 0,
+                        position: 'relative',
+                      }}>
+                        PRO
+                      </span>
+                    )}
                   </Link>
                 </Tooltip>
               )
@@ -271,6 +287,51 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
           </Tooltip>
         </div>
 
+        {/* View mode toggle */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            {viewMode === 'mom' ? 'Parent View' : 'Student View'}
+          </span>
+          <div
+            role="tablist"
+            aria-label="View mode"
+            style={{
+              display: 'inline-flex',
+              padding: 2,
+              borderRadius: 99,
+              background: 'var(--color-column)',
+              border: '1px solid var(--color-border)',
+              gap: 2,
+            }}
+          >
+            {([
+              { key: 'student' as const, icon: '\uD83C\uDF93', tip: 'Student View' },
+              { key: 'mom' as const, icon: '\uD83D\uDC6A', tip: 'Parent View' },
+            ]).map(opt => {
+              const active = viewMode === opt.key
+              return (
+                <Tooltip key={opt.key} text={opt.tip} position="top">
+                  <button
+                    role="tab"
+                    aria-selected={active}
+                    onClick={() => setViewMode(opt.key)}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                      width: 28, height: 28, borderRadius: 99, border: 'none',
+                      background: active ? 'var(--color-primary)' : 'transparent',
+                      color: active ? '#fff' : 'var(--color-text-muted)',
+                      fontWeight: 700, fontSize: 13, cursor: 'pointer',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {opt.icon}
+                  </button>
+                </Tooltip>
+              )
+            })}
+          </div>
+        </div>
+
         {/* Upgrade to Pro link (if not pro) */}
         {subscription?.tier !== 'pro' && (
           <Link
@@ -292,7 +353,7 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
 
   return (
     <>
-      {/* ── Mobile top bar ── */}
+      {/* Mobile top bar */}
       <div className="mobile-topbar">
         <button
           className="mobile-topbar__hamburger"
@@ -304,19 +365,18 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
         <span className="mobile-topbar__brand" style={{ display: 'inline-flex', alignItems: 'center' }}>
           <img src="/stairwayu-wordmark.png" alt="Stairway U" style={{ height: 28, width: 'auto' }} />
         </span>
-        <div style={{ width: 32 }} /> {/* Spacer for centering */}
+        <div style={{ width: 32 }} />
       </div>
 
-      {/* ── Desktop sidebar (always visible ≥768px) ── */}
+      {/* Desktop sidebar (always visible >= 768px) */}
       <nav className="sidebar sidebar--desktop" aria-label="Main navigation">
         {navContent}
       </nav>
 
-      {/* ── Mobile drawer + overlay ── */}
+      {/* Mobile drawer + overlay */}
       <AnimatePresence>
         {mobileOpen && (
           <>
-            {/* Overlay */}
             <motion.div
               className="sidebar-overlay"
               initial={{ opacity: 0 }}
@@ -325,7 +385,6 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
               transition={{ duration: 0.2 }}
               onClick={() => setMobileOpen(false)}
             />
-            {/* Drawer */}
             <motion.nav
               ref={drawerRef}
               className="sidebar sidebar--mobile"

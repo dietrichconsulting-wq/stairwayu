@@ -74,6 +74,7 @@ export function AdmissionSnapshot({ profile, colleges, loading, onAddSchool }: A
     try {
       setAddHintDismissed(localStorage.getItem('stairwayu_add_school_hint_seen') === '1')
       setStrategyHintDismissed(localStorage.getItem('stairwayu_strategy_hint_seen') === '1')
+      // Suggested schools default to collapsed; no localStorage restore needed
     } catch {}
   }, [])
   const dismissAddHint = useCallback(() => {
@@ -84,6 +85,7 @@ export function AdmissionSnapshot({ profile, colleges, loading, onAddSchool }: A
     setStrategyHintDismissed(true)
     try { localStorage.setItem('stairwayu_strategy_hint_seen', '1') } catch {}
   }, [])
+  // dismissSuggested removed — using simple toggle now
 
   // Arrow rules:
   //  - 1–3 schools → point at "+ Add school" with "Try adding more schools"
@@ -121,6 +123,12 @@ export function AdmissionSnapshot({ profile, colleges, loading, onAddSchool }: A
   })
   const [expandedCard, setExpandedCard] = useState<number | null>(null)
   const [fetchError, setFetchError] = useState(false)
+  const [suggestedResults, setSuggestedResults] = useState<SchoolResult[]>([])
+  const [suggestedVisible, setSuggestedVisible] = useState(() => {
+    // Auto-open when user has stats filled and 2+ schools saved
+    const hasStats = !!(profile?.sat || profile?.act_score) && !!profile?.gpa
+    return hasStats && schools.length >= 2
+  })
 
   const doFetch = useCallback((signal?: AbortSignal, retriesLeft = 2) => {
     if (!profile || !fetchKey || schools.length === 0) return
@@ -172,6 +180,35 @@ export function AdmissionSnapshot({ profile, colleges, loading, onAddSchool }: A
     doFetch(controller.signal)
     return () => controller.abort()
   }, [fetchKey, loading, doFetch]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Fetch suggested schools
+  useEffect(() => {
+    if (!profile || schools.length === 0) {
+      setSuggestedResults([])
+      return
+    }
+
+    const fetchSuggestions = async () => {
+      try {
+        const response = await fetch('/api/colleges/suggest')
+        if (!response.ok) return
+        const data = await response.json()
+        const suggested = data.results || []
+
+        // Filter out schools already in user's list
+        const userSchoolNames = new Set(schools.map(s => s.name.toLowerCase()))
+        const filtered = suggested.filter(
+          (s: SchoolResult) => !userSchoolNames.has(s.schoolName.toLowerCase())
+        )
+
+        setSuggestedResults(filtered.slice(0, 6))
+      } catch {
+        // Silently fail if suggestions API isn't available
+      }
+    }
+
+    fetchSuggestions()
+  }, [schools, profile])
 
   if (loading) {
     return (
@@ -587,6 +624,168 @@ export function AdmissionSnapshot({ profile, colleges, loading, onAddSchool }: A
               </motion.div>
             )
           })}
+        </div>
+      )}
+
+      {/* ── Suggested Schools Section ── */}
+      {suggestedResults.length > 0 && (
+        <div style={{ marginTop: 20 }}>
+          {/* Divider */}
+          <div style={{
+            height: 1,
+            background: 'var(--color-border)',
+            marginBottom: 14,
+          }} />
+
+          {/* Toggle header */}
+          <button
+            onClick={() => setSuggestedVisible(!suggestedVisible)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              width: '100%',
+              padding: '6px 0',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--color-text-muted)',
+              fontSize: 13,
+              fontWeight: 700,
+              transition: 'color 0.15s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-text)' }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-muted)' }}
+          >
+            <span style={{ fontSize: 14 }}>{suggestedVisible ? '▾' : '▸'}</span>
+            Schools You Might Like
+            <span style={{
+              fontSize: 10,
+              fontWeight: 600,
+              padding: '2px 8px',
+              borderRadius: 20,
+              background: 'color-mix(in srgb, var(--color-primary) 10%, transparent)',
+              color: 'var(--color-primary)',
+              border: '1px solid color-mix(in srgb, var(--color-primary) 20%, transparent)',
+            }}>
+              {suggestedResults.length}
+            </span>
+          </button>
+
+          <AnimatePresence>
+            {suggestedVisible && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.25, ease: 'easeInOut' }}
+                style={{ overflow: 'hidden' }}
+              >
+                <p style={{ fontSize: 11, color: 'var(--color-text-muted)', margin: '6px 0 12px' }}>
+                  Based on your GPA and test scores — click + to add one to your list
+                </p>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(240px, 100%), 1fr))', gap: 14 }}>
+                  {suggestedResults.map((r, i) => {
+                    const { label, color, softColor, bgColor, borderColor } = chanceLabel(r.chance)
+                    return (
+                      <motion.div
+                        key={r.schoolName}
+                        initial={{ opacity: 0, scale: 0.96 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: i * 0.04 }}
+                        style={{
+                          background: 'var(--color-card)',
+                          borderRadius: 12,
+                          padding: '14px 16px',
+                          border: '1px solid var(--color-border)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 10,
+                        }}
+                      >
+                        {/* School name + tier + add button */}
+                        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 6 }}>
+                          <Link
+                            href={`/colleges/${collegeSlug(r.schoolName)}`}
+                            style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)', lineHeight: 1.3, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', textDecoration: 'none', flex: 1 }}
+                            title={`View ${r.schoolName} profile`}
+                          >
+                            {r.schoolName} ↗
+                          </Link>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                            <span style={{
+                              fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 20,
+                              background: bgColor, color: softColor, border: `1px solid ${borderColor}`,
+                              whiteSpace: 'nowrap',
+                            }}>
+                              {label}
+                            </span>
+                            {onAddSchool && (
+                              <Tooltip text={`Add ${r.schoolName} to your list`} position="left">
+                                <button
+                                  onClick={() => onAddSchool(r.schoolName)}
+                                  style={{
+                                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                                    width: 26, height: 26, borderRadius: 99,
+                                    border: '1.5px solid var(--color-primary)',
+                                    background: 'color-mix(in srgb, var(--color-primary) 10%, transparent)',
+                                    color: 'var(--color-primary)',
+                                    fontSize: 16, fontWeight: 700, cursor: 'pointer',
+                                    lineHeight: 1, padding: 0,
+                                    transition: 'all 0.15s',
+                                  }}
+                                  onMouseEnter={e => {
+                                    e.currentTarget.style.background = 'var(--color-primary)'
+                                    e.currentTarget.style.color = '#fff'
+                                  }}
+                                  onMouseLeave={e => {
+                                    e.currentTarget.style.background = 'color-mix(in srgb, var(--color-primary) 10%, transparent)'
+                                    e.currentTarget.style.color = 'var(--color-primary)'
+                                  }}
+                                >
+                                  +
+                                </button>
+                              </Tooltip>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Chance bar */}
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 5 }}>
+                            <span style={{ fontSize: 11, color: 'var(--color-text-muted)', fontWeight: 600 }}>Your chance</span>
+                            <span style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text)' }}>~{r.chance}%</span>
+                          </div>
+                          <div style={{ height: 6, background: 'var(--color-border)', borderRadius: 99, overflow: 'hidden' }}>
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${r.chance}%` }}
+                              transition={{ duration: 0.8, delay: i * 0.08, ease: 'easeOut' }}
+                              style={{ height: '100%', background: `${color}B3`, borderRadius: 99 }}
+                            />
+                          </div>
+                          {r.admissionRate != null && (
+                            <div style={{ fontSize: 10, color: 'var(--color-text-muted)', marginTop: 4 }}>{r.admissionRate}% overall admit rate</div>
+                          )}
+                        </div>
+
+                        {/* Stats footer */}
+                        <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 8, display: 'flex', flexWrap: 'wrap', gap: '8px 16px' }}>
+                          {(r.sat25 || r.sat75 || r.avgSAT) && (
+                            <SnapshotStat label="SAT Range" value={r.sat25 && r.sat75 ? `${r.sat25} – ${r.sat75}` : r.avgSAT ? `Avg ${r.avgSAT}` : '—'} />
+                          )}
+                          {r.avgNetPrice != null && (
+                            <SnapshotStat label="Avg Net Price" value={`$${(r.avgNetPrice / 1000).toFixed(0)}k`} />
+                          )}
+                        </div>
+                      </motion.div>
+                    )
+                  })}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       )}
     </motion.div>
