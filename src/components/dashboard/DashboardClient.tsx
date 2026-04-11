@@ -124,16 +124,30 @@ export function DashboardClient({ userId }: DashboardClientProps) {
   }, [readinessTotal, scoreLoading])
 
   // ── View mode (Student / Family) — persists in localStorage ──
+  // Student → dark theme; Family → light theme (swapped via data-theme on <html>)
   const [viewMode, setViewModeState] = useState<'student' | 'family'>('student')
+  const [hintDismissed, setHintDismissed] = useState(true) // default hidden until mount check
   useEffect(() => {
     try {
       const saved = localStorage.getItem('stairwayu_view_mode')
       if (saved === 'family' || saved === 'student') setViewModeState(saved)
+      setHintDismissed(localStorage.getItem('stairwayu_view_mode_hint_seen') === '1')
     } catch {}
   }, [])
+  useEffect(() => {
+    // Sync theme to view mode — family always renders in light so the switch is unmistakable
+    const html = document.documentElement
+    if (viewMode === 'family') html.removeAttribute('data-theme')
+    else html.setAttribute('data-theme', 'dark')
+    return () => { html.setAttribute('data-theme', 'dark') }
+  }, [viewMode])
   const setViewMode = useCallback((next: 'student' | 'family') => {
     setViewModeState(next)
-    try { localStorage.setItem('stairwayu_view_mode', next) } catch {}
+    setHintDismissed(true)
+    try {
+      localStorage.setItem('stairwayu_view_mode', next)
+      localStorage.setItem('stairwayu_view_mode_hint_seen', '1')
+    } catch {}
   }, [])
 
   const QUICK_ACTIONS_STUDENT = [
@@ -251,7 +265,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
       )}
 
       {/* ── View mode toggle ── */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 14 }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 14, position: 'relative' }}>
         <div
           role="tablist"
           aria-label="View mode"
@@ -262,6 +276,8 @@ export function DashboardClient({ userId }: DashboardClientProps) {
             background: 'var(--color-column)',
             border: '1.5px solid var(--color-border)',
             gap: 2,
+            position: 'relative',
+            zIndex: 1,
           }}
         >
           {([
@@ -290,6 +306,66 @@ export function DashboardClient({ userId }: DashboardClientProps) {
             )
           })}
         </div>
+
+        {/* Hand-drawn "try Family mode" hint — dismisses on first click */}
+        {!hintDismissed && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ delay: 0.8, duration: 0.4 }}
+            aria-hidden
+            style={{
+              position: 'absolute',
+              top: 'calc(100% + 6px)',
+              right: 28,
+              width: 180,
+              pointerEvents: 'none',
+              zIndex: 0,
+              color: 'var(--color-text-muted)',
+              fontFamily: '"Caveat", "Patrick Hand", "Bradley Hand", cursive',
+              fontSize: 18,
+              lineHeight: 1.15,
+              textAlign: 'center',
+            }}
+          >
+            <svg
+              width="80"
+              height="72"
+              viewBox="0 0 80 72"
+              style={{
+                position: 'absolute',
+                top: -4,
+                right: 30,
+                overflow: 'visible',
+              }}
+            >
+              {/* Hand-drawn curved arrow pointing up-right toward the toggle */}
+              <path
+                d="M 60 60 C 55 40, 48 22, 58 6"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeDasharray="0"
+                opacity="0.7"
+              />
+              {/* Arrowhead */}
+              <path
+                d="M 52 12 L 58 4 L 64 14"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                opacity="0.7"
+              />
+            </svg>
+            <div style={{ marginTop: 58 }}>
+              Are you a parent?<br />Try Family Mode
+            </div>
+          </motion.div>
+        )}
       </div>
 
       {/* Header */}
