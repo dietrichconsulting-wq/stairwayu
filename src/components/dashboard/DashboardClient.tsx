@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useProfile } from '@/hooks/useProfile'
-import { useUserColleges } from '@/hooks/useUserColleges'
+import { useUserColleges, useAddCollege } from '@/hooks/useUserColleges'
 import { useTasks } from '@/hooks/useTasks'
 import { useReadinessScore } from '@/hooks/useReadinessScore'
 import { ProfileStats } from './ProfileStats'
@@ -24,6 +24,7 @@ interface DashboardClientProps {
 export function DashboardClient({ userId }: DashboardClientProps) {
   const { data: profile, isLoading: profileLoading } = useProfile(userId)
   const { data: colleges = [], isLoading: collegesLoading } = useUserColleges(userId)
+  const addCollege = useAddCollege(userId)
   const updateProfile = useUpdateProfile(userId)
   const { data: tasks = [] } = useTasks(userId)
   const { total: readinessTotal, isLoading: scoreLoading } = useReadinessScore(userId)
@@ -417,7 +418,12 @@ export function DashboardClient({ userId }: DashboardClientProps) {
       </div>
 
       {/* ── Hero: Admission Chances (always first — it's what both audiences care most about) ── */}
-      <AdmissionSnapshot profile={profile} colleges={colleges} loading={profileLoading || collegesLoading} />
+      <AdmissionSnapshot
+        profile={profile}
+        colleges={colleges}
+        loading={profileLoading || collegesLoading}
+        onAddSchool={name => addCollege.mutate({ name })}
+      />
 
       {/* ── Sections below hero reorder based on view mode ── */}
       {(() => {

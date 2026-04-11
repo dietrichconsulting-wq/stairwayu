@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import type { Profile, UserCollege } from '@/lib/types/database'
 import Link from 'next/link'
 import { Tooltip } from '@/components/ui/Tooltip'
+import { CollegeSelect } from '@/components/CollegeSelect'
 
 // Mirrors slugify in scripts/ingest-colleges.mjs so dashboard links resolve
 // to the same URLs as the SEO landing pages.
@@ -38,6 +39,7 @@ interface AdmissionSnapshotProps {
   profile: Profile | null | undefined
   colleges: UserCollege[]
   loading: boolean
+  onAddSchool?: (name: string) => void
 }
 
 function chanceLabel(pct: number): { label: string; color: string; softColor: string; bgColor: string; borderColor: string } {
@@ -63,8 +65,19 @@ const FACTOR_ICONS: Record<string, string> = {
 
 const SNAPSHOT_KEY = 'admission_snapshot_v2'
 
-export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnapshotProps) {
+export function AdmissionSnapshot({ profile, colleges, loading, onAddSchool }: AdmissionSnapshotProps) {
   const schools = colleges.map(c => ({ name: c.college_name, id: c.college_id }))
+  const [adding, setAdding] = useState(false)
+  const [addHintDismissed, setAddHintDismissed] = useState(true)
+  useEffect(() => {
+    try {
+      setAddHintDismissed(localStorage.getItem('stairwayu_add_school_hint_seen') === '1')
+    } catch {}
+  }, [])
+  const dismissAddHint = useCallback(() => {
+    setAddHintDismissed(true)
+    try { localStorage.setItem('stairwayu_add_school_hint_seen', '1') } catch {}
+  }, [])
 
   const validECs = profile?.ec_entries?.filter(e => e.name?.trim()) ?? []
   const ecKey = validECs.length > 0 ? JSON.stringify(validECs) : ''
@@ -233,7 +246,7 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
       className="card-elevated"
       style={{ padding: '20px 24px' }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16, gap: 12, position: 'relative' }}>
         <div>
           <Tooltip text="Personalized admission odds for each school based on your GPA, test scores, and real admit-rate data." position="bottom" maxWidth={260}>
           <h2 style={{ fontSize: 15, fontWeight: 800, margin: 0 }}>Admission Snapshot</h2>
@@ -242,11 +255,90 @@ export function AdmissionSnapshot({ profile, colleges, loading }: AdmissionSnaps
             Estimates based on your GPA, SAT/ACT, extracurriculars & school admit rates
           </p>
         </div>
-        <Tooltip text="Generate a 3-tier application strategy (reach, target & safety) with these schools." position="left" maxWidth={220}>
-        <Link href="/strategy" style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-primary)', textDecoration: 'none' }}>
-          Full strategy →
-        </Link>
-        </Tooltip>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0, position: 'relative' }}>
+          {onAddSchool && (
+            adding ? (
+              <div style={{ width: 240 }}>
+                <CollegeSelect
+                  value=""
+                  placeholder="Search for a college…"
+                  onChange={v => {
+                    if (v) onAddSchool(v)
+                    setAdding(false)
+                    dismissAddHint()
+                  }}
+                />
+              </div>
+            ) : (
+              <Tooltip text="Add another school to your list to see your admission chances for it." position="bottom" maxWidth={220}>
+              <button
+                data-tour="add-school"
+                onClick={() => { setAdding(true); dismissAddHint() }}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 5,
+                  padding: '6px 12px', borderRadius: 99,
+                  border: '1.5px solid var(--color-primary)',
+                  background: 'color-mix(in srgb, var(--color-primary) 10%, transparent)',
+                  color: 'var(--color-primary)',
+                  fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                <span style={{ fontSize: 14, lineHeight: 1 }}>+</span> Add school
+              </button>
+              </Tooltip>
+            )
+          )}
+          <Tooltip text="Generate a 3-tier application strategy (reach, target & safety) with these schools." position="left" maxWidth={220}>
+          <Link href="/strategy" style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-primary)', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+            Full strategy →
+          </Link>
+          </Tooltip>
+
+          {/* Hand-drawn "Add more schools here" hint — dismisses on first add */}
+          {onAddSchool && !adding && !addHintDismissed && colleges.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.2, duration: 0.4 }}
+              aria-hidden
+              style={{
+                position: 'absolute',
+                top: 'calc(100% + 4px)',
+                right: 10,
+                width: 170,
+                pointerEvents: 'none',
+                zIndex: 5,
+                color: 'var(--color-text-muted)',
+                fontFamily: '"Caveat", "Patrick Hand", "Bradley Hand", cursive',
+                fontSize: 18,
+                lineHeight: 1.15,
+                textAlign: 'center',
+              }}
+            >
+              <svg
+                width="70"
+                height="60"
+                viewBox="0 0 70 60"
+                style={{ position: 'absolute', top: -2, right: 46, overflow: 'visible' }}
+              >
+                {/* Hand-drawn curved arrow pointing up toward the Add button */}
+                <path
+                  d="M 50 52 C 46 34, 40 18, 48 4"
+                  fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.75"
+                />
+                <path
+                  d="M 42 10 L 48 2 L 54 12"
+                  fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" opacity="0.75"
+                />
+              </svg>
+              <div style={{ marginTop: 50 }}>
+                Add more schools here
+              </div>
+            </motion.div>
+          )}
+        </div>
       </div>
 
       {fetching && (
