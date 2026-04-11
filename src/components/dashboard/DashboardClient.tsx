@@ -590,5 +590,3 @@ export function DashboardClient({ userId }: DashboardClientProps) {
   )
 }
 
-  )
-}
