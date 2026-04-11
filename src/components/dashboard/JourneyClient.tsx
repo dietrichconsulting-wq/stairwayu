@@ -5,6 +5,8 @@ import { motion } from 'framer-motion'
 import { useMilestones, useMarkMilestone, type MilestoneRecord } from '@/hooks/useMilestones'
 import { MILESTONES } from '@/lib/milestones'
 import { PhaseUnlockOverlay } from './PhaseUnlockOverlay'
+import { TaskList } from './TaskList'
+import { useTasks } from '@/hooks/useTasks'
 
 const isDark = () => document.documentElement.getAttribute('data-theme') === 'dark'
 const getPhases = () => isDark() ? [
@@ -23,6 +25,7 @@ export function JourneyClient({ userId }: { userId: string }) {
   const milestonesQuery = useMilestones(userId)
   const milestones: MilestoneRecord[] = milestonesQuery.data ?? []
   const markMilestoneMutation = useMarkMilestone(userId)
+  const { data: tasks = [], isLoading: tasksLoading } = useTasks(userId)
 
   const [unlockedPhase, setUnlockedPhase] = useState<string | null>(null)
   const dismissOverlay = useCallback(() => setUnlockedPhase(null), [])
@@ -72,6 +75,7 @@ export function JourneyClient({ userId }: { userId: string }) {
   const nextMilestone = firstUnreached >= 0 ? MILESTONES[firstUnreached] : null
 
   return (
+    <div>
     <div className="journey-layout" style={{ display: 'flex', gap: 36, alignItems: 'flex-start' }}>
       <PhaseUnlockOverlay phase={unlockedPhase} onDismiss={dismissOverlay} />
 
@@ -317,6 +321,16 @@ export function JourneyClient({ userId }: { userId: string }) {
             <div style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>All 10 milestones reached. Congratulations!</div>
           </motion.div>
         )}
+      </div>
+    </div>
+
+      {/* ── Task list — project management lives here, not on the dashboard ── */}
+      <div style={{ marginTop: 40, paddingTop: 32, borderTop: '1px solid var(--color-border)' }}>
+        <h2 style={{ fontSize: 20, fontWeight: 800, marginBottom: 6 }}>Task List ✅</h2>
+        <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 20 }}>
+          Track every step of your college application — check them off as you go.
+        </p>
+        <TaskList tasks={tasks} loading={tasksLoading} userId={userId} collapsedMax={8} />
       </div>
     </div>
   )

@@ -172,6 +172,60 @@ export function OnboardingClient({ userId, initialName = '' }: { userId: string;
       alignItems: 'center',
       padding: '40px 24px',
     }}>
+      {/* Loading overlay */}
+      <AnimatePresence>
+        {saving && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 100,
+              background: 'color-mix(in srgb, var(--color-bg) 92%, transparent)',
+              backdropFilter: 'blur(8px)',
+              display: 'flex', flexDirection: 'column',
+              alignItems: 'center', justifyContent: 'center',
+              gap: 32,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>
+              {[0, 1, 2, 3].map(i => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0.25, y: 8 }}
+                  animate={{ opacity: [0.25, 1, 0.25], y: [8, 0, 8] }}
+                  transition={{
+                    duration: 1.4,
+                    repeat: Infinity,
+                    delay: i * 0.18,
+                    ease: 'easeInOut',
+                  }}
+                  style={{
+                    width: 48,
+                    height: 32 + i * 18,
+                    borderRadius: 8,
+                    background: 'linear-gradient(to top, var(--color-primary), color-mix(in srgb, var(--color-primary) 65%, white))',
+                    boxShadow: '0 6px 24px color-mix(in srgb, var(--color-primary) 40%, transparent)',
+                  }}
+                />
+              ))}
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 6 }}>
+                Building your dashboard…
+              </div>
+              <motion.div
+                style={{ fontSize: 13, color: 'var(--color-text-muted)' }}
+                animate={{ opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+              >
+                Seeding tasks, milestones, and your roadmap
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <div style={{ textAlign: 'center', marginBottom: 36 }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-primary)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 6 }}>
@@ -241,7 +295,16 @@ export function OnboardingClient({ userId, initialName = '' }: { userId: string;
             <div className="card-elevated" style={{ padding: '32px 32px 28px' }}>
               {step === 0 && <StepAbout form={form} set={set} />}
               {step === 1 && <StepAcademics form={form} set={set} setForm={setForm} />}
-              {step === 2 && <StepPreferences form={form} togglePref={togglePref} />}
+              {step === 2 && <StepPreferences form={form} togglePref={togglePref} onSkip={() => {
+                setForm(f => ({
+                  ...f,
+                  desired_climate: ['Any'],
+                  school_size_pref: ['Any'],
+                  school_type_pref: ['Either'],
+                  distance_pref: ['Anywhere'],
+                }))
+                setStep(s => s + 1)
+              }} />}
               {step === 3 && <StepSchools schools={form.schools} setSchools={schools => setForm(f => ({ ...f, schools }))} />}
             </div>
           </motion.div>
@@ -360,11 +423,34 @@ function StepAcademics({ form, set, setForm }: { form: FormData; set: (k: keyof 
 }
 
 // ─── Step 3: Preferences ─────────────────────────────────────────────────────
-function StepPreferences({ form, togglePref }: { form: FormData; togglePref: (key: 'desired_climate' | 'school_size_pref' | 'school_type_pref' | 'distance_pref', value: string, exclusiveValues: string[]) => void }) {
+function StepPreferences({ form, togglePref, onSkip }: { form: FormData; togglePref: (key: 'desired_climate' | 'school_size_pref' | 'school_type_pref' | 'distance_pref', value: string, exclusiveValues: string[]) => void; onSkip: () => void }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      <p style={{ fontSize: 13, color: 'var(--color-text-muted)', margin: '-8px 0 -8px' }}>
-        Select all that apply — pick multiple options in each category.
+      <button
+        type="button"
+        onClick={onSkip}
+        style={{
+          width: '100%',
+          padding: '14px 20px',
+          borderRadius: 12,
+          border: '1.5px dashed var(--color-border)',
+          background: 'var(--color-column)',
+          color: 'var(--color-text)',
+          fontSize: 14,
+          fontWeight: 700,
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8,
+          transition: 'all 0.15s',
+        }}
+      >
+        <span>⏭</span>
+        <span>Skip — I'm open to anything</span>
+      </button>
+      <p style={{ fontSize: 13, color: 'var(--color-text-muted)', margin: '-12px 0 -8px', textAlign: 'center' }}>
+        — or select all that apply below —
       </p>
       <OptionGroup
         label="Preferred Climate"
@@ -421,7 +507,7 @@ function StepSchools({ schools, setSchools }: { schools: string[]; setSchools: (
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 4 }}>
-        You can search and add more schools later. Even adding one is enough to get started.
+        <span style={{ color: '#FFD86B', fontWeight: 700 }}>Add at least one</span> to get started.
       </p>
       {schools.map((school, i) => (
         <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>

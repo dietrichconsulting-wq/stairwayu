@@ -1,15 +1,12 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useProfile } from '@/hooks/useProfile'
 import { useUserColleges } from '@/hooks/useUserColleges'
 import { useTasks } from '@/hooks/useTasks'
 import { useReadinessScore } from '@/hooks/useReadinessScore'
-import { useMilestones } from '@/hooks/useMilestones'
-import { MILESTONES } from '@/lib/milestones'
 import { ProfileStats } from './ProfileStats'
 import { AdmissionSnapshot } from './AdmissionSnapshot'
-import { TaskList } from './TaskList'
 import { useUpdateProfile } from '@/hooks/useProfile'
 import { useStreak } from '@/hooks/useStreak'
 import Link from 'next/link'
@@ -28,13 +25,9 @@ export function DashboardClient({ userId }: DashboardClientProps) {
   const { data: profile, isLoading: profileLoading } = useProfile(userId)
   const { data: colleges = [], isLoading: collegesLoading } = useUserColleges(userId)
   const updateProfile = useUpdateProfile(userId)
-  const { data: tasks = [], isLoading: tasksLoading } = useTasks(userId)
-  const { total: readinessTotal, dimensions, topActions, isLoading: scoreLoading } = useReadinessScore(userId)
+  const { data: tasks = [] } = useTasks(userId)
+  const { total: readinessTotal, isLoading: scoreLoading } = useReadinessScore(userId)
   const { streak, isLoading: streakLoading } = useStreak(userId)
-  const milestonesQuery = useMilestones(userId)
-  const reachedKeys = new Set((milestonesQuery.data ?? []).map((m: { milestone_key: string }) => m.milestone_key))
-  const nextMilestone = MILESTONES.find(m => !reachedKeys.has(m.key)) ?? null
-  const allDone = reachedKeys.size === MILESTONES.length
 
   function getSubtitle(score: number) {
     if (score <= 15) return "Let's get started — your future self will thank you."
@@ -111,13 +104,9 @@ export function DashboardClient({ userId }: DashboardClientProps) {
 
   // ── Progress toasts (once per session per threshold) ──
   const progressToastFired = useRef(new Set<number>())
-  const milestonePct = useMemo(() => {
-    if (milestonesQuery.isLoading) return null
-    return Math.round((reachedKeys.size / MILESTONES.length) * 100)
-  }, [reachedKeys.size, milestonesQuery.isLoading])
 
   useEffect(() => {
-    if (scoreLoading || milestonePct === null) return
+    if (scoreLoading) return
     const thresholds = [
       { score: 25, msg: "You just passed 25% — you're already ahead of most students.", emoji: '🌱' },
       { score: 40, msg: "40% and climbing — your odds just went up ↑", emoji: '📈' },
@@ -128,25 +117,11 @@ export function DashboardClient({ userId }: DashboardClientProps) {
     for (const t of thresholds) {
       if (readinessTotal >= t.score && !progressToastFired.current.has(t.score)) {
         progressToastFired.current.add(t.score)
-        // Delay so it doesn't compete with page load animations
         setTimeout(() => showToast({ message: t.msg, emoji: t.emoji, duration: 5000 }), 1500)
-        break // Only show one toast per load
+        break
       }
     }
-  }, [readinessTotal, scoreLoading, milestonePct])
-
-  // Journey ring helpers
-  const ringSize = 120
-  const ringStroke = 10
-  const ringRadius = (ringSize - ringStroke) / 2
-  const ringCircumference = 2 * Math.PI * ringRadius
-  const ringOffset = ringCircumference - (readinessTotal / 100) * ringCircumference
-  function ringColor(score: number) {
-    if (score <= 30) return '#EF4444'
-    if (score <= 60) return '#FBBF24'
-    if (score <= 85) return '#22D3EE'
-    return '#34D399'
-  }
+  }, [readinessTotal, scoreLoading])
 
   const QUICK_ACTIONS = [
     { label: 'Compare Schools', href: '/compare', icon: '⚖️', tip: 'Compare tuition, admit rates, and stats side-by-side for your saved schools.' },
@@ -298,171 +273,17 @@ export function DashboardClient({ userId }: DashboardClientProps) {
         </p>
       </div>
 
-      {/* ── What's Next card ── */}
-      {milestonesQuery.isLoading ? (
-        <div className="skeleton" style={{ height: 68, borderRadius: 14, marginBottom: 20 }} />
-      ) : (
-        <Link href="/journey" data-tour="whats-next" style={{ textDecoration: 'none', display: 'block', marginBottom: 20 }}>
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            style={{
-              background: 'color-mix(in srgb, var(--color-primary) 8%, var(--color-card))',
-              border: '1.5px solid color-mix(in srgb, var(--color-primary) 25%, var(--color-border))',
-              borderRadius: 14,
-              padding: '16px 20px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 14,
-              cursor: 'pointer',
-              transition: 'border-color 0.15s',
-            }}
-            whileHover={{ borderColor: 'var(--color-primary)' }}
-          >
-            <span style={{ fontSize: 28, lineHeight: 1, flexShrink: 0 }}>
-              {allDone ? '\u{1F389}' : nextMilestone?.icon}
-            </span>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <Tooltip text="Your next milestone on the college application journey. Click to see the full roadmap." position="right">
-              <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-primary)', marginBottom: 2 }}>
-                {allDone ? 'Journey Complete' : `${nextMilestone?.phase} phase`}
-              </div>
-              </Tooltip>
-              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text)' }}>
-                {allDone
-                  ? 'All milestones reached \u2014 congratulations!'
-                  : `Next up: ${nextMilestone?.label}`}
-              </div>
-              {!allDone && nextMilestone && (
-                <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 2 }}>
-                  {nextMilestone.desc}
-                </div>
-              )}
-            </div>
-            <span style={{ fontSize: 18, color: 'var(--color-primary)', flexShrink: 0 }}>{'\u2192'}</span>
-          </motion.div>
-        </Link>
-      )
-      }
+      {/* ── Hero: Admission Chances (the one thing that's actually true today) ── */}
+      <AdmissionSnapshot profile={profile} colleges={colleges} loading={profileLoading || collegesLoading} />
 
-      {/* ── Daily Challenges ── */}
-      <DailyChallenges userId={userId} />
+      {/* ── Profile Stats (GPA/SAT/ACT/Major — the inputs behind the chances) ── */}
+      <div style={{ marginTop: 20 }}>
+        <ProfileStats profile={profile} loading={profileLoading} tasks={tasks} userId={userId} />
+      </div>
 
-      {/* ── Section 1: Profile Stats ── */}
-      <ProfileStats profile={profile} loading={profileLoading} tasks={tasks} userId={userId} />
-
-      {/* ── Section 2: Two-column grid — Admission Chances + Journey Progress ── */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 280px',
-        gap: 20,
-        marginTop: 20,
-        alignItems: 'start',
-      }}
-        className="dashboard-mid-grid"
-      >
-        {/* Left: Admission Snapshot */}
-        <AdmissionSnapshot profile={profile} colleges={colleges} loading={profileLoading || collegesLoading} />
-
-        {/* Right: Journey Progress ring */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-          className="card-elevated journey-progress-card"
-          data-tour="readiness-score"
-          style={{ padding: '24px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}
-        >
-          <Tooltip text="Your overall readiness score across 5 dimensions: profile completeness, tasks done, milestones reached, scholarships found, and daily momentum." position="right" maxWidth={260}>
-          <h2 style={{ fontSize: 15, fontWeight: 800, color: 'var(--color-text)', margin: 0, alignSelf: 'flex-start' }}>
-            Journey Progress
-          </h2>
-          </Tooltip>
-
-          {scoreLoading ? (
-            <div className="skeleton" style={{ width: ringSize, height: ringSize, borderRadius: '50%' }} />
-          ) : (
-            <div className="journey-ring-wrap" style={{ position: 'relative', width: ringSize, height: ringSize }}>
-              <svg width={ringSize} height={ringSize} style={{ transform: 'rotate(-90deg)' }}>
-                <circle
-                  cx={ringSize / 2} cy={ringSize / 2} r={ringRadius}
-                  fill="none" stroke="var(--color-border)" strokeWidth={ringStroke}
-                />
-                <motion.circle
-                  cx={ringSize / 2} cy={ringSize / 2} r={ringRadius}
-                  fill="none" stroke={ringColor(readinessTotal)} strokeWidth={ringStroke}
-                  strokeLinecap="round"
-                  strokeDasharray={ringCircumference}
-                  initial={{ strokeDashoffset: ringCircumference }}
-                  animate={{ strokeDashoffset: ringOffset }}
-                  transition={{ duration: 1, ease: 'easeOut' }}
-                />
-              </svg>
-              <div style={{
-                position: 'absolute', inset: 0,
-                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <span style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1 }}>
-                  {readinessTotal}
-                </span>
-                <span style={{ fontSize: 11, color: 'var(--color-text-muted)', fontWeight: 600 }}>of 100</span>
-              </div>
-            </div>
-          )}
-
-          {/* Dimension breakdown */}
-          {!scoreLoading && dimensions && (
-            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {([
-                { key: 'profile' as const, label: 'Profile', tip: 'Points earned by filling in your GPA, test scores, major, home state, and grad year.' },
-                { key: 'tasks' as const, label: 'Tasks', tip: 'Points for completing to-do items like requesting transcripts and writing essays.' },
-                { key: 'milestones' as const, label: 'Milestones', tip: 'Key checkpoints on your journey, from building a school list to submitting apps.' },
-                { key: 'scholarships' as const, label: 'Scholarships', tip: 'Points for saving and applying to scholarships.' },
-                { key: 'momentum' as const, label: 'Momentum', tip: 'Bonus points for staying active — login streaks and recent activity.' },
-              ]).map(({ key, label, tip }) => {
-                const dim = dimensions[key]
-                const pct = dim.max > 0 ? (dim.score / dim.max) * 100 : 0
-                return (
-                  <div key={key}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: 2 }}>
-                      <Tooltip text={tip} position="left" maxWidth={200}><span>{label}</span></Tooltip>
-                      <span>{dim.score}/{dim.max}</span>
-                    </div>
-                    <div style={{ height: 4, background: 'var(--color-border)', borderRadius: 99, overflow: 'hidden' }}>
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${pct}%` }}
-                        transition={{ duration: 0.6, ease: 'easeOut' }}
-                        style={{ height: '100%', background: ringColor(pct), borderRadius: 99 }}
-                      />
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-
-          {/* Top actions */}
-          {!scoreLoading && topActions.length > 0 && (
-            <div style={{ width: '100%', borderTop: '1px solid var(--color-border)', paddingTop: 10 }}>
-              <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>
-                Next steps
-              </div>
-              {topActions.map((action, i) => (
-                <div key={i} style={{ fontSize: 12, color: 'var(--color-text)', padding: '3px 0', lineHeight: 1.4 }}>
-                  {action}
-                </div>
-              ))}
-            </div>
-          )}
-
-          <Link
-            href="/journey"
-            style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-primary)', textDecoration: 'none' }}
-          >
-            View full journey →
-          </Link>
-        </motion.div>
+      {/* ── Daily Challenges (engagement) ── */}
+      <div style={{ marginTop: 20 }}>
+        <DailyChallenges userId={userId} />
       </div>
 
       {/* ── EC Score Summary ── */}
@@ -652,11 +473,6 @@ export function DashboardClient({ userId }: DashboardClientProps) {
           {shareUrl}
         </div>
       )}
-
-      {/* ── Section 4: Task list (collapsed to 5) ── */}
-      <div style={{ marginTop: 20 }}>
-        <TaskList tasks={tasks} loading={tasksLoading} userId={userId} collapsedMax={5} />
-      </div>
 
       {/* ── Welcome tour (fires once after onboarding) ── */}
       {showTour && <WelcomeTour onComplete={handleTourComplete} />}
