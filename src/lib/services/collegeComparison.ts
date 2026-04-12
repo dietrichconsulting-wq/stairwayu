@@ -45,7 +45,8 @@ export async function compareColleges(schoolNames, { major, gpa, gpa_weighted, s
   // ── Step 2: Merge real data ─────────────────────────────────────────
   return schoolNames.map((name, i) => {
     const real = realData[i] || {};
-    const netCost = real.netCostForResident ?? real.avgNetPrice ?? null;
+    // Prefer avgNetPrice (tuition + fees + room & board minus grants)
+    const netCost = real.avgNetPrice ?? real.netCostForResident ?? null;
 
     return {
       name,

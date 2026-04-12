@@ -206,7 +206,10 @@ Respond ONLY with valid JSON, no markdown:
 
   const enriched = aiSchools.map((ai, i) => {
     const real = realProfiles[i] || {};
-    const netCost = real.netCostForResident ?? real.avgNetPrice ?? null;
+    // Prefer avgNetPrice (tuition + fees + room & board minus grants) for a
+    // realistic "total cost to attend" figure.  Fall back to tuition-only if
+    // the Scorecard doesn't have a net-price record for this school.
+    const netCost = real.avgNetPrice ?? real.netCostForResident ?? null;
 
     // Compute chance using logistic model (same as dashboard)
     // For pre-assigned user schools, ai.yourChance is already from the model.
@@ -266,6 +269,7 @@ Respond ONLY with valid JSON, no markdown:
     };
   });
 
+  // Split into tiers using the 
   // Split into tiers using the model-computed tier
   const byTier = (tier) => enriched.filter((_, i) => aiSchools[i]?.tier === tier);
 

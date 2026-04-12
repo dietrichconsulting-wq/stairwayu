@@ -277,7 +277,7 @@ export function StrategyPageClient({ profile, colleges, userId }: StrategyPageCl
                 <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Intended Major</label>
                 <MajorSelect value={form.major} onChange={v => setForm(f => ({ ...f, major: v }))} />
               </div>
-              <Field label="Annual Budget ($)" type="number" min="0" placeholder="30000" value={form.budget} onChange={v => setForm(f => ({ ...f, budget: v }))} />
+              <Field label="Annual Budget — All-In ($)" type="number" min="0" placeholder="37000" value={form.budget} onChange={v => setForm(f => ({ ...f, budget: v }))} />
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <label style={labelStyle}>Region <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional, select multiple)</span></label>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '8px 12px', borderRadius: 8, border: '1.5px solid var(--color-border)', background: 'var(--color-column)' }}>
@@ -556,7 +556,7 @@ function SchoolCard({ school, tier, index, collegeNames, budget, onAdd }: {
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 2 }}>
           {school.admitRate != null && <Stat label="Admit Rate" value={`${school.admitRate}%`} />}
-          {school.netCost != null && <Stat label="Tuition/yr" value={`$${(school.netCost / 1000).toFixed(0)}k`} real={school._dataSources?.scorecard} overBudget={budget != null && budget > 0 && school.netCost > budget} labelTooltip="Published tuition only — in-state if your home state matches the school, otherwise out-of-state. Does NOT include room/board, fees, or financial aid. Actual cost after scholarships and need-based aid is usually lower." />}
+          {school.netCost != null && <Stat label="Est. Cost/yr" value={`$${(school.netCost / 1000).toFixed(0)}k`} real={school._dataSources?.scorecard} overBudget={budget != null && budget > 0 && school.netCost > budget} labelTooltip="Average annual net price including tuition, fees, room & board, minus typical grants/scholarships. Source: College Scorecard. Your actual cost may differ based on your financial aid package." />}
           {school.gradRate != null && <Stat label="Grad Rate" value={`${school.gradRate}%`} real />}
           {school.usNewsRankDisplay && <Stat label="US News" value={school.usNewsRankDisplay} real />}
           {school.medianEarnings10yr != null && <Stat label="Earnings 10yr" value={`$${(school.medianEarnings10yr / 1000).toFixed(0)}k`} real />}
@@ -580,7 +580,7 @@ function SchoolCard({ school, tier, index, collegeNames, budget, onAdd }: {
         {budget != null && budget > 0 && school.netCost != null && school.netCost > budget && (
           <div style={{ fontSize: 11, fontWeight: 600, color: '#f59e0b', background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: 6, padding: '6px 9px', marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
             <span>⚠️</span>
-            <span>Net cost ${(school.netCost / 1000).toFixed(0)}k exceeds your ${(budget / 1000).toFixed(0)}k budget — scholarships or financial aid will be necessary.</span>
+            <span>Estimated cost ${(school.netCost / 1000).toFixed(0)}k/yr exceeds your ${(budget / 1000).toFixed(0)}k budget — additional scholarships or aid may be needed.</span>
           </div>
         )}
         {school.whyFit && (
@@ -617,7 +617,7 @@ function Stat({ label, value, color, real, overBudget, labelTooltip }: { label: 
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 60 }}>
       <span style={{ fontSize: 13, fontWeight: 700, color: overBudget ? '#f59e0b' : (color || 'var(--color-text)'), display: 'flex', alignItems: 'center', gap: 3 }}>
         {value}
-        {overBudget && <Tooltip text="Above your annual budget \u2014 scholarships or financial aid will be necessary to attend." position="top" maxWidth={240}><span style={{ fontSize: 11 }}>\u26a0\ufe0f</span></Tooltip>}
+        {overBudget && <Tooltip text="Estimated cost exceeds your annual all-in budget. Additional scholarships or aid may be needed." position="top" maxWidth={240}><span style={{ fontSize: 11 }}>⚠️</span></Tooltip>}
         {real && <Tooltip text="Pulled from the U.S. Department of Education College Scorecard \u2014 real, verified data." position="top" maxWidth={220}><span className="strat-real-badge">live</span></Tooltip>}
       </span>
       {labelTooltip ? <Tooltip text={labelTooltip} position="top" maxWidth={260}>{labelEl}</Tooltip> : labelEl}
