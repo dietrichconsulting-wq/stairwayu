@@ -204,8 +204,8 @@ export async function searchColleges(query) {
       ? Math.round(r['latest.admissions.admission_rate.overall'] * 100) : null,
     avgSAT: r['latest.admissions.sat_scores.average.overall']
       ? Math.round(r['latest.admissions.sat_scores.average.overall']) : null,
-    tuitionInState: r['latest.cost.tuition.in_state'] || null,
-    tuitionOutOfState: r['latest.cost.tuition.out_of_state'] || null,
+    tuitionInState: r['latest.cost.tuition.in_state'] ?? null,
+    tuitionOutOfState: r['latest.cost.tuition.out_of_state'] ?? null,
   }));
 }
 
