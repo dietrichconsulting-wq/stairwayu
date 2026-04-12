@@ -174,17 +174,20 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
   const budgetNum = budget ? Number(budget) : null
   const budgetActive = budgetNum != null && budgetNum > 0 && !flexibleOnPrice
 
-  /** Estimated all-in cost for a school, adjusted for in-state vs out-of-state */
+  /** Estimated all-in cost for a school, adjusted for in-state vs out-of-state.
+   *  For public schools, costOfAttendance is the in-state sticker price.
+   *  We default to OUT-OF-STATE unless we can confirm the student is in-state. */
   function estimatedCost(s: SchoolResult): number | null {
     const base = s.costOfAttendance
     if (base == null) return s.avgNetPrice // fallback
-    // For public schools, costOfAttendance is in-state sticker price.
-    // If the student is out-of-state, add the tuition differential.
-    if (s.isPublic && homeState && s.state && homeState !== s.state) {
-      const inT = s.tuitionInState ?? 0
-      const outT = s.tuitionOutOfState ?? 0
-      const diff = outT - inT
-      return diff > 0 ? base + diff : base
+    if (s.isPublic) {
+      const isInState = homeState && s.state && homeState === s.state
+      if (!isInState) {
+        const inT = s.tuitionInState ?? 0
+        const outT = s.tuitionOutOfState ?? 0
+        const diff = outT - inT
+        return diff > 0 ? base + diff : base
+      }
     }
     return base
   }
