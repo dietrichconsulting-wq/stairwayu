@@ -174,38 +174,45 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
   const budgetNum = budget ? Number(budget) : null
   const budgetActive = budgetNum != null && budgetNum > 0 && !flexibleOnPrice
 
-  /** Estimated all-in cost for a school, adjusted for in-state vs out-of-state.
-   *  For public schools, costOfAttendance is the in-state sticker price.
-   *  We default to OUT-OF-STATE unless we can confirm the student is in-state. */
-  function estimatedCost(s: SchoolResult): number | null {
+  /** Estimated all-in cost breakdown for a school, adjusted for in-state vs out-of-state.
+   *  For public schools, costOfAttendance from Scorecard is the in-state sticker price.
+   *  We default to OUT-OF-STATE unless we can confirm the student is in-state.
+   *  Returns { total, tuition, roomAndBoard, isInState } or null. */
+  function costBreakdown(s: SchoolResult): { total: number; tuition: number | null; roomAndBoard: number | null; isInState: boolean } | null {
     const base = s.costOfAttendance
-    if (s.isPublic) {
-      const isInState = homeState && s.state && homeState === s.state
-      if (!isInState) {
-        // Out-of-state at a public school — need to add tuition differential
-        if (base != null && s.tuitionInState != null && s.tuitionOutOfState != null) {
-          const diff = s.tuitionOutOfState - s.tuitionInState
-          return diff > 0 ? base + diff : base
-        }
-        // If we have both tuition figures but no costOfAttendance, estimate
-        // using out-of-state tuition + typical R&B premium (~$14k)
-        if (s.tuitionOutOfState != null) {
-          return s.tuitionOutOfState + 14000
-        }
-        // Can't compute out-of-state cost reliably — return null so the
-        // budget filter doesn't incorrectly pass this school
-        return null
+    const isInState = !!(s.isPublic && homeState && s.state && homeState === s.state) || !s.isPublic
+
+    if (s.isPublic && !isInState) {
+      // Out-of-state at a public school
+      // Decompose COA into living costs (COA − in-state tuition), then add OOS tuition
+      if (base != null && s.tuitionInState != null && s.tuitionOutOfState != null) {
+        const roomAndBoard = Math.max(0, base - s.tuitionInState)
+        const total = s.tuitionOutOfState + roomAndBoard
+        return { total, tuition: s.tuitionOutOfState, roomAndBoard, isInState: false }
       }
+      // Partial data: have OOS tuition but can't decompose living costs
+      if (s.tuitionOutOfState != null && base != null) {
+        const roomAndBoard = base - (s.tuitionInState ?? s.tuitionOutOfState)
+        const total = s.tuitionOutOfState + Math.max(0, roomAndBoard)
+        return { total, tuition: s.tuitionOutOfState, roomAndBoard: Math.max(0, roomAndBoard), isInState: false }
+      }
+      // Can't compute out-of-state cost reliably — return null so the
+      // budget filter doesn't incorrectly pass this school
+      return null
     }
+
     // In-state public or private: costOfAttendance is the sticker price
-    return base ?? null
+    if (base == null) return null
+    const tuition = s.isPublic ? (s.tuitionInState ?? null) : (s.tuitionInState ?? s.tuitionOutOfState ?? null)
+    const roomAndBoard = tuition != null ? Math.max(0, base - tuition) : null
+    return { total: base, tuition, roomAndBoard, isInState: !s.isPublic || !!isInState }
   }
 
   const filteredResults = budgetActive
     ? results.filter(s => {
-        const cost = estimatedCost(s)
+        const bd = costBreakdown(s)
         // Exclude schools where we can't determine cost — don't assume they're affordable
-        return cost != null && cost <= budgetNum
+        return bd != null && bd.total <= budgetNum
       })
     : results
   const hiddenByBudget = results.length - filteredResults.length
@@ -388,7 +395,7 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
                     alreadySaved={collegeNames.includes(school.name) || savedIds.has(school.id)}
                     onSave={() => handleSave(school)}
                     hasMajorFilter={!!(selectedMajor && selectedMajor !== 'Undecided')}
-                    allInCost={estimatedCost(school)} />
+                    costInfo={costBreakdown(school)} />
                 ))}
               </AnimatePresence>
             </div>
@@ -399,13 +406,13 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
   )
 }
 
-function ExploreCard({ school, index, alreadySaved, onSave, hasMajorFilter, allInCost }: {
+function ExploreCard({ school, index, alreadySaved, onSave, hasMajorFilter, costInfo }: {
   school: SchoolResult & { chance: number | null; tier: Tier | null }
   index: number
   alreadySaved: boolean
   onSave: () => void
   hasMajorFilter: boolean
-  allInCost: number | null
+  costInfo: { total: number; tuition: number | null; roomAndBoard: number | null; isInState: boolean } | null
 }) {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -455,7 +462,20 @@ function ExploreCard({ school, index, alreadySaved, onSave, hasMajorFilter, allI
       </div>
 
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        {allInCost != null && <MiniStat label="Total Cost" value={`$${(allInCost / 1000).toFixed(0)}k`} />}
+        {costInfo != null && (
+          <Tooltip
+            text={[
+              costInfo.isInState ? 'In-state' : 'Out-of-state',
+              costInfo.tuition != null ? `Tuition: $${costInfo.tuition.toLocaleString()}` : null,
+              costInfo.roomAndBoard != null ? `Room & board: $${costInfo.roomAndBoard.toLocaleString()}` : null,
+              `Total: $${costInfo.total.toLocaleString()}/yr`,
+            ].filter(Boolean).join(' · ')}
+            position="bottom"
+            maxWidth={320}
+          >
+            <MiniStat label="Total Cost" value={`$${(costInfo.total / 1000).toFixed(0)}k`} />
+          </Tooltip>
+        )}
         {school.admissionRate != null && <MiniStat label="Admit" value={`${school.admissionRate}%`} />}
         {hasMajorFilter && (
           school.programCompletions != null && school.programCompletions > 0
