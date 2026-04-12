@@ -121,6 +121,61 @@ export function mapRichResult(r) {
   };
 }
 
+/**
+ * Extract program-level stats from Scorecard data for a specific major.
+ * Looks at bachelor's-level programs matching the given CIP codes.
+ *
+ * @param schoolId - Scorecard UNITID
+ * @param cipCodes - 4-digit CIP codes (e.g. ['5203'] for Accounting)
+ * @returns { completions, earnings1yr, earnings4yr, cipTitle } or null
+ */
+export async function getProgramStats(schoolId: string, cipCodes: string[]) {
+  if (!API_KEY || !schoolId || !cipCodes?.length) return null;
+
+  const params = new URLSearchParams({
+    api_key: API_KEY,
+    id: schoolId,
+    fields: 'id,latest.programs.cip_4_digit',
+  });
+
+  try {
+    const res = await fetch(`${BASE_URL}?${params}`, {
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    const programs = data.results?.[0]?.['latest.programs.cip_4_digit'] || [];
+
+    // Filter to bachelor's-level (credential.level === 3) matching our CIP codes
+    const matching = programs.filter(
+      (p) => cipCodes.includes(p.code) && p.credential?.level === 3
+    );
+
+    if (!matching.length) return null;
+
+    // If multiple CIP codes match (e.g. CS = 1101 + 1107), pick the one
+    // with the most completions — that's the main program.
+    const best = matching.reduce((a, b) =>
+      ((b.counts?.ipeds_awards1 || 0) > (a.counts?.ipeds_awards1 || 0)) ? b : a
+    );
+
+    const completions = best.counts?.ipeds_awards1 || 0;
+    const earnings1yr = best.earnings?.['1_yr']?.overall_median_earnings || null;
+    const earnings4yr = best.earnings?.['4_yr']?.overall_median_earnings || null;
+
+    return {
+      cipCode: best.code,
+      cipTitle: best.title || null,
+      completions,
+      earnings1yr,
+      earnings4yr,
+    };
+  } catch {
+    return null;
+  }
+}
+
 /** Search colleges by query string (lightweight) */
 export async function searchColleges(query) {
   if (!API_KEY) return [];
@@ -264,9 +319,7 @@ export async function lookupByName(schoolName) {
   const params = new URLSearchParams({
     api_key: API_KEY,
     'school.name': expanded,
-    fields: RICH_FIELDS,
-    per_page: '15',
-    'school.degrees_awarded.predominant__range': '3..4', // bachelor's and graduate
+    fields: 'id,school.name,school.city,school.state,school.school_url,school.type,school.locale,school.region_id,latest.admissions.admission_rate.overall,latest.admissions.sat_scores.average.overall,latest.admissions.sat_scores.25th_percentile.critical_reading,latest.admissions.sat_scores.75th_percentile.critical_reading,latest.admissions.sat_scores.25th_percentile.math,latest.admissions.sat_scores.75th_percentile.math,latest.admissions.act_scores.midpoint.cumulative,latest.cost.tuition.in_state,latest.cost.tuition.out_of_state,latest.cost.avg_net_price.public,latest.cost.avg_net_price.private,latest.cost.net_price.public.by_income_level.0-30000,latest.cost.net_price.public.by_income_level.30001-48000,latest.cost.net_price.public.by_income_level.48001-75000,latest.cost.net_price.public.by_income_level.75001-110000,latest.cost.net_price.public.by_income_level.110001-plus,latest.cost.net_price.private.by_income_level.0-30000,latest.cost.net_price.private.by_income_level.30001-48000,latest.cost.net_price.private.by_income_level.48001-75000,latest.cost.net_price.private.by_income_level.75001-110000,latest.cost.net_price.private.by_income_level.110001-plus,latest.student.size,latest.student.retention_rate.four_year.full_time,latest.completion.rate_suppressed.4yr,latest.completion.rate_suppressed.overall,latest.earnings.10_yrs_after_entry.median,latest.earnings.6_yrs_after_entry.median',
   });
 
   try {
@@ -276,37 +329,12 @@ export async function lookupByName(schoolName) {
     if (!res.ok) return null;
 
     const data = await res.json();
-    const results = data.results || [];
-    if (!results.length) return null;
-
-    // Score each result to pick the best match.
-    // Exact name match wins outright; otherwise prefer flagship-sized schools
-    // (highest enrollment) since short names like "Texas" → UT Austin, not a random
-    // community college that happens to have "Texas" in its name.
-    const q = expanded.toLowerCase().replace(/[^a-z0-9\s]/g, '');
-    const scored = results.map(r => {
-      const n = (r['school.name'] || '').toLowerCase().replace(/[^a-z0-9\s]/g, '');
-      const enrollment = r['latest.student.size'] || 0;
-      let score = enrollment; // base score: bigger = more likely to be the intended school
-      if (n === q) score += 1_000_000;          // exact match
-      else if (n.startsWith(q) || q.startsWith(n)) score += 500_000; // prefix match
-      else if (n.includes(q) || q.includes(n))  score += 100_000;    // substring match
-      return { r, score };
-    });
-    scored.sort((a, b) => b.score - a.score);
-
-    return mapRichResult(scored[0].r);
+    return mapRichResult(data.results?.[0]);
   } catch {
     return null;
   }
 }
 
-/**
- * Batch lookup for multiple school names in parallel.
- * Returns array in same order as input; null entries for not-found schools.
- */
-export async function batchLookup(schoolNames) {
-  if (!API_KEY || !schoolNames?.length) return schoolNames.map(() => null);
-  const results = await Promise.all(schoolNames.map(name => lookupByName(name)));
-  return results;
+export async function batchLookup(names: string[]) {
+  return Promise.all(names.map(name => lookupByName(name)));
 }

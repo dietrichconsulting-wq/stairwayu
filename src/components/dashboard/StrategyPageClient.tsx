@@ -40,6 +40,9 @@ interface School {
   usNewsRankDisplay: string | null
   programStrength: string | null
   whyFit: string | null
+  programCompletions: number | null
+  programEarnings1yr: number | null
+  programEarnings4yr: number | null
   _dataSources?: { scorecard?: boolean }
 }
 
@@ -560,6 +563,8 @@ function SchoolCard({ school, tier, index, collegeNames, budget, onAdd }: {
           {school.gradRate != null && <Stat label="Grad Rate" value={`${school.gradRate}%`} real />}
           {school.usNewsRankDisplay && <Stat label="US News" value={school.usNewsRankDisplay} real />}
           {school.medianEarnings10yr != null && <Stat label="Earnings 10yr" value={`$${(school.medianEarnings10yr / 1000).toFixed(0)}k`} real />}
+          {school.programCompletions != null && school.programCompletions > 0 && <Stat label="Grads/yr in Major" value={`${school.programCompletions}`} real />}
+          {school.programEarnings1yr != null && <Stat label="Major Salary 1yr" value={`$${(school.programEarnings1yr / 1000).toFixed(0)}k`} real />}
         </div>
         {(school.sat25 && school.sat75 || school.actMidpoint) && (
           <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 4, display: 'flex', gap: 12 }}>
@@ -591,7 +596,7 @@ function SchoolCard({ school, tier, index, collegeNames, budget, onAdd }: {
         {/* Save to collection */}
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 2 }}>
           {saved ? (
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#059669', whiteSpace: 'nowrap' }}>\u2713 Collected!</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#059669', whiteSpace: 'nowrap' }}>✓ Collected!</span>
           ) : alreadyAdded ? (
             <span style={{ fontSize: 11, color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>In your collection</span>
           ) : (
@@ -600,7 +605,7 @@ function SchoolCard({ school, tier, index, collegeNames, budget, onAdd }: {
               disabled={saving}
               style={{ fontSize: 11, fontWeight: 700, padding: '5px 12px', borderRadius: 8, border: '1.5px solid var(--color-border)', background: 'var(--color-column)', color: 'var(--color-text)', cursor: saving ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap' }}
             >
-              {saving ? 'Saving\u2026' : '\u2665 Save to Collection'}
+              {saving ? 'Saving…' : '♥ Save to Collection'}
             </button>
           )}
         </div>
@@ -618,7 +623,7 @@ function Stat({ label, value, color, real, overBudget, labelTooltip }: { label: 
       <span style={{ fontSize: 13, fontWeight: 700, color: overBudget ? '#f59e0b' : (color || 'var(--color-text)'), display: 'flex', alignItems: 'center', gap: 3 }}>
         {value}
         {overBudget && <Tooltip text="Estimated cost exceeds your annual all-in budget. Additional scholarships or aid may be needed." position="top" maxWidth={240}><span style={{ fontSize: 11 }}>⚠️</span></Tooltip>}
-        {real && <Tooltip text="Pulled from the U.S. Department of Education College Scorecard \u2014 real, verified data." position="top" maxWidth={220}><span className="strat-real-badge">live</span></Tooltip>}
+        {real && <Tooltip text="Pulled from the U.S. Department of Education College Scorecard — real, verified data." position="top" maxWidth={220}><span className="strat-real-badge">live</span></Tooltip>}
       </span>
       {labelTooltip ? <Tooltip text={labelTooltip} position="top" maxWidth={260}>{labelEl}</Tooltip> : labelEl}
     </div>

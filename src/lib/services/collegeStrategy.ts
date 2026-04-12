@@ -193,7 +193,7 @@ Respond ONLY with valid JSON, no markdown:
 
   // ── Step 2: Fetch real data for all recommended schools ─────────────────
   const schoolNames = aiSchools.map(s => s.name);
-  const realProfiles = await batchCollegeProfiles(schoolNames, homeState);
+  const realProfiles = await batchCollegeProfiles(schoolNames, homeState, safeMajor);
 
   // ── Step 3: Merge AI recommendations with real data ─────────────────────
   //    For EVERY school, compute yourChance via the logistic model using real
@@ -261,6 +261,10 @@ Respond ONLY with valid JSON, no markdown:
       control: real.control ?? null,
       locale: real.locale ?? null,
       isHBCU: real.isHBCU ?? false,
+      // ── Program-level data (for student's major) ──
+      programCompletions: real.programCompletions ?? null,  // grads/yr in major
+      programEarnings1yr: real.programEarnings1yr ?? null,  // median salary 1yr post-grad
+      programEarnings4yr: real.programEarnings4yr ?? null,  // median salary 4yr post-grad
       // ── AI-only fields ──
       programStrength: ai.programStrength ?? null,
       whyFit: ai.whyFit ?? null,

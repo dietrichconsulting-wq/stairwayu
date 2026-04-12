@@ -11,25 +11,33 @@
  * Fields marked [STATIC] are from our curated static dataset.
  */
 
-import { lookupByName, batchLookup } from './collegeScorecard';
+import { lookupByName, batchLookup, getProgramStats } from './collegeScorecard';
 import { getIpedsData } from './iped';
 import { findRanking, formatRank } from '../../data/usNewsRankings';
+import { getCipCodes } from '../majorCipMap';
 
 /**
  * Get an enriched profile for a single school.
  * @param {string} name - School name
  * @param {string} [homeState] - 2-letter state code for resident cost calc
+ * @param {string} [major] - Student's intended major (for program-level data)
  * @returns {object} Enriched profile with dataSources metadata
  */
-export async function getCollegeProfile(name, homeState) {
+export async function getCollegeProfile(name, homeState, major) {
   // Run Scorecard and US News in parallel
   const [scorecard, ranking] = await Promise.all([
     lookupByName(name),
     Promise.resolve(findRanking(name)),
   ]);
 
-  // If we have a Scorecard UNITID, fetch IPEDS in parallel for locale/class data
-  const ipeds = scorecard?.id ? await getIpedsData(scorecard.id) : null;
+  // If we have a Scorecard UNITID, fetch IPEDS + program data in parallel
+  const cipCodes = major ? getCipCodes(major) : [];
+  const [ipeds, programStats] = scorecard?.id
+    ? await Promise.all([
+        getIpedsData(scorecard.id),
+        cipCodes.length ? getProgramStats(scorecard.id, cipCodes) : Promise.resolve(null),
+      ])
+    : [null, null];
 
   // Compute net cost for this student's home state
   // If home state matches school state → in-state tuition base, else OOS
@@ -76,23 +84,27 @@ export async function getCollegeProfile(name, homeState) {
     // ── Rankings ─────────────────────────────────────────────────
     usNewsRank: ranking?.rank ?? null,         // [STATIC ~2024]
     usNewsRankDisplay: formatRank(ranking?.rank), // [STATIC] "#12" or null
-    // ── Metadata ─────────────────────────────────────────────────
+    // ── Program-level data (for student's intended major) ────────
+    programCompletions: programStats?.completions ?? null,   // [REAL] grads/yr in major
+    programEarnings1yr: programStats?.earnings1yr ?? null,   // [REAL] median 1yr post-grad
+    programEarnings4yr: programStats?.earnings4yr ?? null,   // [REAL] median 4yr post-grad
+    programTitle: programStats?.cipTitle ?? null,            // [REAL] official program name
+    // ── Metadata ──────────────────────────────────────────────────
     _dataSources: {
       scorecard: !!scorecard,
       ipeds: !!ipeds,
       usNews: !!ranking,
-      scorecardId: scorecard?.id ?? null,
     },
   };
 }
 
 /**
- * Batch enrich multiple schools in parallel.
- * @param {string[]} names
- * @param {string} [homeState]
- * @returns {object[]} Array in same order as names
+ * Fetch enriched profiles for multiple schools in parallel.
+ * @param {string[]} names - List of school names
+ * @param {string} [homeState] - Home state for cost calculation
+ * @param {string} [major] - Student's intended major
+ * @returns {object[]} Array of enriched profiles
  */
-export async function batchCollegeProfiles(names, homeState) {
-  if (!names?.length) return [];
-  return Promise.all(names.map(name => getCollegeProfile(name, homeState)));
+export async function batchCollegeProfiles(names, homeState, major) {
+  return Promise.all(names.map(name => getCollegeProfile(name, homeState, major)));
 }
