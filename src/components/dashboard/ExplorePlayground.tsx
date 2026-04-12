@@ -57,6 +57,8 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
   const [selectedRegions, setSelectedRegions] = useState<Set<number>>(new Set())
   const [selectedMajor, setSelectedMajor] = useState(profile?.proposed_major ?? '')
   const [stretchMode, setStretchMode] = useState(false)
+  const [budget, setBudget] = useState('')
+  const [flexibleOnPrice, setFlexibleOnPrice] = useState(false)
   const [results, setResults] = useState<SchoolResult[]>([])
   const [loading, setLoading] = useState(false)
   const [total, setTotal] = useState(0)
@@ -75,7 +77,7 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
         satMin: String(Math.max(400, sat - 200)),
         satMax: String(Math.min(1600, sat + 200)),
         perPage: '40',
-        sort: major && major !== 'Undecided' ? 'major_earnings' : 'sat',
+        sort: major && major !== 'Undecided' ? 'major_completions' : 'sat',
       })
       if (regions.size > 0) {
         params.set('regions', Array.from(regions).join(','))
@@ -96,12 +98,10 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
     }
   }, [])
 
-  // Initial fetch
   useEffect(() => {
     fetchSchools(effectiveSAT, selectedRegions, selectedMajor)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Debounced fetch on slider/region/major change
   useEffect(() => {
     if (!hasInteracted) return
     clearTimeout(debounceRef.current)
@@ -122,27 +122,20 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
   }
 
   function handleSurpriseMe() {
-    // Pick 2-3 random regions
     const allRegions = Object.keys(REGION_LABELS).map(Number)
     const shuffled = allRegions.sort(() => Math.random() - 0.5)
-    const count = 2 + Math.floor(Math.random() * 2) // 2 or 3
+    const count = 2 + Math.floor(Math.random() * 2)
     const randomRegions = new Set(shuffled.slice(0, count))
-
-    // Randomize SAT within reasonable range
-    const randomSat = 900 + Math.floor(Math.random() * 500) // 900-1400
-    const randomGpa = +(2.5 + Math.random() * 1.5).toFixed(1) // 2.5-4.0
-
+    const randomSat = 900 + Math.floor(Math.random() * 500)
+    const randomGpa = +(2.5 + Math.random() * 1.5).toFixed(1)
     setSelectedRegions(randomRegions)
     setSatValue(randomSat)
     setGpaValue(randomGpa)
     setStretchMode(false)
     setHasInteracted(true)
-
     const today = new Date().toISOString().slice(0, 10)
     recordXp.mutate({ action: 'surprise_me', refId: `surprise_${today}` })
     completeChallenge('surprise_me')
-
-    // Immediate fetch
     clearTimeout(debounceRef.current)
     fetchSchools(randomSat, randomRegions, selectedMajor)
   }
@@ -171,8 +164,14 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
     if (!stretchMode) completeChallenge('stretch_mode')
   }
 
-  // Compute chances for each school
-  const schoolsWithChance = results.map(school => {
+  const budgetNum = budget ? Number(budget) : null
+  const budgetActive = budgetNum != null && budgetNum > 0 && !flexibleOnPrice
+  const filteredResults = budgetActive
+    ? results.filter(s => s.avgNetPrice == null || s.avgNetPrice <= budgetNum)
+    : results
+  const hiddenByBudget = results.length - filteredResults.length
+
+  const schoolsWithChance = filteredResults.map(school => {
     const result = calculateChance(effectiveSAT, effectiveGPA, school, profile?.act_score ?? null, null)
     return {
       ...school,
@@ -189,10 +188,8 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
       </p>
 
       <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: 24, alignItems: 'flex-start' }} className="strategy-layout">
-        {/* ── Left: Controls ── */}
         <div className="strategy-form-wrapper" style={{ position: 'sticky', top: 32 }}>
           <div className="card-elevated" style={{ padding: '24px 24px 28px' }}>
-            {/* SAT Slider */}
             <div style={{ marginBottom: 18 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
                 <label style={labelStyle}>SAT Score</label>
@@ -201,22 +198,15 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
                   {stretchMode && <span style={{ fontSize: 11, fontWeight: 600, color: '#22C55E', marginLeft: 4 }}>+100</span>}
                 </span>
               </div>
-              <input
-                type="range"
-                min={400}
-                max={1600}
-                step={10}
-                value={satValue}
+              <input type="range" min={400} max={1600} step={10} value={satValue}
                 onChange={e => { setSatValue(Number(e.target.value)); handleInteraction() }}
                 style={{ width: '100%', accentColor: 'var(--color-primary)' }}
-                aria-label={`SAT Score: ${effectiveSAT}`}
-              />
+                aria-label={`SAT Score: ${effectiveSAT}`} />
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--color-text-muted)', marginTop: 2 }}>
                 <span>400</span><span>1600</span>
               </div>
             </div>
 
-            {/* GPA Slider */}
             <div style={{ marginBottom: 18 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
                 <label style={labelStyle}>GPA (4.0 scale)</label>
@@ -225,133 +215,119 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
                   {stretchMode && <span style={{ fontSize: 11, fontWeight: 600, color: '#22C55E', marginLeft: 4 }}>+0.3</span>}
                 </span>
               </div>
-              <input
-                type="range"
-                min={2.0}
-                max={4.0}
-                step={0.1}
-                value={gpaValue}
+              <input type="range" min={2.0} max={4.0} step={0.1} value={gpaValue}
                 onChange={e => { setGpaValue(Number(e.target.value)); handleInteraction() }}
                 style={{ width: '100%', accentColor: 'var(--color-primary)' }}
-                aria-label={`GPA: ${effectiveGPA.toFixed(1)}`}
-              />
+                aria-label={`GPA: ${effectiveGPA.toFixed(1)}`} />
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--color-text-muted)', marginTop: 2 }}>
                 <span>2.0</span><span>4.0</span>
               </div>
             </div>
 
-            {/* Stretch Mode Toggle */}
             <Tooltip text="Boost your SAT by 100 and GPA by 0.3 to see what studying harder could unlock." position="right" maxWidth={220}>
-            <button
-              onClick={toggleStretch}
-              style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-                padding: '10px 16px',
-                borderRadius: 10,
+            <button onClick={toggleStretch} style={{
+                width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                padding: '10px 16px', borderRadius: 10,
                 border: stretchMode ? '2px solid #22C55E' : '1.5px solid var(--color-border)',
                 background: stretchMode ? 'rgba(34,197,94,0.08)' : 'var(--color-column)',
                 color: stretchMode ? '#22C55E' : 'var(--color-text)',
-                fontWeight: 700,
-                fontSize: 13,
-                cursor: 'pointer',
-                marginBottom: 18,
+                fontWeight: 700, fontSize: 13, cursor: 'pointer', marginBottom: 18,
                 transition: 'border-color 0.2s, background 0.2s, color 0.2s',
-              }}
-            >
-              {stretchMode ? '✓ Stretch Mode On' : 'Stretch Mode'}
+              }}>
+              {stretchMode ? '\u2713 Stretch Mode On' : 'Stretch Mode'}
               <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--color-text-muted)' }}>+100 SAT, +0.3 GPA</span>
             </button>
             </Tooltip>
 
-            {/* Major Filter */}
+            <div style={{ marginBottom: 18 }}>
+              <label style={{ ...labelStyle, marginBottom: 8, display: 'block' }}>
+                Budget / Year <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span>
+              </label>
+              <div style={{ position: 'relative' }}>
+                <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 14, fontWeight: 600, color: 'var(--color-text-muted)' }}>$</span>
+                <input type="number" value={budget}
+                  onChange={e => { setBudget(e.target.value); handleInteraction() }}
+                  placeholder="e.g. 37000"
+                  style={{ width: '100%', padding: '10px 12px 10px 26px', borderRadius: 10,
+                    border: '1.5px solid var(--color-border)', background: 'var(--color-column)',
+                    color: 'var(--color-text)', fontSize: 14, fontWeight: 600, outline: 'none' }} />
+              </div>
+            </div>
+
             <div style={{ marginBottom: 18 }}>
               <label style={{ ...labelStyle, marginBottom: 8, display: 'block' }}>
                 Filter by Major <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span>
               </label>
-              <MajorSelect
-                value={selectedMajor}
-                onChange={(v) => { setSelectedMajor(v); handleInteraction() }}
-                placeholder="Any major..."
-              />
+              <MajorSelect value={selectedMajor} onChange={(v) => { setSelectedMajor(v); handleInteraction() }} placeholder="Any major..." />
               {selectedMajor && selectedMajor !== 'Undecided' && (
-                <button
-                  onClick={() => { setSelectedMajor(''); handleInteraction() }}
-                  style={{ fontSize: 11, color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer', marginTop: 4, padding: 0, textDecoration: 'underline' }}
-                >
+                <button onClick={() => { setSelectedMajor(''); handleInteraction() }}
+                  style={{ fontSize: 11, color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer', marginTop: 4, padding: 0, textDecoration: 'underline' }}>
                   Clear major filter
                 </button>
               )}
             </div>
 
-            {/* Region Checkboxes */}
             <div style={{ marginBottom: 18 }}>
               <label style={{ ...labelStyle, marginBottom: 8, display: 'block' }}>
                 Regions <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span>
               </label>
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 6,
-                padding: '8px 12px',
-                borderRadius: 8,
-                border: '1.5px solid var(--color-border)',
-                background: 'var(--color-column)',
-              }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '8px 12px', borderRadius: 8, border: '1.5px solid var(--color-border)', background: 'var(--color-column)' }}>
                 {Object.entries(REGION_LABELS).map(([id, name]) => (
                   <label key={id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--color-text)', cursor: 'pointer' }}>
-                    <input
-                      type="checkbox"
-                      checked={selectedRegions.has(Number(id))}
-                      onChange={() => toggleRegion(Number(id))}
-                      style={{ accentColor: 'var(--color-primary)' }}
-                    />
+                    <input type="checkbox" checked={selectedRegions.has(Number(id))} onChange={() => toggleRegion(Number(id))} style={{ accentColor: 'var(--color-primary)' }} />
                     {name}
                   </label>
                 ))}
               </div>
             </div>
 
-            {/* Surprise Me */}
             <Tooltip text="Randomize your regions and score range to discover schools you'd never think to look at." position="top" maxWidth={240}>
-            <button
-              onClick={handleSurpriseMe}
-              style={{
-                width: '100%',
-                padding: '12px 28px',
-                borderRadius: 10,
-                border: 'none',
-                background: 'var(--color-primary)',
-                color: '#fff',
-                fontWeight: 700,
-                fontSize: 14,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-              }}
-            >
+            <button onClick={handleSurpriseMe} style={{
+                width: '100%', padding: '12px 28px', borderRadius: 10, border: 'none',
+                background: 'var(--color-primary)', color: '#fff', fontWeight: 700, fontSize: 14,
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              }}>
               Surprise Me
             </button>
             </Tooltip>
           </div>
         </div>
 
-        {/* ── Right: Results Grid ── */}
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
             <div style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
               {loading ? 'Searching...' : (
                 selectedMajor && selectedMajor !== 'Undecided'
-                  ? `${total} schools with ${selectedMajor} programs — sorted by major salary`
-                  : `${total} schools found`
+                  ? `${filteredResults.length} schools with ${selectedMajor} programs \u2014 sorted by program size`
+                  : `${filteredResults.length} schools found`
               )}
             </div>
           </div>
+
+          {budgetNum != null && budgetNum > 0 && !loading && results.length > 0 && (
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '8px 14px', borderRadius: 10, marginBottom: 12, fontSize: 12, fontWeight: 600,
+              background: flexibleOnPrice ? 'rgba(34,197,94,0.06)' : 'rgba(239,68,68,0.06)',
+              border: `1px solid ${flexibleOnPrice ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'}`,
+              color: flexibleOnPrice ? '#16a34a' : '#dc2626',
+            }}>
+              {flexibleOnPrice ? (
+                <span>Showing all {results.length} schools (budget: ${(budgetNum / 1000).toFixed(0)}k/yr)</span>
+              ) : hiddenByBudget > 0 ? (
+                <span>{hiddenByBudget} school{hiddenByBudget !== 1 ? 's' : ''} hidden &mdash; above your ${(budgetNum / 1000).toFixed(0)}k/yr budget</span>
+              ) : (
+                <span>All schools within ${(budgetNum / 1000).toFixed(0)}k/yr budget</span>
+              )}
+              <button onClick={() => setFlexibleOnPrice(f => !f)} style={{
+                  fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 8,
+                  border: '1.5px solid var(--color-border)', background: 'var(--color-card)',
+                  color: 'var(--color-text)', cursor: 'pointer', whiteSpace: 'nowrap',
+                }}>
+                {flexibleOnPrice ? 'Enforce Budget' : 'Flexible on Price'}
+              </button>
+            </div>
+          )}
 
           {loading ? (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 }}>
@@ -369,13 +345,10 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 }}>
               <AnimatePresence>
                 {schoolsWithChance.map((school, i) => (
-                  <ExploreCard
-                    key={school.id}
-                    school={school}
-                    index={i}
+                  <ExploreCard key={school.id} school={school} index={i}
                     alreadySaved={collegeNames.includes(school.name) || savedIds.has(school.id)}
                     onSave={() => handleSave(school)}
-                  />
+                    hasMajorFilter={!!(selectedMajor && selectedMajor !== 'Undecided')} />
                 ))}
               </AnimatePresence>
             </div>
@@ -386,11 +359,12 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
   )
 }
 
-function ExploreCard({ school, index, alreadySaved, onSave }: {
+function ExploreCard({ school, index, alreadySaved, onSave, hasMajorFilter }: {
   school: SchoolResult & { chance: number | null; tier: Tier | null }
   index: number
   alreadySaved: boolean
   onSave: () => void
+  hasMajorFilter: boolean
 }) {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -412,15 +386,11 @@ function ExploreCard({ school, index, alreadySaved, onSave }: {
       style={{
         background: cfg?.bg || 'var(--color-card)',
         border: `1.5px solid ${cfg?.border || 'var(--color-border)'}`,
-        borderRadius: 14,
-        padding: '14px 16px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 8,
+        borderRadius: 14, padding: '14px 16px',
+        display: 'flex', flexDirection: 'column', gap: 8,
       }}
     >
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-        {/* Match ring */}
         {school.chance != null && cfg && (
           <MatchRingSmall chance={school.chance} color={cfg.color} />
         )}
@@ -430,108 +400,74 @@ function ExploreCard({ school, index, alreadySaved, onSave }: {
             <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 2 }}>
               {[school.city, school.state].filter(Boolean).join(', ')}
               {school.regionId != null && REGION_LABELS[school.regionId] && (
-                <span style={{ opacity: 0.7 }}> · {REGION_LABELS[school.regionId]}</span>
+                <span style={{ opacity: 0.7 }}> &middot; {REGION_LABELS[school.regionId]}</span>
               )}
             </div>
           )}
         </div>
         {school.tier && cfg && (
-          <span style={{
-            fontSize: 10,
-            fontWeight: 800,
-            padding: '3px 8px',
-            borderRadius: 20,
-            background: cfg.color,
-            color: '#fff',
-            whiteSpace: 'nowrap',
-            flexShrink: 0,
-          }}>
+          <span style={{ fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 20,
+            background: cfg.color, color: '#fff', whiteSpace: 'nowrap', flexShrink: 0 }}>
             {cfg.label}
           </span>
         )}
       </div>
 
-      {/* Key stats row (always visible) */}
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
         {school.avgNetPrice != null && <MiniStat label="Net Cost" value={`$${(school.avgNetPrice / 1000).toFixed(0)}k`} />}
         {school.admissionRate != null && <MiniStat label="Admit" value={`${school.admissionRate}%`} />}
-        {school.programCompletions != null && school.programCompletions > 0 && (
-          <MiniStat label="Grads/yr" value={`${school.programCompletions}`} highlight />
+        {hasMajorFilter && (
+          school.programCompletions != null && school.programCompletions > 0
+            ? <MiniStat label="Grads/yr" value={`${school.programCompletions}`} highlight />
+            : <MiniStat label="Grads/yr" value="N/A" muted />
         )}
-        {school.programEarnings1yr != null && (
-          <MiniStat label="Major $1yr" value={`$${(school.programEarnings1yr / 1000).toFixed(0)}k`} highlight />
+        {hasMajorFilter && (
+          school.programEarnings1yr != null
+            ? <MiniStat label="Major $1yr" value={`$${(school.programEarnings1yr / 1000).toFixed(0)}k`} highlight />
+            : <MiniStat label="Major $1yr" value="N/A" muted />
         )}
       </div>
 
-      {/* Expandable stats */}
       <AnimatePresence>
         {expanded && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2 }}
-            style={{ overflow: 'hidden' }}
-          >
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.2 }} style={{ overflow: 'hidden' }}>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 4 }}>
               {school.avgSAT != null && <MiniStat label="Avg SAT" value={String(school.avgSAT)} />}
               {school.gradRate4yr != null && <MiniStat label="Grad Rate" value={`${school.gradRate4yr}%`} />}
               {school.medianEarnings10yr != null && <MiniStat label="Earnings" value={`$${(school.medianEarnings10yr / 1000).toFixed(0)}k`} />}
             </div>
-
-            {/* SAT range */}
             {school.sat25 && school.sat75 && (
               <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginBottom: 4 }}>
-                SAT range: {school.sat25}–{school.sat75}
+                SAT range: {school.sat25}&ndash;{school.sat75}
               </div>
             )}
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Expand/collapse button and Save button */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 2 }}>
-        <button
-          onClick={() => setExpanded(!expanded)}
-          style={{
-            background: 'none',
-            border: 'none',
-            padding: '2px 4px',
-            cursor: 'pointer',
-            color: 'var(--color-text-muted)',
-            fontSize: 14,
-            display: 'flex',
-            alignItems: 'center',
-            fontWeight: 500,
-            transition: 'color 0.2s',
+        <button onClick={() => setExpanded(!expanded)} style={{
+            background: 'none', border: 'none', padding: '2px 4px', cursor: 'pointer',
+            color: 'var(--color-text-muted)', fontSize: 14, display: 'flex', alignItems: 'center',
+            fontWeight: 500, transition: 'color 0.2s',
           }}
           onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-text)')}
-          onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-muted)')}
-        >
-          {expanded ? '▾' : '▸'}
+          onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-muted)')}>
+          {expanded ? '\u25BE' : '\u25B8'}
         </button>
 
         {saved || alreadySaved ? (
           <span style={{ fontSize: 11, fontWeight: 700, color: saved ? '#059669' : 'var(--color-text-muted)' }}>
-            {saved ? '✓ Saved!' : 'In your collection'}
+            {saved ? '\u2713 Saved!' : 'In your collection'}
           </span>
         ) : (
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            style={{
-              fontSize: 11,
-              fontWeight: 700,
-              padding: '5px 12px',
-              borderRadius: 8,
-              border: '1.5px solid var(--color-border)',
-              background: 'var(--color-column)',
-              color: 'var(--color-text)',
-              cursor: saving ? 'not-allowed' : 'pointer',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {saving ? 'Saving...' : '♡ Save'}
+          <button onClick={handleSave} disabled={saving} style={{
+              fontSize: 11, fontWeight: 700, padding: '5px 12px', borderRadius: 8,
+              border: '1.5px solid var(--color-border)', background: 'var(--color-column)',
+              color: 'var(--color-text)', cursor: saving ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap',
+            }}>
+            {saving ? 'Saving...' : '\u2661 Save'}
           </button>
         )}
       </div>
@@ -548,13 +484,10 @@ function MatchRingSmall({ chance, color }: { chance: number; color: string }) {
     <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }} role="img" aria-label={`${chance}% admission chance`}>
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="currentColor" strokeWidth={2.5} opacity={0.12} />
-        <motion.circle
-          cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={2.5}
+        <motion.circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={2.5}
           strokeLinecap="round" strokeDasharray={circ}
-          initial={{ strokeDashoffset: circ }}
-          animate={{ strokeDashoffset: offset }}
-          transition={{ delay: 0.2, duration: 0.6, ease: 'easeOut' }}
-        />
+          initial={{ strokeDashoffset: circ }} animate={{ strokeDashoffset: offset }}
+          transition={{ delay: 0.2, duration: 0.6, ease: 'easeOut' }} />
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <span style={{ fontSize: 11, fontWeight: 800, color, lineHeight: 1 }}>{chance}%</span>
@@ -563,9 +496,9 @@ function MatchRingSmall({ chance, color }: { chance: number; color: string }) {
   )
 }
 
-function MiniStat({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
+function MiniStat({ label, value, highlight, muted }: { label: string; value: string; highlight?: boolean; muted?: boolean }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 50 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 50, opacity: muted ? 0.45 : 1 }}>
       <span style={{ fontSize: 12, fontWeight: 700, color: highlight ? 'var(--color-primary)' : 'var(--color-text)' }}>{value}</span>
       <span style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 1 }}>{label}</span>
     </div>

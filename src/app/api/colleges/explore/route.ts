@@ -27,7 +27,6 @@ export async function GET(req: Request) {
 
   if (!API_KEY) return NextResponse.json({ error: 'API key not configured' }, { status: 500 })
 
-  // When major is selected, request program data too
   const cipCodes = major ? getCipCodes(major) : []
   const wantPrograms = cipCodes.length > 0
   const fields = wantPrograms
@@ -39,31 +38,26 @@ export async function GET(req: Request) {
     fields,
     per_page: String(perPage),
     page: String(page),
-    'school.degrees_awarded.predominant__range': '3..4', // bachelor's+
-    'latest.student.size__range': '500..', // filter tiny schools
+    'school.degrees_awarded.predominant__range': '3..4',
+    'latest.student.size__range': '500..',
   })
 
-  // SAT range filter
   if (satMin || satMax) {
     const min = satMin ?? 400
     const max = satMax ?? 1600
     params.set('latest.admissions.sat_scores.average.overall__range', `${min}..${max}`)
   }
 
-  // Region filter
   if (regions) {
     params.set('school.region_id', regions)
   }
 
-  // Major/CIP filter — only return schools that have this program
   if (wantPrograms) {
-    // Filter: school must have a bachelor's program in this CIP code
     params.set('latest.programs.cip_4_digit.code', cipCodes.join(','))
-    params.set('latest.programs.cip_4_digit.credential.level', '3') // bachelor's
+    params.set('latest.programs.cip_4_digit.credential.level', '3')
   }
 
-  // Sort — if major_earnings sort is requested, we do it client-side after extraction
-  const isMajorSort = sort === 'major_earnings'
+  const isMajorSort = sort === 'major_earnings' || sort === 'major_completions'
   if (!isMajorSort) {
     const sortField = SORT_FIELDS[sort] || SORT_FIELDS.sat
     params.set('sort', `${sortField}:${sortDir === 'asc' ? 'asc' : 'desc'}`)
@@ -83,7 +77,6 @@ export async function GET(req: Request) {
       const base = mapRichResult(r)
       if (!base) return null
 
-      // Extract program-level stats if we fetched them
       if (wantPrograms) {
         const programs = (r['latest.programs.cip_4_digit'] as Array<Record<string, unknown>>) || []
         const matching = programs.filter(
@@ -110,19 +103,26 @@ export async function GET(req: Request) {
       return base
     }).filter(Boolean)
 
-    // Client-side sort by major earnings if requested
     if (isMajorSort && wantPrograms) {
-      results.sort((a: Record<string, unknown>, b: Record<string, unknown>) => {
-        const ea = (a.programEarnings1yr as number) || 0
-        const eb = (b.programEarnings1yr as number) || 0
-        return sortDir === 'asc' ? ea - eb : eb - ea
-      })
+      if (sort === 'major_completions') {
+        results.sort((a: Record<string, unknown>, b: Record<string, unknown>) => {
+          const ca = (a.programCompletions as number) || 0
+          const cb = (b.programCompletions as number) || 0
+          return sortDir === 'asc' ? ca - cb : cb - ca
+        })
+      } else {
+        results.sort((a: Record<string, unknown>, b: Record<string, unknown>) => {
+          const ea = (a.programEarnings1yr as number) || 0
+          const eb = (b.programEarnings1yr as number) || 0
+          return sortDir === 'asc' ? ea - eb : eb - ea
+        })
+      }
     }
 
     const total = data.metadata?.total ?? results.length
 
     return NextResponse.json({ results, total, page })
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: 'Failed to fetch from College Scorecard' }, { status: 502 })
   }
 }
