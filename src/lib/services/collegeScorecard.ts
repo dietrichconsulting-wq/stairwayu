@@ -103,9 +103,9 @@ export function mapRichResult(r) {
     sat75: (cr75 && m75) ? cr75 + m75 : null,
     actMidpoint: r['latest.admissions.act_scores.midpoint.cumulative'] || null,
     // Cost
-    tuitionInState: r['latest.cost.tuition.in_state'] || null,
-    tuitionOutOfState: r['latest.cost.tuition.out_of_state'] || null,
-    avgNetPrice: avgNetPrice || null,
+    tuitionInState: r['latest.cost.tuition.in_state'] ?? null,
+    tuitionOutOfState: r['latest.cost.tuition.out_of_state'] ?? null,
+    avgNetPrice: avgNetPrice ?? null,
     netPriceByIncome: {
       '0-30k':    np('0-30000'),
       '30-48k':   np('30001-48000'),
@@ -114,7 +114,7 @@ export function mapRichResult(r) {
       '110k+':    np('110001-plus'),
     },
     // Total sticker cost (tuition + fees + room & board + books, before aid)
-    costOfAttendance: r['latest.cost.attendance.academic_year'] || null,
+    costOfAttendance: r['latest.cost.attendance.academic_year'] ?? null,
     // Students & outcomes
     enrollment: r['latest.student.size'] || null,
     retentionRate: retentionRate != null ? Math.round(retentionRate * 100) : null,

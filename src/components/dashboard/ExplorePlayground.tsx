@@ -179,23 +179,33 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
    *  We default to OUT-OF-STATE unless we can confirm the student is in-state. */
   function estimatedCost(s: SchoolResult): number | null {
     const base = s.costOfAttendance
-    if (base == null) return s.avgNetPrice // fallback
     if (s.isPublic) {
       const isInState = homeState && s.state && homeState === s.state
       if (!isInState) {
-        const inT = s.tuitionInState ?? 0
-        const outT = s.tuitionOutOfState ?? 0
-        const diff = outT - inT
-        return diff > 0 ? base + diff : base
+        // Out-of-state at a public school — need to add tuition differential
+        if (base != null && s.tuitionInState != null && s.tuitionOutOfState != null) {
+          const diff = s.tuitionOutOfState - s.tuitionInState
+          return diff > 0 ? base + diff : base
+        }
+        // If we have both tuition figures but no costOfAttendance, estimate
+        // using out-of-state tuition + typical R&B premium (~$14k)
+        if (s.tuitionOutOfState != null) {
+          return s.tuitionOutOfState + 14000
+        }
+        // Can't compute out-of-state cost reliably — return null so the
+        // budget filter doesn't incorrectly pass this school
+        return null
       }
     }
-    return base
+    // In-state public or private: costOfAttendance is the sticker price
+    return base ?? null
   }
 
   const filteredResults = budgetActive
     ? results.filter(s => {
         const cost = estimatedCost(s)
-        return cost == null || cost <= budgetNum
+        // Exclude schools where we can't determine cost — don't assume they're affordable
+        return cost != null && cost <= budgetNum
       })
     : results
   const hiddenByBudget = results.length - filteredResults.length
@@ -533,9 +543,9 @@ function MatchRingSmall({ chance, color }: { chance: number; color: string }) {
 
 function MiniStat({ label, value, highlight, muted }: { label: string; value: string; highlight?: boolean; muted?: boolean }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 50, opacity: muted ? 0.45 : 1 }}>
-      <span style={{ fontSize: 12, fontWeight: 700, color: highlight ? 'var(--color-primary)' : 'var(--color-text)' }}>{value}</span>
-      <span style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 1 }}>{label}</span>
+    <div style={{ textAlign: 'center', minWidth: 48 }}>
+      <div style={{ fontSize: 16, fontWeight: 700, color: highlight ? 'var(--color-accent)' : muted ? 'var(--color-text-muted)' : 'var(--color-text)' }}>{value}</div>
+      <div style={{ fontSize: 10, color: 'var(--color-text-muted)', marginTop: 2 }}>{label}</div>
     </div>
   )
 }
