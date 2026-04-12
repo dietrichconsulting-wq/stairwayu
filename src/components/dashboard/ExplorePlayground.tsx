@@ -10,6 +10,17 @@ import { useDailyChallenges } from '@/hooks/useDailyChallenges'
 import { Tooltip } from '@/components/ui/Tooltip'
 import { MajorSelect } from '@/components/MajorSelect'
 
+/** Must match the slugify logic in collegeIngest.ts */
+function slugify(name: string, ipedsId: string): string {
+  const base = String(name)
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 80)
+  return base || `school-${ipedsId}`
+}
+
 interface ExploreProps {
   profile: {
     gpa: number | null
@@ -443,7 +454,14 @@ function ExploreCard({ school, index, alreadySaved, onSave, hasMajorFilter, cost
           <MatchRingSmall chance={school.chance} color={cfg.color} />
         )}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 700, fontSize: 14, lineHeight: 1.3 }}>{school.name}</div>
+          <a
+            href={`/colleges/${slugify(school.name, school.id)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ fontWeight: 700, fontSize: 14, lineHeight: 1.3, color: 'inherit', textDecoration: 'none' }}
+            onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
+            onMouseLeave={(e) => (e.currentTarget.style.textDecoration = 'none')}
+          >{school.name}</a>
           {(school.city || school.state) && (
             <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 2 }}>
               {[school.city, school.state].filter(Boolean).join(', ')}
