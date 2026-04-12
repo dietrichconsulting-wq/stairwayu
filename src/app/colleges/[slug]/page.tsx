@@ -9,6 +9,7 @@ import {
   fmtNum,
   fmtPct,
 } from '@/lib/colleges'
+import { getAllPrograms } from '@/lib/services/collegeScorecard'
 import { CollegeHeader } from '@/components/colleges/CollegeHeader'
 import { ProUpsell } from '@/components/colleges/ProUpsell'
 
@@ -59,7 +60,10 @@ export default async function CollegePage({ params }: PageProps) {
   const c = await getCollegeBySlug(slug)
   if (!c) notFound()
 
-  const similar = await getSimilarColleges(c)
+  const [similar, programs] = await Promise.all([
+    getSimilarColleges(c),
+    getAllPrograms(c.ipeds_id),
+  ])
 
   const faqs = [
     {
@@ -208,6 +212,49 @@ export default async function CollegePage({ params }: PageProps) {
               </p>
             )}
           </div>
+        </section>
+      )}
+
+      {/* Popular Programs */}
+      {programs.length > 0 && (
+        <section className="mx-auto max-w-5xl px-6 mt-12">
+          <h2 className="text-2xl font-semibold mb-2">Popular programs at {c.name}</h2>
+          <p className="text-sm text-white/50 mb-5">
+            Bachelor&rsquo;s degree programs ranked by number of graduates. Earnings data from the U.S. Department of Education.
+          </p>
+          <div className="rounded-xl border border-white/10 bg-white/[0.02] overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-white/10 text-white/50 text-xs uppercase tracking-wider">
+                  <th className="text-left py-3 px-4 font-medium">#</th>
+                  <th className="text-left py-3 px-4 font-medium">Program</th>
+                  <th className="text-right py-3 px-4 font-medium">Graduates/yr</th>
+                  <th className="text-right py-3 px-4 font-medium hidden sm:table-cell">Earnings (1yr)</th>
+                  <th className="text-right py-3 px-4 font-medium hidden md:table-cell">Earnings (4yr)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {programs.slice(0, 20).map((p, i) => (
+                  <tr key={p.cipCode} className="border-b border-white/5 hover:bg-white/[0.03]">
+                    <td className="py-3 px-4 text-white/40 font-mono text-xs">{i + 1}</td>
+                    <td className="py-3 px-4 font-medium text-white/90">{p.title}</td>
+                    <td className="py-3 px-4 text-right text-white/70">{p.completions.toLocaleString()}</td>
+                    <td className="py-3 px-4 text-right text-white/70 hidden sm:table-cell">
+                      {p.earnings1yr ? `$${p.earnings1yr.toLocaleString()}` : <span className="text-white/30">N/A</span>}
+                    </td>
+                    <td className="py-3 px-4 text-right text-white/70 hidden md:table-cell">
+                      {p.earnings4yr ? `$${p.earnings4yr.toLocaleString()}` : <span className="text-white/30">N/A</span>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {programs.length > 20 && (
+            <p className="text-xs text-white/40 mt-3 text-center">
+              Showing top 20 of {programs.length} programs
+            </p>
+          )}
         </section>
       )}
 

@@ -181,6 +181,62 @@ export async function getProgramStats(schoolId: string, cipCodes: string[]) {
   }
 }
 
+export interface SchoolProgram {
+  cipCode: string
+  title: string
+  completions: number
+  earnings1yr: number | null
+  earnings4yr: number | null
+}
+
+/**
+ * Fetch ALL bachelor's-level programs for a school, ranked by completions.
+ * Used on the college detail page to show popular majors.
+ */
+export async function getAllPrograms(ipedsId: string): Promise<SchoolProgram[]> {
+  if (!API_KEY || !ipedsId) return []
+
+  const params = new URLSearchParams({
+    api_key: API_KEY,
+    id: ipedsId,
+    fields: 'id,latest.programs.cip_4_digit',
+  })
+
+  try {
+    const res = await fetch(`${BASE_URL}?${params}`, {
+      signal: AbortSignal.timeout(10000),
+      next: { revalidate: 86400 }, // cache 1 day (ISR-compatible)
+    })
+    if (!res.ok) return []
+
+    const data = await res.json()
+    const programs = data.results?.[0]?.['latest.programs.cip_4_digit'] || []
+
+    // Filter to bachelor's-level programs with at least 1 completion
+    const bachelors = programs
+      .filter((p: Record<string, unknown>) => {
+        const cred = p.credential as Record<string, unknown> | undefined
+        return cred?.level === 3 && ((p.counts as Record<string, unknown>)?.ipeds_awards1 as number) > 0
+      })
+      .map((p: Record<string, unknown>) => {
+        const counts = p.counts as Record<string, unknown> | undefined
+        const earnings = p.earnings as Record<string, Record<string, unknown>> | undefined
+        return {
+          cipCode: p.code as string,
+          title: (p.title as string) || 'Unknown',
+          completions: (counts?.ipeds_awards1 as number) || 0,
+          earnings1yr: (earnings?.['1_yr']?.overall_median_earnings as number) || null,
+          earnings4yr: (earnings?.['4_yr']?.overall_median_earnings as number) || null,
+        }
+      })
+      .sort((a: SchoolProgram, b: SchoolProgram) => b.completions - a.completions)
+
+    return bachelors
+  } catch {
+    return []
+  }
+}
+
 /** Search colleges by query string (lightweight) */
 export async function searchColleges(query) {
   if (!API_KEY) return [];
