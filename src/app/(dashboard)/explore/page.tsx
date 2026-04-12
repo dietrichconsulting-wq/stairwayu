@@ -11,7 +11,7 @@ export default async function ExplorePage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('gpa, gpa_weighted, sat, act_score, home_state')
+    .select('gpa, gpa_weighted, sat, act_score, home_state, proposed_major')
     .eq('id', user.id)
     .single()
 

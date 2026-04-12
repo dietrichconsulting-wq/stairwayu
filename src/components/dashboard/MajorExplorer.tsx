@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { INTEREST_TAGS, InterestTag, Career } from '@/lib/majorExplorer'
 
@@ -9,9 +10,10 @@ interface MajorExplorerProps {
   onSelectMajor: (major: string) => void
 }
 
-type ExplorerState = 'interests' | 'careers' | 'confirmation'
+type ExplorerState = 'interests' | 'careers' | 'confirmation' | 'saved'
 
 export function MajorExplorer({ currentMajor, onSelectMajor }: MajorExplorerProps) {
+  const router = useRouter()
   const [state, setState] = useState<ExplorerState>('interests')
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([])
   const [selectedMajor, setSelectedMajor] = useState<string | null>(null)
@@ -38,7 +40,7 @@ export function MajorExplorer({ currentMajor, onSelectMajor }: MajorExplorerProp
   const handleConfirmMajor = () => {
     if (selectedMajor) {
       onSelectMajor(selectedMajor)
-      // Component will likely be collapsed by the parent upon success
+      setState('saved')
     }
   }
 
@@ -307,6 +309,68 @@ export function MajorExplorer({ currentMajor, onSelectMajor }: MajorExplorerProp
                   }}
                 >
                   Keep Exploring
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {state === 'saved' && selectedMajor && (
+          <motion.div
+            key="saved"
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+          >
+            <div style={{
+              background: 'var(--color-column)',
+              border: '1px solid var(--color-border)',
+              borderRadius: 12,
+              padding: 28,
+              textAlign: 'center',
+            }}>
+              <div style={{ fontSize: 36, marginBottom: 12 }}>🎉</div>
+              <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text)', margin: '0 0 6px 0' }}>
+                {selectedMajor} — locked in!
+              </h3>
+              <p style={{ fontSize: 14, color: 'var(--color-text-muted)', margin: '0 0 24px 0', lineHeight: 1.5 }}>
+                Your strategy and school matches will now factor in {selectedMajor} program strength.
+              </p>
+
+              <div style={{ display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
+                <button
+                  onClick={() => router.push('/explore')}
+                  style={{
+                    background: 'var(--color-primary)',
+                    color: '#fff',
+                    border: 'none',
+                    padding: '12px 24px',
+                    borderRadius: 10,
+                    fontSize: 14,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                  }}
+                >
+                  🔍 Explore Top {selectedMajor} Schools
+                </button>
+                <button
+                  onClick={() => router.push('/strategy')}
+                  style={{
+                    background: 'var(--color-column)',
+                    color: 'var(--color-text)',
+                    border: '1.5px solid var(--color-border)',
+                    padding: '12px 24px',
+                    borderRadius: 10,
+                    fontSize: 14,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  ⚡ Build My Strategy
                 </button>
               </div>
             </div>

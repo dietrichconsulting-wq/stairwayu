@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { mapRichResult, RICH_FIELDS } from '@/lib/services/collegeScorecard'
 import { exploreSchema, parseBody } from '@/lib/validations'
+import { getCipCodes } from '@/lib/majorCipMap'
 
 const BASE_URL = 'https://api.data.gov/ed/collegescorecard/v1/schools.json'
 const API_KEY = process.env.COLLEGE_SCORECARD_API_KEY
@@ -22,13 +23,20 @@ export async function GET(req: Request) {
   const rawParams = Object.fromEntries(searchParams.entries())
   const parsed = parseBody(exploreSchema, rawParams)
   if ('error' in parsed) return parsed.error
-  const { satMin, satMax, regions, page, perPage, sort, sortDir } = parsed.data
+  const { satMin, satMax, regions, major, page, perPage, sort, sortDir } = parsed.data
 
   if (!API_KEY) return NextResponse.json({ error: 'API key not configured' }, { status: 500 })
 
+  // When major is selected, request program data too
+  const cipCodes = major ? getCipCodes(major) : []
+  const wantPrograms = cipCodes.length > 0
+  const fields = wantPrograms
+    ? RICH_FIELDS + ',latest.programs.cip_4_digit'
+    : RICH_FIELDS
+
   const params = new URLSearchParams({
     api_key: API_KEY,
-    fields: RICH_FIELDS,
+    fields,
     per_page: String(perPage),
     page: String(page),
     'school.degrees_awarded.predominant__range': '3..4', // bachelor's+
@@ -47,13 +55,23 @@ export async function GET(req: Request) {
     params.set('school.region_id', regions)
   }
 
-  // Sort
-  const sortField = SORT_FIELDS[sort] || SORT_FIELDS.sat
-  params.set('sort', `${sortField}:${sortDir === 'asc' ? 'asc' : 'desc'}`)
+  // Major/CIP filter — only return schools that have this program
+  if (wantPrograms) {
+    // Filter: school must have a bachelor's program in this CIP code
+    params.set('latest.programs.cip_4_digit.code', cipCodes.join(','))
+    params.set('latest.programs.cip_4_digit.credential.level', '3') // bachelor's
+  }
+
+  // Sort — if major_earnings sort is requested, we do it client-side after extraction
+  const isMajorSort = sort === 'major_earnings'
+  if (!isMajorSort) {
+    const sortField = SORT_FIELDS[sort] || SORT_FIELDS.sat
+    params.set('sort', `${sortField}:${sortDir === 'asc' ? 'asc' : 'desc'}`)
+  }
 
   try {
     const res = await fetch(`${BASE_URL}?${params}`, {
-      signal: AbortSignal.timeout(10000),
+      signal: AbortSignal.timeout(12000),
     })
     if (!res.ok) {
       const text = await res.text()
@@ -61,7 +79,46 @@ export async function GET(req: Request) {
     }
 
     const data = await res.json()
-    const results = (data.results || []).map(mapRichResult).filter(Boolean)
+    let results = (data.results || []).map((r: Record<string, unknown>) => {
+      const base = mapRichResult(r)
+      if (!base) return null
+
+      // Extract program-level stats if we fetched them
+      if (wantPrograms) {
+        const programs = (r['latest.programs.cip_4_digit'] as Array<Record<string, unknown>>) || []
+        const matching = programs.filter(
+          (p: Record<string, unknown>) =>
+            cipCodes.includes(p.code as string) &&
+            (p.credential as Record<string, unknown>)?.level === 3
+        )
+        if (matching.length) {
+          const best = matching.reduce((a: Record<string, unknown>, b: Record<string, unknown>) =>
+            (((b.counts as Record<string, unknown>)?.ipeds_awards1 as number) || 0) >
+            (((a.counts as Record<string, unknown>)?.ipeds_awards1 as number) || 0) ? b : a
+          )
+          const counts = best.counts as Record<string, unknown> | undefined
+          const earnings = best.earnings as Record<string, Record<string, unknown>> | undefined
+          return {
+            ...base,
+            programCompletions: (counts?.ipeds_awards1 as number) || 0,
+            programEarnings1yr: (earnings?.['1_yr']?.overall_median_earnings as number) || null,
+            programEarnings4yr: (earnings?.['4_yr']?.overall_median_earnings as number) || null,
+            programCipTitle: (best.title as string) || null,
+          }
+        }
+      }
+      return base
+    }).filter(Boolean)
+
+    // Client-side sort by major earnings if requested
+    if (isMajorSort && wantPrograms) {
+      results.sort((a: Record<string, unknown>, b: Record<string, unknown>) => {
+        const ea = (a.programEarnings1yr as number) || 0
+        const eb = (b.programEarnings1yr as number) || 0
+        return sortDir === 'asc' ? ea - eb : eb - ea
+      })
+    }
+
     const total = data.metadata?.total ?? results.length
 
     return NextResponse.json({ results, total, page })

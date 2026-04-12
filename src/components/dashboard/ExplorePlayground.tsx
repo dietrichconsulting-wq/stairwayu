@@ -8,6 +8,7 @@ import { useAddCollege } from '@/hooks/useUserColleges'
 import { useRecordXp } from '@/hooks/useXp'
 import { useDailyChallenges } from '@/hooks/useDailyChallenges'
 import { Tooltip } from '@/components/ui/Tooltip'
+import { MajorSelect } from '@/components/MajorSelect'
 
 interface ExploreProps {
   profile: {
@@ -16,6 +17,7 @@ interface ExploreProps {
     sat: number | null
     act_score: number | null
     home_state: string | null
+    proposed_major: string | null
   } | null
   collegeNames: string[]
   userId: string
@@ -36,6 +38,10 @@ interface SchoolResult {
   medianEarnings10yr: number | null
   regionId: number | null
   enrollment: number | null
+  programCompletions?: number | null
+  programEarnings1yr?: number | null
+  programEarnings4yr?: number | null
+  programCipTitle?: string | null
 }
 
 const labelStyle: React.CSSProperties = { fontSize: 12, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }
@@ -49,6 +55,7 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
   const [satValue, setSatValue] = useState(profile?.sat ?? 1100)
   const [gpaValue, setGpaValue] = useState(profile?.gpa ?? 3.2)
   const [selectedRegions, setSelectedRegions] = useState<Set<number>>(new Set())
+  const [selectedMajor, setSelectedMajor] = useState(profile?.proposed_major ?? '')
   const [stretchMode, setStretchMode] = useState(false)
   const [results, setResults] = useState<SchoolResult[]>([])
   const [loading, setLoading] = useState(false)
@@ -61,17 +68,20 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
   const effectiveSAT = stretchMode ? Math.min(satValue + 100, 1600) : satValue
   const effectiveGPA = stretchMode ? Math.min(gpaValue + 0.3, 4.0) : gpaValue
 
-  const fetchSchools = useCallback(async (sat: number, regions: Set<number>) => {
+  const fetchSchools = useCallback(async (sat: number, regions: Set<number>, major?: string) => {
     setLoading(true)
     try {
       const params = new URLSearchParams({
         satMin: String(Math.max(400, sat - 200)),
         satMax: String(Math.min(1600, sat + 200)),
         perPage: '40',
-        sort: 'sat',
+        sort: major && major !== 'Undecided' ? 'major_earnings' : 'sat',
       })
       if (regions.size > 0) {
         params.set('regions', Array.from(regions).join(','))
+      }
+      if (major && major !== 'Undecided') {
+        params.set('major', major)
       }
       const res = await fetch(`/api/colleges/explore?${params}`)
       if (!res.ok) throw new Error('Failed to fetch')
@@ -88,18 +98,18 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
 
   // Initial fetch
   useEffect(() => {
-    fetchSchools(effectiveSAT, selectedRegions)
+    fetchSchools(effectiveSAT, selectedRegions, selectedMajor)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Debounced fetch on slider/region change
+  // Debounced fetch on slider/region/major change
   useEffect(() => {
     if (!hasInteracted) return
     clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => {
-      fetchSchools(effectiveSAT, selectedRegions)
+      fetchSchools(effectiveSAT, selectedRegions, selectedMajor)
     }, 500)
     return () => clearTimeout(debounceRef.current)
-  }, [effectiveSAT, selectedRegions, hasInteracted, fetchSchools])
+  }, [effectiveSAT, selectedRegions, selectedMajor, hasInteracted, fetchSchools])
 
   function handleInteraction() {
     setHasInteracted(true)
@@ -134,7 +144,7 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
 
     // Immediate fetch
     clearTimeout(debounceRef.current)
-    fetchSchools(randomSat, randomRegions)
+    fetchSchools(randomSat, randomRegions, selectedMajor)
   }
 
   async function handleSave(school: SchoolResult) {
@@ -252,10 +262,30 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
                 transition: 'border-color 0.2s, background 0.2s, color 0.2s',
               }}
             >
-              {stretchMode ? '\u2713 Stretch Mode On' : 'Stretch Mode'}
+              {stretchMode ? '✓ Stretch Mode On' : 'Stretch Mode'}
               <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--color-text-muted)' }}>+100 SAT, +0.3 GPA</span>
             </button>
             </Tooltip>
+
+            {/* Major Filter */}
+            <div style={{ marginBottom: 18 }}>
+              <label style={{ ...labelStyle, marginBottom: 8, display: 'block' }}>
+                Filter by Major <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span>
+              </label>
+              <MajorSelect
+                value={selectedMajor}
+                onChange={(v) => { setSelectedMajor(v); handleInteraction() }}
+                placeholder="Any major..."
+              />
+              {selectedMajor && selectedMajor !== 'Undecided' && (
+                <button
+                  onClick={() => { setSelectedMajor(''); handleInteraction() }}
+                  style={{ fontSize: 11, color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer', marginTop: 4, padding: 0, textDecoration: 'underline' }}
+                >
+                  Clear major filter
+                </button>
+              )}
+            </div>
 
             {/* Region Checkboxes */}
             <div style={{ marginBottom: 18 }}>
@@ -315,7 +345,11 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
             <div style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
-              {loading ? 'Searching...' : `${total} schools found`}
+              {loading ? 'Searching...' : (
+                selectedMajor && selectedMajor !== 'Undecided'
+                  ? `${total} schools with ${selectedMajor} programs — sorted by major salary`
+                  : `${total} schools found`
+              )}
             </div>
           </div>
 
@@ -421,6 +455,12 @@ function ExploreCard({ school, index, alreadySaved, onSave }: {
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
         {school.avgNetPrice != null && <MiniStat label="Net Cost" value={`$${(school.avgNetPrice / 1000).toFixed(0)}k`} />}
         {school.admissionRate != null && <MiniStat label="Admit" value={`${school.admissionRate}%`} />}
+        {school.programCompletions != null && school.programCompletions > 0 && (
+          <MiniStat label="Grads/yr" value={`${school.programCompletions}`} highlight />
+        )}
+        {school.programEarnings1yr != null && (
+          <MiniStat label="Major $1yr" value={`$${(school.programEarnings1yr / 1000).toFixed(0)}k`} highlight />
+        )}
       </div>
 
       {/* Expandable stats */}
@@ -473,7 +513,7 @@ function ExploreCard({ school, index, alreadySaved, onSave }: {
 
         {saved || alreadySaved ? (
           <span style={{ fontSize: 11, fontWeight: 700, color: saved ? '#059669' : 'var(--color-text-muted)' }}>
-            {saved ? '\u2713 Saved!' : 'In your collection'}
+            {saved ? '✓ Saved!' : 'In your collection'}
           </span>
         ) : (
           <button
@@ -491,7 +531,7 @@ function ExploreCard({ school, index, alreadySaved, onSave }: {
               whiteSpace: 'nowrap',
             }}
           >
-            {saving ? 'Saving...' : '\u2661 Save'}
+            {saving ? 'Saving...' : '♡ Save'}
           </button>
         )}
       </div>
@@ -523,10 +563,10 @@ function MatchRingSmall({ chance, color }: { chance: number; color: string }) {
   )
 }
 
-function MiniStat({ label, value }: { label: string; value: string }) {
+function MiniStat({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 50 }}>
-      <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text)' }}>{value}</span>
+      <span style={{ fontSize: 12, fontWeight: 700, color: highlight ? 'var(--color-primary)' : 'var(--color-text)' }}>{value}</span>
       <span style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 1 }}>{label}</span>
     </div>
   )
