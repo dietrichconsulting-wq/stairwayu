@@ -14,7 +14,7 @@ const PER_PAGE = 100
 
 const FIELDS = [
   'id',
-  'school.name', 'school.city', 'school.state', 'school.school_url', 'school.type',
+  'school.name', 'school.city', 'school.state', 'school.school_url', 'school.ownership',
   'latest.admissions.admission_rate.overall',
   'latest.admissions.sat_scores.average.overall',
   'latest.admissions.sat_scores.25th_percentile.critical_reading',
@@ -44,7 +44,8 @@ const pct = (x: any) => (x == null ? null : Math.round(x * 100))
 const int = (x: any) => (x == null ? null : Math.round(x))
 
 function mapRow(r: any) {
-  const isPublic = r['school.type'] === 1
+  const schoolType = Number(r['school.ownership'])
+  const isPublic = schoolType === 1
   const cr25 = r['latest.admissions.sat_scores.25th_percentile.critical_reading']
   const cr75 = r['latest.admissions.sat_scores.75th_percentile.critical_reading']
   const m25  = r['latest.admissions.sat_scores.25th_percentile.math']
@@ -57,7 +58,7 @@ function mapRow(r: any) {
     city: r['school.city'] || null,
     state: r['school.state'] || null,
     url: r['school.school_url'] || null,
-    control: isPublic ? 'Public' : (r['school.type'] === 2 ? 'Private Nonprofit' : 'Private For-Profit'),
+    control: isPublic ? 'Public' : (schoolType === 2 ? 'Private Nonprofit' : 'Private For-Profit'),
     is_public: isPublic,
     admission_rate: pct(r['latest.admissions.admission_rate.overall']),
     avg_sat: int(r['latest.admissions.sat_scores.average.overall']),

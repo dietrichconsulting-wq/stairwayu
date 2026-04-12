@@ -44,6 +44,12 @@ supabase/
 - **Program-level data:** `latest.programs.cip_4_digit` — completions, earnings by major
 - **CIP codes:** 4-digit Classification of Instructional Programs (e.g., '1101' = CS)
 
+### School Ownership (important — past bug source)
+- The Scorecard field for public/private is `school.ownership`, **NOT** `school.type`
+- Values: 1=Public, 2=Private nonprofit, 3=Private for-profit
+- The API returns numeric values as **strings** — always coerce with `Number()` before comparing
+- `isPublic` flag in `mapRichResult()` drives out-of-state cost calculations on the Explore page
+
 ### Cost Fields (important — common source of bugs)
 - `costOfAttendance` → `latest.cost.attendance.academic_year` — **in-state** sticker price (tuition + fees + R&B + books)
 - `avgNetPrice` → `latest.cost.avg_net_price.public/private` — average cost **after grants** (includes R&B)
