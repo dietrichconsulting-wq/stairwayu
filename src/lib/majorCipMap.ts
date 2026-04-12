@@ -38,7 +38,7 @@ export const MAJOR_TO_CIP: Record<string, string[]> = {
   'Education':                ['1301', '1312', '1313'],
   'Electrical Engineering':   ['1410'],
   'English':                  ['2301'],
-  'Environmental Design':     ['0403'],
+  'Environmental Design':     ['0401', '0402', '0403', '0404'],
   'Environmental Science':    ['0301', '0302'],
   'Exercise Science':         ['3105'],
   'Film & Media Studies':     ['0907', '5006'],
