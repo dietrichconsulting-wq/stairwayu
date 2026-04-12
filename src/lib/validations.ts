@@ -45,8 +45,8 @@ export const exploreSchema = z.object({
   major: z.string().max(100).optional(),
   page: z.coerce.number().int().min(0).default(0),
   perPage: z.coerce.number().int().min(1).max(60).default(30),
-  sort: z.enum(['net_cost', 'grad_rate', 'earnings', 'sat', 'major_earnings', 'major_completions']).default('sat'),
-  sortDir: z.enum(['asc', 'desc']).default('desc'),
+  sort: z.enum(["net_cost", "grad_rate", "earnings", "sat", "major_earnings", "major_completions", "program_strength"]).default("sat"),
+  sortDir: z.enum(["asc", "desc"]).default("desc"),
 })
 
 export const searchSchema = z.object({
@@ -55,9 +55,9 @@ export const searchSchema = z.object({
 
 // Essays
 
-export const brainstormSchema = z.discriminatedUnion('action', [
+export const brainstormSchema = z.discriminatedUnion("action", [
   z.object({
-    action: z.literal('questions'),
+    action: z.literal("questions"),
     school: shortStr,
     essayType: shortStr,
     major: shortStr.nullish(),
@@ -66,7 +66,7 @@ export const brainstormSchema = z.discriminatedUnion('action', [
     sat,
   }),
   z.object({
-    action: z.literal('prompts'),
+    action: z.literal("prompts"),
     school: shortStr,
     essayType: shortStr,
     major: shortStr.nullish(),
@@ -90,7 +90,7 @@ export const critiqueSchema = z.object({
 // Stripe / Redeem / Referral
 
 export const checkoutSchema = z.object({
-  plan: z.enum(['monthly', 'annual']).default('monthly'),
+  plan: z.enum(["monthly", "annual"]).default("monthly"),
 })
 
 export const redeemSchema = z.object({
@@ -139,7 +139,7 @@ export function parseBody<T extends z.ZodType>(
   if (!result.success) {
     return {
       error: NextResponse.json(
-        { error: 'Invalid request', details: result.error.flatten().fieldErrors },
+        { error: "Invalid request", details: result.error.flatten().fieldErrors },
         { status: 400 },
       ),
     }

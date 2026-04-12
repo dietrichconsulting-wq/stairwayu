@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { mapRichResult, RICH_FIELDS } from '@/lib/services/collegeScorecard'
 import { exploreSchema, parseBody } from '@/lib/validations'
 import { getCipCodes } from '@/lib/majorCipMap'
+import { scoreProgramStrength } from '@/lib/services/programStrength'
 
 const BASE_URL = 'https://api.data.gov/ed/collegescorecard/v1/schools.json'
 const API_KEY = process.env.COLLEGE_SCORECARD_API_KEY
@@ -57,8 +58,8 @@ export async function GET(req: Request) {
     params.set('latest.programs.cip_4_digit.credential.level', '3')
   }
 
-  const isMajorSort = sort === 'major_earnings' || sort === 'major_completions'
-  if (!isMajorSort) {
+  const isClientSort = sort === 'major_earnings' || sort === 'major_completions' || sort === 'program_strength'
+  if (!isClientSort) {
     const sortField = SORT_FIELDS[sort] || SORT_FIELDS.sat
     params.set('sort', `${sortField}:${sortDir === 'asc' ? 'asc' : 'desc'}`)
   }
@@ -103,8 +104,18 @@ export async function GET(req: Request) {
       return base
     }).filter(Boolean)
 
-    if (isMajorSort && wantPrograms) {
-      if (sort === 'major_completions') {
+    // Compute program strength scores for all results
+    const hasMajor = wantPrograms && cipCodes.length > 0
+    results = scoreProgramStrength(results, hasMajor)
+
+    if (isClientSort) {
+      if (sort === 'program_strength') {
+        results.sort((a: Record<string, unknown>, b: Record<string, unknown>) => {
+          const sa = (a.programStrengthScore as number) ?? -1
+          const sb = (b.programStrengthScore as number) ?? -1
+          return sortDir === 'asc' ? sa - sb : sb - sa
+        })
+      } else if (sort === 'major_completions') {
         results.sort((a: Record<string, unknown>, b: Record<string, unknown>) => {
           const ca = (a.programCompletions as number) || 0
           const cb = (b.programCompletions as number) || 0

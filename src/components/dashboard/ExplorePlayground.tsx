@@ -42,6 +42,8 @@ interface SchoolResult {
   programEarnings1yr?: number | null
   programEarnings4yr?: number | null
   programCipTitle?: string | null
+  programStrengthScore?: number | null
+  retentionRate?: number | null
 }
 
 const labelStyle: React.CSSProperties = { fontSize: 12, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }
@@ -77,7 +79,7 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
         satMin: String(Math.max(400, sat - 200)),
         satMax: String(Math.min(1600, sat + 200)),
         perPage: '40',
-        sort: major && major !== 'Undecided' ? 'major_completions' : 'sat',
+        sort: major && major !== 'Undecided' ? 'program_strength' : 'sat',
       })
       if (regions.size > 0) {
         params.set('regions', Array.from(regions).join(','))
@@ -298,7 +300,7 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
             <div style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
               {loading ? 'Searching...' : (
                 selectedMajor && selectedMajor !== 'Undecided'
-                  ? `${filteredResults.length} schools with ${selectedMajor} programs \u2014 sorted by program size`
+                  ? `${filteredResults.length} schools with ${selectedMajor} programs \u2014 sorted by program strength`
                   : `${filteredResults.length} schools found`
               )}
             </div>
@@ -425,6 +427,9 @@ function ExploreCard({ school, index, alreadySaved, onSave, hasMajorFilter }: {
           school.programEarnings1yr != null
             ? <MiniStat label="Major $1yr" value={`$${(school.programEarnings1yr / 1000).toFixed(0)}k`} highlight />
             : <MiniStat label="Major $1yr" value="N/A" muted />
+        )}
+        {hasMajorFilter && school.programStrengthScore != null && (
+          <MiniStat label="Strength" value={`${school.programStrengthScore.toFixed(0)}`} highlight />
         )}
       </div>
 
