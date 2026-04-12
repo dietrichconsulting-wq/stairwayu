@@ -37,6 +37,8 @@ const RICH_FIELDS = [
   'latest.cost.net_price.private.by_income_level.48001-75000',
   'latest.cost.net_price.private.by_income_level.75001-110000',
   'latest.cost.net_price.private.by_income_level.110001-plus',
+  // Total cost of attendance (tuition + fees + room & board + books — sticker price)
+  'latest.cost.attendance.academic_year',
   // Students
   'latest.student.size',
   'latest.student.retention_rate.four_year.full_time',
@@ -111,6 +113,8 @@ export function mapRichResult(r) {
       '75-110k':  np('75001-110000'),
       '110k+':    np('110001-plus'),
     },
+    // Total sticker cost (tuition + fees + room & board + books, before aid)
+    costOfAttendance: r['latest.cost.attendance.academic_year'] || null,
     // Students & outcomes
     enrollment: r['latest.student.size'] || null,
     retentionRate: retentionRate != null ? Math.round(retentionRate * 100) : null,
@@ -319,7 +323,7 @@ export async function lookupByName(schoolName) {
   const params = new URLSearchParams({
     api_key: API_KEY,
     'school.name': expanded,
-    fields: 'id,school.name,school.city,school.state,school.school_url,school.type,school.locale,school.region_id,latest.admissions.admission_rate.overall,latest.admissions.sat_scores.average.overall,latest.admissions.sat_scores.25th_percentile.critical_reading,latest.admissions.sat_scores.75th_percentile.critical_reading,latest.admissions.sat_scores.25th_percentile.math,latest.admissions.sat_scores.75th_percentile.math,latest.admissions.act_scores.midpoint.cumulative,latest.cost.tuition.in_state,latest.cost.tuition.out_of_state,latest.cost.avg_net_price.public,latest.cost.avg_net_price.private,latest.cost.net_price.public.by_income_level.0-30000,latest.cost.net_price.public.by_income_level.30001-48000,latest.cost.net_price.public.by_income_level.48001-75000,latest.cost.net_price.public.by_income_level.75001-110000,latest.cost.net_price.public.by_income_level.110001-plus,latest.cost.net_price.private.by_income_level.0-30000,latest.cost.net_price.private.by_income_level.30001-48000,latest.cost.net_price.private.by_income_level.48001-75000,latest.cost.net_price.private.by_income_level.75001-110000,latest.cost.net_price.private.by_income_level.110001-plus,latest.student.size,latest.student.retention_rate.four_year.full_time,latest.completion.rate_suppressed.4yr,latest.completion.rate_suppressed.overall,latest.earnings.10_yrs_after_entry.median,latest.earnings.6_yrs_after_entry.median',
+    fields: RICH_FIELDS,
   });
 
   try {

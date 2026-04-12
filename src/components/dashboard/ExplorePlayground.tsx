@@ -44,6 +44,7 @@ interface SchoolResult {
   programCipTitle?: string | null
   programStrengthScore?: number | null
   retentionRate?: number | null
+  costOfAttendance?: number | null
 }
 
 const labelStyle: React.CSSProperties = { fontSize: 12, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }
@@ -169,7 +170,10 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
   const budgetNum = budget ? Number(budget) : null
   const budgetActive = budgetNum != null && budgetNum > 0 && !flexibleOnPrice
   const filteredResults = budgetActive
-    ? results.filter(s => s.avgNetPrice == null || s.avgNetPrice <= budgetNum)
+    ? results.filter(s => {
+        const cost = s.costOfAttendance ?? s.avgNetPrice
+        return cost == null || cost <= budgetNum
+      })
     : results
   const hiddenByBudget = results.length - filteredResults.length
 
@@ -243,7 +247,7 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
 
             <div style={{ marginBottom: 18 }}>
               <label style={{ ...labelStyle, marginBottom: 8, display: 'block' }}>
-                Budget / Year <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span>
+                Budget / Year <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(tuition + room & board)</span>
               </label>
               <div style={{ position: 'relative' }}>
                 <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 14, fontWeight: 600, color: 'var(--color-text-muted)' }}>$</span>
@@ -416,7 +420,9 @@ function ExploreCard({ school, index, alreadySaved, onSave, hasMajorFilter }: {
       </div>
 
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        {school.avgNetPrice != null && <MiniStat label="Net Cost" value={`$${(school.avgNetPrice / 1000).toFixed(0)}k`} />}
+        {school.costOfAttendance != null
+          ? <MiniStat label="Total Cost" value={`$${(school.costOfAttendance / 1000).toFixed(0)}k`} />
+          : school.avgNetPrice != null && <MiniStat label="Net Cost" value={`$${(school.avgNetPrice / 1000).toFixed(0)}k`} />}
         {school.admissionRate != null && <MiniStat label="Admit" value={`${school.admissionRate}%`} />}
         {hasMajorFilter && (
           school.programCompletions != null && school.programCompletions > 0
@@ -441,6 +447,7 @@ function ExploreCard({ school, index, alreadySaved, onSave, hasMajorFilter }: {
               {school.avgSAT != null && <MiniStat label="Avg SAT" value={String(school.avgSAT)} />}
               {school.gradRate4yr != null && <MiniStat label="Grad Rate" value={`${school.gradRate4yr}%`} />}
               {school.medianEarnings10yr != null && <MiniStat label="Earnings" value={`$${(school.medianEarnings10yr / 1000).toFixed(0)}k`} />}
+              {school.avgNetPrice != null && school.costOfAttendance != null && <MiniStat label="After Aid" value={`$${(school.avgNetPrice / 1000).toFixed(0)}k`} />}
             </div>
             {school.sat25 && school.sat75 && (
               <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginBottom: 4 }}>
