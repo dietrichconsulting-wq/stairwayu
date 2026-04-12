@@ -45,6 +45,9 @@ interface SchoolResult {
   programStrengthScore?: number | null
   retentionRate?: number | null
   costOfAttendance?: number | null
+  tuitionInState?: number | null
+  tuitionOutOfState?: number | null
+  isPublic?: boolean
 }
 
 const labelStyle: React.CSSProperties = { fontSize: 12, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }
@@ -167,11 +170,28 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
     if (!stretchMode) completeChallenge('stretch_mode')
   }
 
+  const homeState = profile?.home_state ?? null
   const budgetNum = budget ? Number(budget) : null
   const budgetActive = budgetNum != null && budgetNum > 0 && !flexibleOnPrice
+
+  /** Estimated all-in cost for a school, adjusted for in-state vs out-of-state */
+  function estimatedCost(s: SchoolResult): number | null {
+    const base = s.costOfAttendance
+    if (base == null) return s.avgNetPrice // fallback
+    // For public schools, costOfAttendance is in-state sticker price.
+    // If the student is out-of-state, add the tuition differential.
+    if (s.isPublic && homeState && s.state && homeState !== s.state) {
+      const inT = s.tuitionInState ?? 0
+      const outT = s.tuitionOutOfState ?? 0
+      const diff = outT - inT
+      return diff > 0 ? base + diff : base
+    }
+    return base
+  }
+
   const filteredResults = budgetActive
     ? results.filter(s => {
-        const cost = s.costOfAttendance ?? s.avgNetPrice
+        const cost = estimatedCost(s)
         return cost == null || cost <= budgetNum
       })
     : results
@@ -354,7 +374,8 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
                   <ExploreCard key={school.id} school={school} index={i}
                     alreadySaved={collegeNames.includes(school.name) || savedIds.has(school.id)}
                     onSave={() => handleSave(school)}
-                    hasMajorFilter={!!(selectedMajor && selectedMajor !== 'Undecided')} />
+                    hasMajorFilter={!!(selectedMajor && selectedMajor !== 'Undecided')}
+                    allInCost={estimatedCost(school)} />
                 ))}
               </AnimatePresence>
             </div>
@@ -365,12 +386,13 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
   )
 }
 
-function ExploreCard({ school, index, alreadySaved, onSave, hasMajorFilter }: {
+function ExploreCard({ school, index, alreadySaved, onSave, hasMajorFilter, allInCost }: {
   school: SchoolResult & { chance: number | null; tier: Tier | null }
   index: number
   alreadySaved: boolean
   onSave: () => void
   hasMajorFilter: boolean
+  allInCost: number | null
 }) {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -420,9 +442,7 @@ function ExploreCard({ school, index, alreadySaved, onSave, hasMajorFilter }: {
       </div>
 
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        {school.costOfAttendance != null
-          ? <MiniStat label="Total Cost" value={`$${(school.costOfAttendance / 1000).toFixed(0)}k`} />
-          : school.avgNetPrice != null && <MiniStat label="Net Cost" value={`$${(school.avgNetPrice / 1000).toFixed(0)}k`} />}
+        {allInCost != null && <MiniStat label="Total Cost" value={`$${(allInCost / 1000).toFixed(0)}k`} />}
         {school.admissionRate != null && <MiniStat label="Admit" value={`${school.admissionRate}%`} />}
         {hasMajorFilter && (
           school.programCompletions != null && school.programCompletions > 0
