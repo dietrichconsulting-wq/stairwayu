@@ -9,7 +9,7 @@ const RICH_FIELDS = [
   'school.city',
   'school.state',
   'school.school_url',
-  'school.type',           // 1=public, 2=private nonprofit, 3=private for-profit
+  'school.ownership',           // 1=public, 2=private nonprofit, 3=private for-profit
   'school.locale',         // 11=city large ... 43=rural remote
   'school.region_id',
   // Admissions
@@ -63,7 +63,7 @@ export { RICH_FIELDS }
 export function mapRichResult(r) {
   if (!r) return null;
 
-  const schoolType = Number(r['school.type']);
+  const schoolType = Number(r['school.ownership']);
   const isPublic = schoolType === 1;
 
   // SAT composite 25th/75th

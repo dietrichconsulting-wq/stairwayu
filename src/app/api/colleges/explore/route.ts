@@ -77,9 +77,6 @@ export async function GET(req: Request) {
     let results = (data.results || []).map((r: Record<string, unknown>) => {
       const base = mapRichResult(r)
       if (!base) return null
-      // DEBUG: pass raw school.type to diagnose isPublic bug
-      ;(base as Record<string, unknown>)._debugSchoolType = r['school.type']
-      ;(base as Record<string, unknown>)._debugSchoolTypeTypeof = typeof r['school.type']
 
       if (wantPrograms) {
         const programs = (r['latest.programs.cip_4_digit'] as Array<Record<string, unknown>>) || []
