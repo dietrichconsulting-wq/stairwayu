@@ -344,7 +344,7 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
             <div style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
               {loading ? 'Searching...' : (
                 selectedMajor && selectedMajor !== 'Undecided'
-                  ? `${filteredResults.length} schools with ${selectedMajor} programs \u2014 sorted by program strength`
+                  ? `${filteredResults.length} schools with ${selectedMajor} programs \u2014 sorted by Stairway Ranking`
                   : `${filteredResults.length} schools found`
               )}
             </div>
@@ -488,7 +488,9 @@ function ExploreCard({ school, index, alreadySaved, onSave, hasMajorFilter, cost
             : <MiniStat label="Major $1yr" value="N/A" muted />
         )}
         {hasMajorFilter && school.programStrengthScore != null && (
-          <MiniStat label="Strength" value={`${school.programStrengthScore.toFixed(0)}`} highlight />
+          <Tooltip text={`Stairway Ranking (0–100)\n\nA composite score ranking this school against others in your search results.\n\nFactors:\n• Program Share — 25%\n• Graduation Rate — 20%\n• Program Earnings — 20%\n• Selectivity — 15%\n• Retention Rate — 10%\n• School Earnings — 10%\n\nScores are percentile-based and relative to your current filters.`} maxWidth={300}>
+            <MiniStat label="Stairway Rank" value={`${school.programStrengthScore.toFixed(0)}`} highlight />
+          </Tooltip>
         )}
       </div>
 

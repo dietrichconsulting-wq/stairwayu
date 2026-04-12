@@ -138,7 +138,9 @@ export function Tooltip({ text, children, position = 'top', maxWidth = 220, dela
             animation: 'tooltip-fade-in 0.15s ease-out',
           }}
         >
-          {text}
+          {text.includes('\n') ? (
+            <span style={{ whiteSpace: 'pre-line' }}>{text}</span>
+          ) : text}
         </div>,
         document.body,
       )}
