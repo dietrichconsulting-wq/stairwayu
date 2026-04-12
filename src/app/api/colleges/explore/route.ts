@@ -24,7 +24,7 @@ export async function GET(req: Request) {
   const rawParams = Object.fromEntries(searchParams.entries())
   const parsed = parseBody(exploreSchema, rawParams)
   if ('error' in parsed) return parsed.error
-  const { satMin, satMax, regions, major, page, perPage, sort, sortDir } = parsed.data
+  const { regions, major, page, perPage, sort, sortDir } = parsed.data
 
   if (!API_KEY) return NextResponse.json({ error: 'API key not configured' }, { status: 500 })
 
@@ -43,11 +43,10 @@ export async function GET(req: Request) {
     'latest.student.size__range': '500..',
   })
 
-  if (satMin || satMax) {
-    const min = satMin ?? 400
-    const max = satMax ?? 1600
-    params.set('latest.admissions.sat_scores.average.overall__range', `${min}..${max}`)
-  }
+  // NOTE: SAT range filter removed intentionally. Many schools (all UCs, test-optional
+  // schools) don't report SAT data to the Scorecard, so filtering by SAT range excludes
+  // them entirely. Instead, the admission chance calculator handles SAT-based relevance
+  // client-side, and results are sorted by Stairway Ranking when a major is selected.
 
   if (regions) {
     params.set('school.region_id', regions)
