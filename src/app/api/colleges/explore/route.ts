@@ -111,7 +111,8 @@ export async function GET(req: Request) {
       total = data.metadata?.total ?? allRaw.length
     }
 
-    let results = allRaw.map((r: Record<string, unknown>) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let results: any[] = allRaw.map((r: Record<string, unknown>) => {
       const base = mapRichResult(r)
       if (!base) return null
 
