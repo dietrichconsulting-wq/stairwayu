@@ -1,4 +1,6 @@
 // @ts-nocheck
+import { scoreProgramStrength, stairwayGrade } from './programStrength'
+
 const BASE_URL = 'https://api.data.gov/ed/collegescorecard/v1/schools.json';
 const API_KEY = process.env.COLLEGE_SCORECARD_API_KEY;
 
@@ -234,6 +236,116 @@ export async function getAllPrograms(ipedsId: string): Promise<SchoolProgram[]> 
     return bachelors
   } catch {
     return []
+  }
+}
+
+/**
+ * Compute the national Stairway Grade for one program (CIP) at one school.
+ *
+ * Fetches all bachelor's programs with the given CIP nationally, runs the
+ * same percentile-based scoring used in Explore, and extracts the target
+ * school's score + letter grade.
+ *
+ * Next.js fetch cache (revalidate: 86400) de-duplicates calls for the same
+ * CIP across all school pages — popular majors are cached for a day.
+ *
+ * Returns null if target school isn't in the result set or data is too sparse.
+ */
+export async function getNationalProgramGrade(
+  cipCode: string,
+  targetIpedsId: string,
+): Promise<{ score: number | null; grade: string | null } | null> {
+  if (!API_KEY || !cipCode || !targetIpedsId) return null
+
+  // Minimal field set — only what scoreProgramStrength needs
+  const leanFields = [
+    'id',
+    'latest.admissions.admission_rate.overall',
+    'latest.completion.rate_suppressed.4yr',
+    'latest.completion.rate_suppressed.overall',
+    'latest.student.size',
+    'latest.student.retention_rate.four_year.full_time',
+    'latest.earnings.10_yrs_after_entry.median',
+    'latest.programs.cip_4_digit',
+  ].join(',')
+
+  const params = new URLSearchParams({
+    api_key: API_KEY,
+    fields: leanFields,
+    'school.degrees_awarded.predominant__range': '3..4',
+    'latest.student.size__range': '500..',
+    'latest.programs.cip_4_digit.code': cipCode,
+    'latest.programs.cip_4_digit.credential.level': '3',
+    per_page: '100',
+    page: '0',
+  })
+
+  try {
+    const firstRes = await fetch(`${BASE_URL}?${params}`, {
+      signal: AbortSignal.timeout(12000),
+      next: { revalidate: 86400 },
+    })
+    if (!firstRes.ok) return null
+    const first = await firstRes.json()
+    let allRaw = first.results || []
+    const total = first.metadata?.total ?? allRaw.length
+
+    // Paginate — cap at 15 pages (1500 schools), same as Explore
+    if (total > 100) {
+      const pages = Math.min(Math.ceil(total / 100), 15)
+      const fetches = []
+      for (let p = 1; p < pages; p++) {
+        const pageParams = new URLSearchParams(params)
+        pageParams.set('page', String(p))
+        fetches.push(
+          fetch(`${BASE_URL}?${pageParams}`, {
+            signal: AbortSignal.timeout(12000),
+            next: { revalidate: 86400 },
+          }).then((r) => (r.ok ? r.json() : null)),
+        )
+      }
+      const pageResults = await Promise.all(fetches)
+      for (const pr of pageResults) {
+        if (pr?.results) allRaw = allRaw.concat(pr.results)
+      }
+    }
+
+    // Map each school into the shape scoreProgramStrength expects
+    const mapped = allRaw.map((r) => {
+      const programs = r['latest.programs.cip_4_digit'] || []
+      const matching = programs.filter(
+        (p) => p.code === cipCode && p.credential?.level === 3,
+      )
+      const best = matching.length
+        ? matching.reduce((a, b) =>
+            (b.counts?.ipeds_awards1 || 0) > (a.counts?.ipeds_awards1 || 0) ? b : a,
+          )
+        : null
+      const gradRateRaw =
+        r['latest.completion.rate_suppressed.4yr'] ??
+        r['latest.completion.rate_suppressed.overall']
+      const retentionRaw = r['latest.student.retention_rate.four_year.full_time']
+      const admissionRaw = r['latest.admissions.admission_rate.overall']
+      return {
+        id: String(r.id),
+        gradRate4yr: gradRateRaw != null ? Math.round(gradRateRaw * 100) : null,
+        retentionRate: retentionRaw != null ? Math.round(retentionRaw * 100) : null,
+        admissionRate: admissionRaw != null ? Math.round(admissionRaw * 100) : null,
+        enrollment: r['latest.student.size'] || null,
+        medianEarnings10yr: r['latest.earnings.10_yrs_after_entry.median'] || null,
+        programCompletions: best?.counts?.ipeds_awards1 || 0,
+        programEarnings1yr: best?.earnings?.['1_yr']?.overall_median_earnings || null,
+      }
+    })
+
+    const scored = scoreProgramStrength(mapped, true)
+    const target = scored.find((s) => s.id === String(targetIpedsId))
+    if (!target) return null
+
+    const score = target.programStrengthScore
+    return { score, grade: stairwayGrade(score) }
+  } catch {
+    return null
   }
 }
 
