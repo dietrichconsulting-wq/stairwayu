@@ -37,8 +37,6 @@ export async function GET(req: Request) {
   const params = new URLSearchParams({
     api_key: API_KEY,
     fields,
-    per_page: String(perPage),
-    page: String(page),
     'school.degrees_awarded.predominant__range': '3..4',
     'latest.student.size__range': '500..',
   })
@@ -64,16 +62,56 @@ export async function GET(req: Request) {
   }
 
   try {
-    const res = await fetch(`${BASE_URL}?${params}`, {
-      signal: AbortSignal.timeout(12000),
-    })
-    if (!res.ok) {
-      const text = await res.text()
-      return NextResponse.json({ error: 'Scorecard API error', details: text }, { status: 502 })
+    // When filtering by major, the result set is small (typically <300) but the
+    // Scorecard API caps at 100/page. Fetch all pages so no schools are missed.
+    // Without a major filter, use standard single-page fetch.
+    let allRaw: Record<string, unknown>[] = []
+    let total = 0
+
+    if (wantPrograms) {
+      // First page
+      params.set('per_page', '100')
+      params.set('page', '0')
+      const res = await fetch(`${BASE_URL}?${params}`, { signal: AbortSignal.timeout(12000) })
+      if (!res.ok) {
+        const text = await res.text()
+        return NextResponse.json({ error: 'Scorecard API error', details: text }, { status: 502 })
+      }
+      const data = await res.json()
+      allRaw = data.results || []
+      total = data.metadata?.total ?? allRaw.length
+
+      // Fetch remaining pages in parallel if needed (cap at 500 schools)
+      if (total > 100 && total <= 500) {
+        const pages = Math.ceil(total / 100)
+        const fetches = []
+        for (let p = 1; p < pages; p++) {
+          const pageParams = new URLSearchParams(params)
+          pageParams.set('page', String(p))
+          fetches.push(
+            fetch(`${BASE_URL}?${pageParams}`, { signal: AbortSignal.timeout(12000) })
+              .then(r => r.ok ? r.json() : null)
+          )
+        }
+        const pageResults = await Promise.all(fetches)
+        for (const pr of pageResults) {
+          if (pr?.results) allRaw = allRaw.concat(pr.results)
+        }
+      }
+    } else {
+      params.set('per_page', String(perPage))
+      params.set('page', String(page))
+      const res = await fetch(`${BASE_URL}?${params}`, { signal: AbortSignal.timeout(12000) })
+      if (!res.ok) {
+        const text = await res.text()
+        return NextResponse.json({ error: 'Scorecard API error', details: text }, { status: 502 })
+      }
+      const data = await res.json()
+      allRaw = data.results || []
+      total = data.metadata?.total ?? allRaw.length
     }
 
-    const data = await res.json()
-    let results = (data.results || []).map((r: Record<string, unknown>) => {
+    let results = allRaw.map((r: Record<string, unknown>) => {
       const base = mapRichResult(r)
       if (!base) return null
 
@@ -129,9 +167,7 @@ export async function GET(req: Request) {
       }
     }
 
-    const total = data.metadata?.total ?? results.length
-
-    return NextResponse.json({ results, total, page })
+    return NextResponse.json({ results, total: results.length, page: 0 })
   } catch {
     return NextResponse.json({ error: 'Failed to fetch from College Scorecard' }, { status: 502 })
   }
