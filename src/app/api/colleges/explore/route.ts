@@ -81,9 +81,9 @@ export async function GET(req: Request) {
       allRaw = data.results || []
       total = data.metadata?.total ?? allRaw.length
 
-      // Fetch remaining pages in parallel if needed (cap at 500 schools)
-      if (total > 100 && total <= 500) {
-        const pages = Math.ceil(total / 100)
+      // Fetch remaining pages in parallel if needed (cap at 15 pages / 1500 schools)
+      if (total > 100) {
+        const pages = Math.min(Math.ceil(total / 100), 15)
         const fetches = []
         for (let p = 1; p < pages; p++) {
           const pageParams = new URLSearchParams(params)
