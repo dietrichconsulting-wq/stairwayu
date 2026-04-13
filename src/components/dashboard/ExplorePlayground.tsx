@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { calculateChance } from '@/lib/services/admissionChance'
+import { stairwayGrade } from '@/lib/services/programStrength'
 import { getTierConfig, chanceToTier, REGION_LABELS, type Tier } from '@/lib/tierConfig'
 import { useAddCollege } from '@/hooks/useUserColleges'
 import { useRecordXp } from '@/hooks/useXp'
@@ -505,8 +506,8 @@ function ExploreCard({ school, index, alreadySaved, onSave, hasMajorFilter, cost
             : <MiniStat label="Major $1yr" value="N/A" muted />
         )}
         {hasMajorFilter && school.programStrengthScore != null && (
-          <Tooltip text={`Stairway Ranking (0–100)\n\nA composite score ranking this school against others in your search results.\n\nFactors:\n• Program Share — 25%\n• Graduation Rate — 20%\n• Program Earnings — 20%\n• Selectivity — 15%\n• Retention Rate — 10%\n• School Earnings — 10%\n\nScores are percentile-based and relative to your current filters.`} maxWidth={300}>
-            <MiniStat label="Stairway Rank" value={`${school.programStrengthScore.toFixed(0)}`} highlight />
+          <Tooltip text={`Stairway Grade: ${stairwayGrade(school.programStrengthScore)} (score ${school.programStrengthScore.toFixed(0)}/100)\n\nA composite letter grade ranking this program against others in your current search results.\n\nFactors:\n• Program Share — 25%\n• Graduation Rate — 20%\n• Program Earnings — 20%\n• Selectivity — 15%\n• Retention Rate — 10%\n• School Earnings — 10%\n\nGrade scale:\n• A+  90–100 (top 10%)\n• A   78–89\n• A-  66–77\n• B+  54–65\n• B   40–53\n• B-  25–39\n• C   0–24\n\nGrades are relative to your current filters — change the major or regions and the curve shifts.`} maxWidth={320}>
+            <MiniStat label="Stairway Grade" value={stairwayGrade(school.programStrengthScore) ?? '—'} highlight />
           </Tooltip>
         )}
       </div>
