@@ -44,7 +44,7 @@ export const exploreSchema = z.object({
   regions: z.string().max(100).optional(),
   major: z.string().max(100).optional(),
   page: z.coerce.number().int().min(0).default(0),
-  perPage: z.coerce.number().int().min(1).max(60).default(30),
+  perPage: z.coerce.number().int().min(1).max(100).default(30),
   sort: z.enum(["net_cost", "grad_rate", "earnings", "sat", "major_earnings", "major_completions", "program_strength"]).default("sat"),
   sortDir: z.enum(["asc", "desc"]).default("desc"),
 })

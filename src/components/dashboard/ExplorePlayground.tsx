@@ -90,11 +90,10 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
   const fetchSchools = useCallback(async (sat: number, regions: Set<number>, major?: string) => {
     setLoading(true)
     try {
+      const hasMajor = major && major !== 'Undecided'
       const params = new URLSearchParams({
-        satMin: String(Math.max(400, sat - 200)),
-        satMax: String(Math.min(1600, sat + 200)),
-        perPage: '40',
-        sort: major && major !== 'Undecided' ? 'program_strength' : 'sat',
+        perPage: hasMajor ? '100' : '60',
+        sort: hasMajor ? 'program_strength' : 'sat',
       })
       if (regions.size > 0) {
         params.set('regions', Array.from(regions).join(','))
