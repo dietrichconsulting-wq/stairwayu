@@ -20,7 +20,7 @@ export const viewport: Viewport = {
 const SITE_URL = 'https://stairwayu.com'
 const SITE_TITLE = 'Stairway U: College Chances, Scholarships & Essay Coach'
 const SITE_DESC =
-  'See your real admission odds at every college, get AI-matched scholarships, essay coaching, and a financial planner — one dashboard powered by U.S. Dept of Education data. $9.99/mo, 7-day free trial.'
+  'See how your academic profile compares at every college, get AI-matched scholarships, essay coaching, and a financial planner — one dashboard powered by U.S. Dept of Education data. Works on any device. $9.99/mo, 7-day free trial.'
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

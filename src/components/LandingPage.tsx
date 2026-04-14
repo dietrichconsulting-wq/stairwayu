@@ -96,6 +96,7 @@ const STATS = [
   { value: '74%', label: 'Discover schools they hadn\u2019t considered' },
   { value: '100%', label: 'Federal data — nothing scraped or guessed' },
   { value: '$0', label: 'To start — free forever tier' },
+  { value: 'Any device', label: 'Phone, tablet, or laptop — no app download needed' },
 ]
 
 function PricingCards() {
@@ -392,6 +393,25 @@ export function LandingPage() {
         </div>
       </section>
 
+
+      {/* ── USE IT ANYWHERE ── */}
+      <section className="bg-slate-800 px-[6%] py-16">
+        <div className="mx-auto max-w-[720px] text-center">
+          <h2 className="mb-4 text-[clamp(24px,3.5vw,40px)] font-black leading-tight tracking-tight text-white">
+            Use it anywhere&nbsp;&mdash; phone, tablet,&nbsp;laptop
+          </h2>
+          <p className="mx-auto mb-8 max-w-[480px] text-[clamp(14px,1.6vw,17px)] leading-relaxed text-white/60">
+            Stairway U works on any device. Add it to your home screen for an app-like experience&nbsp;&mdash; no download required.
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            {['Works on any phone', 'Add to home screen', 'Syncs across devices'].map(t => (
+              <span key={t} className="rounded-full border border-white/15 bg-white/5 px-5 py-2.5 text-[13px] font-semibold text-white/80">
+                {t}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
 
 
       {/* ── PRICING ── */}
