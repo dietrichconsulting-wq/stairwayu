@@ -166,7 +166,7 @@ export function ChancesCalculator({ schoolName, schoolSlug, admissionRate, sat25
 
           <p className="mt-4 text-[11px] text-white/40">
             Estimate uses {schoolName}&apos;s published acceptance rate ({admissionRate ?? '—'}%)
-            {sat25 && sat75 ? ` and SAT range ${sat25}–${sat75}` : ''}. For guidance only — not a guarantee.
+            {sat25 && sat75 ? ` and SAT range ${sat25}–${sat75}` : ''}. Based on published academic data only. Essays, recommendations, and other factors also affect admission decisions.
           </p>
 
           <div className="mt-5 flex flex-wrap gap-3">

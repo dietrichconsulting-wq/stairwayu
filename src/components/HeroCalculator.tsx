@@ -246,7 +246,7 @@ export function HeroCalculator({ parentMode = false }: CalcProps) {
             <p className="mt-2 text-[11px] text-white/40">
               Based on {school.name}&apos;s {school.admission_rate ?? '—'}% acceptance rate
               {school.sat_25 && school.sat_75 ? ` and SAT range ${school.sat_25}–${school.sat_75}` : ''}.
-              U.S. Dept of Education data. For guidance only.
+              U.S. Dept of Education data. Academic profile comparison only — does not predict admission decisions.
             </p>
           </div>
         ) : !school ? (

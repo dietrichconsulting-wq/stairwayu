@@ -62,7 +62,7 @@ export default async function ChancesPage({ params }: PageProps) {
     },
     {
       q: `Is the chancing data accurate?`,
-      a: `All admission rates, SAT, and ACT figures come directly from the U.S. Department of Education's College Scorecard, which sources data from IPEDS. Stairway U does not invent or scrape data.`,
+      a: `All admission rates, SAT, and ACT figures come directly from the U.S. Department of Education's College Scorecard, which sources data from IPEDS. Stairway U does not invent or scrape data. This tool compares your academic profile to the published statistics of admitted students. It is not a prediction engine — admission decisions depend on many factors beyond test scores and GPA, including essays, recommendations, extracurriculars, and institutional priorities that are not captured in public data.`,
     },
   ]
 

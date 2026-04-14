@@ -67,7 +67,7 @@ function GoogleSignInButton({ className }: { className?: string }) {
 const FEATURES = [
   {
     label: 'Admission Snapshot',
-    desc: 'Know your real odds — and what it takes to improve them.',
+    desc: 'See where you stand — and what it takes to improve.',
     img: 'https://images.unsplash.com/photo-1571260899304-425eee4c7efc?w=800&q=80',
     light: false,
   },
@@ -262,10 +262,10 @@ export function LandingPage() {
               Your Stairway to College
             </div>
             <h1 className="mb-6 text-[clamp(40px,6vw,72px)] font-black leading-[1.02] tracking-tight text-white">
-              Your real odds.<br />Your best schools.
+              Your profile.<br />Your best-fit schools.
             </h1>
             <p className="mb-8 max-w-[440px] text-[clamp(15px,1.8vw,19px)] leading-relaxed text-white/75">
-              Search any college, enter your GPA and scores, and see your estimated chance of admission — instantly, free, powered by U.S. Department of Education data.
+              Search any college, enter your GPA and scores, and see how your academic profile compares to admitted students — instantly, free, powered by U.S. Department of Education data.
             </p>
             <div className="flex flex-wrap items-center gap-4">
               <Link href="/signup" className="rounded-md bg-white px-8 py-3.5 text-[14px] font-extrabold text-slate-900 no-underline">
@@ -327,7 +327,7 @@ export function LandingPage() {
               <div className="mb-5 text-xs font-extrabold uppercase tracking-[0.12em] text-teal-600">With Stairway U</div>
               <ul className="m-0 list-none space-y-4 p-0">
                 {[
-                  'Admission odds powered by the U.S. Dept of Education College Scorecard',
+                  'Academic profile comparison powered by the U.S. Dept of Education College Scorecard',
                   'Personalized scholarship matches',
                   'Essay brainstorming & critique',
                   'Financial planner with 529 & loan estimates',

@@ -488,7 +488,7 @@ export function AdmissionSnapshot({ profile, colleges, loading, onAddSchool }: A
                 {/* Chance bar */}
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 5 }}>
-                    <Tooltip text="Estimated admission probability based on your GPA, test scores, and this school's historical admit rate." position="bottom" maxWidth={240}><span style={{ fontSize: 11, color: 'var(--color-text-muted)', fontWeight: 600 }}>Your chance</span></Tooltip>
+                    <Tooltip text="Compares your academic profile to this school's published admit data. Not a prediction of admission." position="bottom" maxWidth={240}><span style={{ fontSize: 11, color: 'var(--color-text-muted)', fontWeight: 600 }}>Your chance</span></Tooltip>
                     <span style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text)' }}>~{r.chance}%</span>
                   </div>
                   <div style={{ height: 6, background: 'var(--color-border)', borderRadius: 99, overflow: 'hidden' }}>
@@ -502,6 +502,17 @@ export function AdmissionSnapshot({ profile, colleges, loading, onAddSchool }: A
                   {schoolAdmitRate && (
                     <div style={{ fontSize: 10, color: 'var(--color-text-muted)', marginTop: 4 }}>{schoolAdmitRate}</div>
                   )}
+                </div>
+
+                {/* Transparency notice */}
+                <div style={{
+                  fontSize: 10, lineHeight: 1.5, color: 'var(--color-text-muted)',
+                  background: 'var(--color-surface-alt, rgba(128,128,128,0.06))',
+                  borderRadius: 8, padding: '8px 10px', marginTop: 4,
+                }}>
+                  Profile comparison, not an admission decision. Based on published GPA &amp; test-score
+                  ranges from the U.S. Dept of Education. Does not factor in essays, recommendations,
+                  interviews, legacy, or other holistic review criteria.
                 </div>
 
                 {/* Inline factor summary (always visible) */}
