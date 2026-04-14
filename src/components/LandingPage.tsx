@@ -414,6 +414,25 @@ export function LandingPage() {
       </section>
 
 
+      {/* ── FOR COUNSELORS ── */}
+      <section className="bg-white px-[6%] py-20">
+        <div className="mx-auto max-w-[800px] text-center">
+          <div className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.15em] text-teal-600">
+            For Counselors
+          </div>
+          <h2 className="mb-5 text-[clamp(24px,3.5vw,44px)] font-black leading-[1.05] tracking-tight text-slate-900">
+            Guidance counselors: see every student&apos;s list in&nbsp;one&nbsp;place.
+          </h2>
+          <p className="mx-auto mb-8 max-w-[540px] text-base leading-relaxed text-slate-500">
+            Free counselor accounts let you track college lists, admission profiles, and progress for every student who links with you. No spreadsheets,&nbsp;no&nbsp;chasing.
+          </p>
+          <Link href="/counselors" className="inline-block rounded-md bg-slate-900 px-8 py-3.5 text-[13px] font-extrabold uppercase tracking-[0.05em] text-white no-underline">
+            Learn More for Counselors
+          </Link>
+        </div>
+      </section>
+
+
       {/* ── PRICING ── */}
       <section id="pricing" className="bg-slate-900 px-[6%] py-24">
         <div className="mx-auto max-w-[900px]">
@@ -452,7 +471,7 @@ export function LandingPage() {
         <div className="mx-auto flex max-w-[1100px] flex-wrap items-center justify-between gap-4">
           <img src="/stairwayu-wordmark.png" alt="Stairway U" className="h-9 w-auto" />
           <div className="flex gap-7">
-            {[{ label: 'Browse Colleges', href: '/colleges' }, { label: 'Ranking', href: '/methodology' }, { label: 'Sign In', href: '/login' }, { label: 'Sign Up', href: '/signup' }, { label: 'Pricing', href: '/#pricing' }, { label: 'Terms', href: '/terms' }, { label: 'Privacy', href: '/privacy' }].map(l => (
+            {[{ label: 'Browse Colleges', href: '/colleges' }, { label: 'Ranking', href: '/methodology' }, { label: 'For Counselors', href: '/counselors' }, { label: 'Sign In', href: '/login' }, { label: 'Sign Up', href: '/signup' }, { label: 'Pricing', href: '/#pricing' }, { label: 'Terms', href: '/terms' }, { label: 'Privacy', href: '/privacy' }].map(l => (
               <Link key={l.href} href={l.href} className="text-[13px] font-medium tracking-[0.03em] text-white/35 no-underline">
                 {l.label}
               </Link>

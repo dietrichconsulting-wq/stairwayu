@@ -449,6 +449,9 @@ export function ProfilePageClient({ userId }: { userId: string }) {
             )}
           </div>
 
+          {/* Counselor Link (students only) */}
+          {profile?.user_type !== 'counselor' && <CounselorLinkCard />}
+
           {/* Delete Account */}
           <div className="card-elevated" style={{ padding: '28px 28px 32px', borderColor: 'var(--color-danger, #ef4444)' }}>
             <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4, color: 'var(--color-danger, #ef4444)' }}>Delete Account</h2>
@@ -695,6 +698,107 @@ function ecTierColor(tier: ECTier) {
     case 3: return { bg: 'rgba(96,165,250,0.10)', text: '#2563EB', border: 'rgba(96,165,250,0.25)' }
     case 4: return { bg: 'rgba(148,163,184,0.10)', text: '#64748B', border: 'rgba(148,163,184,0.25)' }
   }
+}
+
+function CounselorLinkCard() {
+  const [code, setCode] = useState('')
+  const [status, setStatus] = useState<'idle' | 'loading' | 'linked' | 'error'>('idle')
+  const [counselorName, setCounselorName] = useState<string | null>(null)
+  const [errorMsg, setErrorMsg] = useState('')
+  const supabase = createClient()
+
+  // Check if already linked
+  useEffect(() => {
+    async function check() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data } = await supabase
+        .from('counselor_students')
+        .select('counselor_id')
+        .eq('student_id', user.id)
+        .limit(1)
+      if (data?.length) {
+        setStatus('linked')
+        // Fetch counselor name
+        const { data: p } = await supabase
+          .from('profiles')
+          .select('display_name')
+          .eq('id', data[0].counselor_id)
+          .single()
+        setCounselorName(p?.display_name ?? 'Your counselor')
+      }
+    }
+    check()
+  }, [])
+
+  async function handleLink() {
+    if (!code.trim()) return
+    setStatus('loading')
+    setErrorMsg('')
+    const res = await fetch('/api/counselor/link', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: code.trim() }),
+    })
+    if (res.ok) {
+      setStatus('linked')
+      setCounselorName('Your counselor')
+    } else {
+      const data = await res.json()
+      setErrorMsg(data.error ?? 'Failed to link')
+      setStatus('error')
+    }
+  }
+
+  async function handleUnlink() {
+    setStatus('loading')
+    await fetch('/api/counselor/link', { method: 'DELETE' })
+    setStatus('idle')
+    setCounselorName(null)
+    setCode('')
+  }
+
+  return (
+    <div className="card-elevated" style={{ padding: '28px 28px 32px' }}>
+      <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Your Counselor</h2>
+      <p style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 16 }}>
+        Link your account to your guidance counselor so they can track your college list.
+      </p>
+
+      {status === 'linked' ? (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 600 }}>✓ Linked to {counselorName}</div>
+            <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 2 }}>Your counselor can see your profile and college list.</div>
+          </div>
+          <button
+            onClick={handleUnlink}
+            style={{ background: 'none', border: '1px solid var(--color-border)', borderRadius: 8, padding: '6px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer', color: 'var(--color-text-muted)' }}
+          >
+            Unlink
+          </button>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', gap: 8 }}>
+          <input
+            value={code}
+            onChange={e => { setCode(e.target.value.toUpperCase()); setStatus('idle'); setErrorMsg('') }}
+            placeholder="Enter invite code"
+            maxLength={8}
+            style={{ padding: '10px 12px', borderRadius: 8, border: '1.5px solid var(--color-border)', background: 'var(--color-column)', color: 'var(--color-text)', fontSize: 13, outline: 'none', flex: 1, letterSpacing: '0.1em', fontWeight: 600 }}
+          />
+          <button
+            onClick={handleLink}
+            disabled={!code.trim() || status === 'loading'}
+            style={{ background: 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 20px', fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}
+          >
+            {status === 'loading' ? 'Linking...' : 'Link'}
+          </button>
+        </div>
+      )}
+      {status === 'error' && <div style={{ color: 'var(--color-danger, #ef4444)', fontSize: 12, marginTop: 8 }}>{errorMsg}</div>}
+    </div>
+  )
 }
 
 const labelStyle: React.CSSProperties = {

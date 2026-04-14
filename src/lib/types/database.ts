@@ -17,6 +17,7 @@ export interface ExtracurricularEntry {
 }
 
 export type AccountTier = 'free' | 'pilot_free' | 'paid' | 'admin'
+export type UserType = 'student' | 'counselor'
 
 export interface Profile {
   id: string
@@ -36,10 +37,29 @@ export interface Profile {
   ec_entries: ExtracurricularEntry[] | null
   career_interests: string | null
   account_tier: AccountTier
+  user_type: UserType
   onboarding_complete: boolean
   walkthrough_complete: boolean
   created_at: string
   updated_at: string
+}
+
+export interface CounselorInviteCode {
+  id: string
+  counselor_id: string
+  code: string
+  max_uses: number
+  use_count: number
+  active: boolean
+  created_at: string
+}
+
+export interface CounselorStudent {
+  id: string
+  counselor_id: string
+  student_id: string
+  invite_code_id: string | null
+  linked_at: string
 }
 
 export interface UserCollege {
@@ -193,6 +213,8 @@ export type Database = {
       xp_ledger: { Row: XpEvent; Insert: Partial<XpEvent>; Update: Partial<XpEvent> }
       challenge_completions: { Row: ChallengeCompletion; Insert: Partial<ChallengeCompletion>; Update: Partial<ChallengeCompletion> }
       daily_ai_usage: { Row: DailyAiUsage; Insert: Partial<DailyAiUsage>; Update: Partial<DailyAiUsage> }
+      counselor_invite_codes: { Row: CounselorInviteCode; Insert: Partial<CounselorInviteCode>; Update: Partial<CounselorInviteCode> }
+      counselor_students: { Row: CounselorStudent; Insert: Partial<CounselorStudent>; Update: Partial<CounselorStudent> }
     }
     Views: Record<string, never>
     Functions: Record<string, never>

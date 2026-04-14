@@ -15,6 +15,7 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [refCode, setRefCode] = useState<string | null>(null)
+  const [userType, setUserType] = useState<'student' | 'counselor'>('student')
   const router = useRouter()
   const supabase = createClient()
 
@@ -25,6 +26,8 @@ export default function SignupPage() {
       setRefCode(ref)
       try { localStorage.setItem('stairwayu_ref', ref) } catch {}
     }
+    const type = params.get('type')
+    if (type === 'counselor') setUserType('counselor')
   }, [])
 
   async function handleSignup(e: React.FormEvent) {
@@ -38,6 +41,7 @@ export default function SignupPage() {
         data: {
           full_name: name,
           ...(refCode ? { referral_code: refCode } : {}),
+          ...(userType === 'counselor' ? { user_type: 'counselor' } : {}),
         },
       },
     })
@@ -88,9 +92,31 @@ export default function SignupPage() {
           </div>
         )}
 
+        {userType === 'counselor' && (
+          <div style={{
+            background: 'rgba(20,184,166,0.12)',
+            border: '1.5px solid rgba(20,184,166,0.3)',
+            borderRadius: 10,
+            padding: '10px 14px',
+            marginBottom: 20,
+            fontSize: 13,
+            color: 'var(--color-text)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+          }}>
+            <span style={{ fontSize: 16 }}>🎓</span>
+            <span>Counselor accounts are always free.</span>
+          </div>
+        )}
+
         <div style={{ marginBottom: 32, textAlign: 'center' }}>
-          <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-primary)', marginBottom: 6 }}>Create Account</div>
-          <div style={{ fontSize: 14, color: 'var(--color-text-muted)' }}>Start your college journey</div>
+          <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-primary)', marginBottom: 6 }}>
+            {userType === 'counselor' ? 'Create Counselor Account' : 'Create Account'}
+          </div>
+          <div style={{ fontSize: 14, color: 'var(--color-text-muted)' }}>
+            {userType === 'counselor' ? 'Track your students\' college journeys' : 'Start your college journey'}
+          </div>
         </div>
 
         <form onSubmit={handleSignup} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
