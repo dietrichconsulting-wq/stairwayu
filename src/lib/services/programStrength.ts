@@ -173,17 +173,17 @@ export function scoreProgramStrength<T extends ScorableSchool>(
 }
 
 /**
- * Map a Stairway Rank score (0–100) to a letter grade.
+ * Map a Stairway Ranking composite score (0–100) to a letter (A+ through C).
  *
  * Tiers are skewed up because every school in the set is an accredited
  * 4-year program with 500+ enrollment — the floor is "ranked lower in
- * this major," not "failing." No D/F grades.
+ * this major," not "failing." No D/F letters.
  *
- * Grades are RELATIVE to the current result set (percentile-based), so
- * a school's grade may shift when filters change. Surface this in the
- * tooltip in the UI.
+ * Letters are RELATIVE to the current result set (percentile-based), so
+ * a school's Stairway Ranking may shift when filters change. Surface this
+ * in the tooltip in the UI.
  */
-export function stairwayGrade(score: number | null | undefined): string | null {
+export function stairwayRanking(score: number | null | undefined): string | null {
   if (score == null) return null
   if (score >= 90) return 'A+'
   if (score >= 78) return 'A'

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { calculateChance } from '@/lib/services/admissionChance'
-import { stairwayGrade } from '@/lib/services/programStrength'
+import { stairwayRanking } from '@/lib/services/programStrength'
 import { getTierConfig, chanceToTier, REGION_LABELS, type Tier } from '@/lib/tierConfig'
 import { useAddCollege } from '@/hooks/useUserColleges'
 import { useRecordXp } from '@/hooks/useXp'
@@ -62,7 +62,7 @@ interface SchoolResult {
   isPublic?: boolean
 }
 
-const labelStyle: React.CSSProperties = { fontSize: 12, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }
+const labelStyle: React.CSSProperties = { fontSize: 'var(--text-2xs)', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }
 
 export function ExplorePlayground({ profile, collegeNames: initialColleges, userId }: ExploreProps) {
   const addCollege = useAddCollege(userId)
@@ -239,8 +239,8 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
 
   return (
     <div style={{ maxWidth: 1200, width: '100%' }}>
-      <h1 style={{ fontSize: 26, fontWeight: 800, marginBottom: 6 }}>Explore Schools</h1>
-      <p style={{ fontSize: 14, color: 'var(--color-text-muted)', marginBottom: 24 }}>
+      <h1 style={{ fontSize: 'var(--text-2xl)', fontWeight: 800, marginBottom: 6 }}>Explore Schools</h1>
+      <p style={{ fontSize: 'var(--text-base)', color: 'var(--color-text-muted)', marginBottom: 24 }}>
         Slide your stats and discover schools that match. GPA affects your match score, not the search results.
       </p>
 
@@ -250,16 +250,16 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
             <div style={{ marginBottom: 18 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
                 <label style={labelStyle}>SAT Score</label>
-                <span style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text)' }}>
+                <span style={{ fontSize: 'var(--text-md)', fontWeight: 800, color: 'var(--color-text)' }}>
                   {effectiveSAT}
-                  {stretchMode && <span style={{ fontSize: 11, fontWeight: 600, color: '#22C55E', marginLeft: 4 }}>+100</span>}
+                  {stretchMode && <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--color-success)', marginLeft: 4 }}>+100</span>}
                 </span>
               </div>
               <input type="range" min={400} max={1600} step={10} value={satValue}
                 onChange={e => { setSatValue(Number(e.target.value)); handleInteraction() }}
                 style={{ width: '100%', accentColor: 'var(--color-primary)' }}
                 aria-label={`SAT Score: ${effectiveSAT}`} />
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--color-text-muted)', marginTop: 2 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginTop: 2 }}>
                 <span>400</span><span>1600</span>
               </div>
             </div>
@@ -267,16 +267,16 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
             <div style={{ marginBottom: 18 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
                 <label style={labelStyle}>GPA (4.0 scale)</label>
-                <span style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text)' }}>
+                <span style={{ fontSize: 'var(--text-md)', fontWeight: 800, color: 'var(--color-text)' }}>
                   {effectiveGPA.toFixed(1)}
-                  {stretchMode && <span style={{ fontSize: 11, fontWeight: 600, color: '#22C55E', marginLeft: 4 }}>+0.3</span>}
+                  {stretchMode && <span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--color-success)', marginLeft: 4 }}>+0.3</span>}
                 </span>
               </div>
               <input type="range" min={2.0} max={4.0} step={0.1} value={gpaValue}
                 onChange={e => { setGpaValue(Number(e.target.value)); handleInteraction() }}
                 style={{ width: '100%', accentColor: 'var(--color-primary)' }}
                 aria-label={`GPA: ${effectiveGPA.toFixed(1)}`} />
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--color-text-muted)', marginTop: 2 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginTop: 2 }}>
                 <span>2.0</span><span>4.0</span>
               </div>
             </div>
@@ -285,14 +285,14 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
             <button onClick={toggleStretch} style={{
                 width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 padding: '10px 16px', borderRadius: 10,
-                border: stretchMode ? '2px solid #22C55E' : '1.5px solid var(--color-border)',
-                background: stretchMode ? 'rgba(34,197,94,0.08)' : 'var(--color-column)',
-                color: stretchMode ? '#22C55E' : 'var(--color-text)',
-                fontWeight: 700, fontSize: 13, cursor: 'pointer', marginBottom: 18,
+                border: stretchMode ? '2px solid var(--color-success)' : '1.5px solid var(--color-border)',
+                background: stretchMode ? 'color-mix(in srgb, var(--color-success) 8%, transparent)' : 'var(--color-column)',
+                color: stretchMode ? 'var(--color-success)' : 'var(--color-text)',
+                fontWeight: 700, fontSize: 'var(--text-sm)', cursor: 'pointer', marginBottom: 18,
                 transition: 'border-color 0.2s, background 0.2s, color 0.2s',
               }}>
               {stretchMode ? '\u2713 Stretch Mode On' : 'Stretch Mode'}
-              <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--color-text-muted)' }}>+100 SAT, +0.3 GPA</span>
+              <span style={{ fontSize: 'var(--text-xs)', fontWeight: 500, color: 'var(--color-text-muted)' }}>+100 SAT, +0.3 GPA</span>
             </button>
             </Tooltip>
 
@@ -301,13 +301,13 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
                 Budget / Year <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(tuition + room & board)</span>
               </label>
               <div style={{ position: 'relative' }}>
-                <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 14, fontWeight: 600, color: 'var(--color-text-muted)' }}>$</span>
+                <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 'var(--text-base)', fontWeight: 600, color: 'var(--color-text-muted)' }}>$</span>
                 <input type="number" value={budget}
                   onChange={e => { setBudget(e.target.value); handleInteraction() }}
                   placeholder="e.g. 37000"
                   style={{ width: '100%', padding: '10px 12px 10px 26px', borderRadius: 10,
                     border: '1.5px solid var(--color-border)', background: 'var(--color-column)',
-                    color: 'var(--color-text)', fontSize: 14, fontWeight: 600, outline: 'none' }} />
+                    color: 'var(--color-text)', fontSize: 'var(--text-base)', fontWeight: 600, outline: 'none' }} />
               </div>
             </div>
 
@@ -318,7 +318,7 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
               <MajorSelect value={selectedMajor} onChange={(v) => { setSelectedMajor(v); handleInteraction() }} placeholder="Any major..." />
               {selectedMajor && selectedMajor !== 'Undecided' && (
                 <button onClick={() => { setSelectedMajor(''); handleInteraction() }}
-                  style={{ fontSize: 11, color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer', marginTop: 4, padding: 0, textDecoration: 'underline' }}>
+                  style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer', marginTop: 4, padding: 0, textDecoration: 'underline' }}>
                   Clear major filter
                 </button>
               )}
@@ -330,7 +330,7 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
               </label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '8px 12px', borderRadius: 8, border: '1.5px solid var(--color-border)', background: 'var(--color-column)' }}>
                 {Object.entries(REGION_LABELS).map(([id, name]) => (
-                  <label key={id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--color-text)', cursor: 'pointer' }}>
+                  <label key={id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 'var(--text-sm)', color: 'var(--color-text)', cursor: 'pointer' }}>
                     <input type="checkbox" checked={selectedRegions.has(Number(id))} onChange={() => toggleRegion(Number(id))} style={{ accentColor: 'var(--color-primary)' }} />
                     {name}
                   </label>
@@ -341,7 +341,7 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
             <Tooltip text="Randomize your regions and score range to discover schools you'd never think to look at." position="top" maxWidth={240}>
             <button onClick={handleSurpriseMe} style={{
                 width: '100%', padding: '12px 28px', borderRadius: 10, border: 'none',
-                background: 'var(--color-primary)', color: '#fff', fontWeight: 700, fontSize: 14,
+                background: 'var(--color-primary)', color: 'white', fontWeight: 700, fontSize: 'var(--text-base)',
                 cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               }}>
               Surprise Me
@@ -352,7 +352,7 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
 
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-            <div style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
+            <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>
               {loading ? 'Searching...' : (
                 selectedMajor && selectedMajor !== 'Undecided'
                   ? `${filteredResults.length} schools with ${selectedMajor} programs \u2014 sorted by Stairway Ranking`
@@ -364,10 +364,10 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
           {budgetNum != null && budgetNum > 0 && !loading && results.length > 0 && (
             <div style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '8px 14px', borderRadius: 10, marginBottom: 12, fontSize: 12, fontWeight: 600,
-              background: flexibleOnPrice ? 'rgba(34,197,94,0.06)' : 'rgba(239,68,68,0.06)',
-              border: `1px solid ${flexibleOnPrice ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'}`,
-              color: flexibleOnPrice ? '#16a34a' : '#dc2626',
+              padding: '8px 14px', borderRadius: 10, marginBottom: 12, fontSize: 'var(--text-2xs)', fontWeight: 600,
+              background: flexibleOnPrice ? 'color-mix(in srgb, var(--color-success) 6%, transparent)' : 'color-mix(in srgb, var(--color-danger) 6%, transparent)',
+              border: `1px solid ${flexibleOnPrice ? 'color-mix(in srgb, var(--color-success) 20%, transparent)' : 'color-mix(in srgb, var(--color-danger) 20%, transparent)'}`,
+              color: flexibleOnPrice ? 'var(--color-success)' : 'var(--color-danger)',
             }}>
               {flexibleOnPrice ? (
                 <span>Showing all {results.length} schools (budget: ${(budgetNum / 1000).toFixed(0)}k/yr)</span>
@@ -377,7 +377,7 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
                 <span>All schools within ${(budgetNum / 1000).toFixed(0)}k/yr budget</span>
               )}
               <button onClick={() => setFlexibleOnPrice(f => !f)} style={{
-                  fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 8,
+                  fontSize: 'var(--text-xs)', fontWeight: 700, padding: '4px 10px', borderRadius: 8,
                   border: '1.5px solid var(--color-border)', background: 'var(--color-card)',
                   color: 'var(--color-text)', cursor: 'pointer', whiteSpace: 'nowrap',
                 }}>
@@ -395,8 +395,8 @@ export function ExplorePlayground({ profile, collegeNames: initialColleges, user
           ) : results.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--color-text-muted)' }}>
               <div style={{ fontSize: 40, marginBottom: 12 }}>&#128270;</div>
-              <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 6 }}>No schools found</div>
-              <div style={{ fontSize: 13 }}>Try adjusting your SAT range or selecting different regions.</div>
+              <div style={{ fontWeight: 700, fontSize: 'var(--text-lg)', marginBottom: 6 }}>No schools found</div>
+              <div style={{ fontSize: 'var(--text-sm)' }}>Try adjusting your SAT range or selecting different regions.</div>
             </div>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 }}>
@@ -428,6 +428,7 @@ function ExploreCard({ school, index, alreadySaved, onSave, hasMajorFilter, cost
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [expanded, setExpanded] = useState(false)
+  const [gradeInfoOpen, setGradeInfoOpen] = useState(false)
   const cfg = school.tier ? getTierConfig()[school.tier] : null
 
   async function handleSave() {
@@ -458,12 +459,12 @@ function ExploreCard({ school, index, alreadySaved, onSave, hasMajorFilter, cost
             href={`/colleges/${slugify(school.name, school.id)}`}
             target="_blank"
             rel="noopener noreferrer"
-            style={{ fontWeight: 700, fontSize: 14, lineHeight: 1.3, color: 'inherit', textDecoration: 'none' }}
+            style={{ fontWeight: 700, fontSize: 'var(--text-base)', lineHeight: 1.3, color: 'inherit', textDecoration: 'none' }}
             onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
             onMouseLeave={(e) => (e.currentTarget.style.textDecoration = 'none')}
           >{school.name}</a>
           {(school.city || school.state) && (
-            <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 2 }}>
+            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginTop: 2 }}>
               {[school.city, school.state].filter(Boolean).join(', ')}
               {school.regionId != null && REGION_LABELS[school.regionId] && (
                 <span style={{ opacity: 0.7 }}> &middot; {REGION_LABELS[school.regionId]}</span>
@@ -472,8 +473,8 @@ function ExploreCard({ school, index, alreadySaved, onSave, hasMajorFilter, cost
           )}
         </div>
         {school.tier && cfg && (
-          <span style={{ fontSize: 10, fontWeight: 800, padding: '3px 8px', borderRadius: 20,
-            background: cfg.color, color: '#fff', whiteSpace: 'nowrap', flexShrink: 0 }}>
+          <span style={{ fontSize: 'var(--text-xs)', fontWeight: 800, padding: '3px 8px', borderRadius: 20,
+            background: cfg.color, color: 'white', whiteSpace: 'nowrap', flexShrink: 0 }}>
             {cfg.label}
           </span>
         )}
@@ -506,8 +507,18 @@ function ExploreCard({ school, index, alreadySaved, onSave, hasMajorFilter, cost
             : <MiniStat label="Major $1yr" value="N/A" muted />
         )}
         {hasMajorFilter && school.programStrengthScore != null && (
-          <Tooltip text={`Stairway Grade: ${stairwayGrade(school.programStrengthScore)} (score ${school.programStrengthScore.toFixed(0)}/100)\n\nA composite letter grade ranking this program against others in your current search results.\n\nFactors:\n• Program Share — 25%\n• Graduation Rate — 20%\n• Program Earnings — 20%\n• Selectivity — 15%\n• Retention Rate — 10%\n• School Earnings — 10%\n\nGrade scale:\n• A+  90–100 (top 10%)\n• A   78–89\n• A-  66–77\n• B+  54–65\n• B   40–53\n• B-  25–39\n• C   0–24\n\nGrades are relative to your current filters — change the major or regions and the curve shifts.`} maxWidth={320}>
-            <MiniStat label="Stairway Grade" value={stairwayGrade(school.programStrengthScore) ?? '—'} highlight />
+          <Tooltip
+            text={`Stairway Ranking ${stairwayRanking(school.programStrengthScore) ?? '—'} · top ${Math.max(1, 100 - Math.round(school.programStrengthScore))}% in your current results\nClick for the full methodology.`}
+            maxWidth={240}
+          >
+            <button
+              type="button"
+              onClick={() => setGradeInfoOpen(true)}
+              aria-label="How is Stairway Ranking calculated?"
+              style={{ background: 'none', border: 'none', padding: 0, margin: 0, cursor: 'pointer', font: 'inherit', color: 'inherit' }}
+            >
+              <MiniStat label="Stairway Ranking" value={stairwayRanking(school.programStrengthScore) ?? '—'} highlight />
+            </button>
           </Tooltip>
         )}
       </div>
@@ -523,7 +534,7 @@ function ExploreCard({ school, index, alreadySaved, onSave, hasMajorFilter, cost
               {school.avgNetPrice != null && school.costOfAttendance != null && <MiniStat label="After Aid" value={`$${(school.avgNetPrice / 1000).toFixed(0)}k`} />}
             </div>
             {school.sat25 && school.sat75 && (
-              <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginBottom: 4 }}>
+              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginBottom: 4 }}>
                 SAT range: {school.sat25}&ndash;{school.sat75}
               </div>
             )}
@@ -534,7 +545,7 @@ function ExploreCard({ school, index, alreadySaved, onSave, hasMajorFilter, cost
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 2 }}>
         <button onClick={() => setExpanded(!expanded)} style={{
             background: 'none', border: 'none', padding: '2px 4px', cursor: 'pointer',
-            color: 'var(--color-text-muted)', fontSize: 14, display: 'flex', alignItems: 'center',
+            color: 'var(--color-text-muted)', fontSize: 'var(--text-base)', display: 'flex', alignItems: 'center',
             fontWeight: 500, transition: 'color 0.2s',
           }}
           onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-text)')}
@@ -543,12 +554,12 @@ function ExploreCard({ school, index, alreadySaved, onSave, hasMajorFilter, cost
         </button>
 
         {saved || alreadySaved ? (
-          <span style={{ fontSize: 11, fontWeight: 700, color: saved ? '#059669' : 'var(--color-text-muted)' }}>
+          <span style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: saved ? 'var(--color-success)' : 'var(--color-text-muted)' }}>
             {saved ? '\u2713 Saved!' : 'In your collection'}
           </span>
         ) : (
           <button onClick={handleSave} disabled={saving} style={{
-              fontSize: 11, fontWeight: 700, padding: '5px 12px', borderRadius: 8,
+              fontSize: 'var(--text-xs)', fontWeight: 700, padding: '5px 12px', borderRadius: 8,
               border: '1.5px solid var(--color-border)', background: 'var(--color-column)',
               color: 'var(--color-text)', cursor: saving ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap',
             }}>
@@ -556,6 +567,87 @@ function ExploreCard({ school, index, alreadySaved, onSave, hasMajorFilter, cost
           </button>
         )}
       </div>
+
+      {/* S3.T5 — Stairway Ranking methodology modal (click the ranking chip) */}
+      {gradeInfoOpen && school.programStrengthScore != null && (
+        <div
+          role="dialog"
+          aria-label="How Stairway Ranking is calculated"
+          onClick={() => setGradeInfoOpen(false)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 9998,
+            background: 'color-mix(in srgb, var(--color-bg) 70%, transparent)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              maxWidth: 440, width: '100%',
+              background: 'var(--color-card)', border: '1.5px solid var(--color-border)',
+              borderRadius: 14, padding: '20px 22px',
+              boxShadow: '0 12px 40px rgba(0,0,0,0.25)',
+              maxHeight: '80vh', overflowY: 'auto',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 6 }}>
+              <div>
+                <div style={{ fontSize: 'var(--text-lg)', fontWeight: 800, color: 'var(--color-text)' }}>
+                  Stairway Ranking {stairwayRanking(school.programStrengthScore)}
+                </div>
+                <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginTop: 2 }}>
+                  Score {school.programStrengthScore.toFixed(0)}/100 · top {Math.max(1, 100 - Math.round(school.programStrengthScore))}% in your current results
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setGradeInfoOpen(false)}
+                aria-label="Close"
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  fontSize: 'var(--text-lg)', color: 'var(--color-text-muted)', padding: '0 4px', lineHeight: 1,
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 1.5, marginTop: 10 }}>
+              A composite letter grade ranking this program against others in your current search. Change the major, regions, or filters and the curve shifts.
+            </p>
+
+            <div style={{ marginTop: 16 }}>
+              <div style={{ fontSize: 'var(--text-xs)', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-text-muted)', marginBottom: 8 }}>
+                Factors
+              </div>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 16px', fontSize: 'var(--text-sm)', color: 'var(--color-text)' }}>
+                <li>Program Share — 25%</li>
+                <li>Graduation Rate — 20%</li>
+                <li>Program Earnings — 20%</li>
+                <li>Selectivity — 15%</li>
+                <li>Retention Rate — 10%</li>
+                <li>School Earnings — 10%</li>
+              </ul>
+            </div>
+
+            <div style={{ marginTop: 16 }}>
+              <div style={{ fontSize: 'var(--text-xs)', fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-text-muted)', marginBottom: 8 }}>
+                Grade scale
+              </div>
+              <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text)', lineHeight: 1.6, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' }}>
+                A+  90–100 (top 10%)<br />
+                A   78–89<br />
+                A-  66–77<br />
+                B+  54–65<br />
+                B   40–53<br />
+                B-  25–39<br />
+                C    0–24
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </motion.div>
   )
 }
@@ -575,7 +667,7 @@ function MatchRingSmall({ chance, color }: { chance: number; color: string }) {
           transition={{ delay: 0.2, duration: 0.6, ease: 'easeOut' }} />
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <span style={{ fontSize: 11, fontWeight: 800, color, lineHeight: 1 }}>{chance}%</span>
+        <span style={{ fontSize: 'var(--text-xs)', fontWeight: 800, color, lineHeight: 1 }}>{chance}%</span>
       </div>
     </div>
   )
@@ -584,8 +676,8 @@ function MatchRingSmall({ chance, color }: { chance: number; color: string }) {
 function MiniStat({ label, value, highlight, muted }: { label: string; value: string; highlight?: boolean; muted?: boolean }) {
   return (
     <div style={{ textAlign: 'center', minWidth: 48 }}>
-      <div style={{ fontSize: 16, fontWeight: 700, color: highlight ? 'var(--color-accent)' : muted ? 'var(--color-text-muted)' : 'var(--color-text)' }}>{value}</div>
-      <div style={{ fontSize: 10, color: 'var(--color-text-muted)', marginTop: 2 }}>{label}</div>
+      <div style={{ fontSize: 'var(--text-lg)', fontWeight: 700, color: highlight ? 'var(--color-accent)' : muted ? 'var(--color-text-muted)' : 'var(--color-text)' }}>{value}</div>
+      <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginTop: 2 }}>{label}</div>
     </div>
   )
 }

@@ -72,8 +72,8 @@ export function ProgramTable({
         Popular programs at {schoolName}
       </h2>
       <p className="text-sm text-white/50 mb-5">
-        Bachelor&rsquo;s degree programs ranked by Stairway Grade — a composite
-        score comparing this school&rsquo;s program against every other
+        Bachelor&rsquo;s degree programs ranked by Stairway Ranking — a composite
+        letter grade comparing this school&rsquo;s program against every other
         school&rsquo;s in the same major nationally. Ties broken alphabetically.
       </p>
       <div className="rounded-xl border border-white/10 bg-white/[0.02] overflow-hidden">
@@ -83,7 +83,7 @@ export function ProgramTable({
               <th className="text-left py-3 px-4 font-medium">#</th>
               <th className="text-left py-3 px-4 font-medium">Program</th>
               <th className="text-center py-3 px-4 font-medium">
-                Stairway Grade
+                Stairway Ranking
               </th>
               <th className="text-right py-3 px-4 font-medium">
                 Graduates/yr

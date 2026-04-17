@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { scoreProgramStrength, stairwayGrade } from './programStrength'
+import { scoreProgramStrength, stairwayRanking } from './programStrength'
 
 const BASE_URL = 'https://api.data.gov/ed/collegescorecard/v1/schools.json';
 const API_KEY = process.env.COLLEGE_SCORECARD_API_KEY;
@@ -240,11 +240,11 @@ export async function getAllPrograms(ipedsId: string): Promise<SchoolProgram[]> 
 }
 
 /**
- * Compute the national Stairway Grade for one program (CIP) at one school.
+ * Compute the national Stairway Ranking for one program (CIP) at one school.
  *
  * Fetches all bachelor's programs with the given CIP nationally, runs the
  * same percentile-based scoring used in Explore, and extracts the target
- * school's score + letter grade.
+ * school's composite score + letter (A+ through C).
  *
  * Next.js fetch cache (revalidate: 86400) de-duplicates calls for the same
  * CIP across all school pages — popular majors are cached for a day.
@@ -343,7 +343,7 @@ export async function getNationalProgramGrade(
     if (!target) return null
 
     const score = target.programStrengthScore
-    return { score, grade: stairwayGrade(score) }
+    return { score, grade: stairwayRanking(score) }
   } catch {
     return null
   }

@@ -6,12 +6,15 @@ import { getNationalProgramGrade } from '@/lib/services/collegeScorecard'
 /**
  * GET /api/colleges/grades?ipeds_id=...&cip_codes=1101,1107,...
  *
- * Returns cached Stairway Grades for the given school + CIP codes.
- * If any grades are missing from the cache, computes them in the
+ * Returns cached Stairway Rankings for the given school + CIP codes.
+ * If any rankings are missing from the cache, computes them in the
  * background and returns what's available now. The next request
- * will include the newly computed grades.
+ * will include the newly computed rankings.
  *
- * Public endpoint — no auth required (grades are non-sensitive).
+ * NOTE: URL path and DB column names retain "grade"/"grades" for
+ * backwards compatibility. Only the user-facing term was renamed.
+ *
+ * Public endpoint — no auth required (rankings are non-sensitive).
  */
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
@@ -65,7 +68,7 @@ export async function GET(req: Request) {
 }
 
 /**
- * Compute Stairway Grades for a list of CIP codes at a given school,
+ * Compute Stairway Rankings for a list of CIP codes at a given school,
  * then upsert results into the program_grades cache table.
  *
  * Runs with a concurrency pool of 4 to avoid Scorecard rate limits.
