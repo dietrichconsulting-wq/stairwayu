@@ -65,8 +65,13 @@ export function EssayStudio({ profile, colleges, userId }: EssayStudioProps) {
   return (
     <div style={{ maxWidth: 1200 }}>
       <h1 style={{ fontSize: 26, fontWeight: 800, marginBottom: 4 }}>Essay Studio</h1>
-      <p style={{ fontSize: 14, color: 'var(--color-text-muted)', marginBottom: 24 }}>
-        Your essay, your voice — AI helps you find the right story angle and sharpen every draft.
+      <p style={{ fontSize: 14, color: 'var(--color-text-muted)', marginBottom: 8 }}>
+        Two tools to help you write better essays — you do the writing, AI helps you think and revise.
+      </p>
+      <p style={{ fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 24, lineHeight: 1.6 }}>
+        <strong>Brainstorm</strong> generates essay topic ideas tailored to a specific school and prompt type.
+        <strong style={{ marginLeft: 8 }}>Critique</strong> scores your draft and gives specific feedback on what to strengthen.
+        <span style={{ display: 'block', marginTop: 4, opacity: 0.7 }}>Essays are not saved — copy your results before leaving this page. AI feedback is a starting point, not a substitute for a teacher or counselor&apos;s review.</span>
       </p>
 
       {/* Tab switcher */}

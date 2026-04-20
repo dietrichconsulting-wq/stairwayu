@@ -44,7 +44,7 @@ export function useAddCollege(userId: string) {
       if (error) {
         // DB trigger returns this for free-tier college limit
         if (error.code === 'P0001' && error.message.includes('Free plan')) {
-          throw new Error('Free plan allows up to 4 colleges. Upgrade to Pro for unlimited.')
+          throw new Error('Free plan allows up to 8 colleges. Upgrade to Pro for unlimited.')
         }
         throw error
       }

@@ -213,7 +213,7 @@ export function ScholarshipsPageClient({ userId, profile }: Props) {
               <div>
                 <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-text)' }}>Scholarship Finder</div>
                 <div style={{ fontSize: 13, color: 'var(--color-text-muted)', marginTop: 2 }}>
-                  Matched from a curated database of verified scholarships with real application links — no AI-generated results.
+                  Matched from a curated database of verified scholarships with real application links — no AI-generated results. Database last verified March 2026.
                 </div>
               </div>
             </div>
@@ -348,13 +348,16 @@ export function ScholarshipsPageClient({ userId, profile }: Props) {
           <AnimatePresence>
             {suggestions.length > 0 && (
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                   <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                     {suggestions.length} verified scholarships matched
                   </span>
                   <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: 'rgba(34,197,94,0.1)', color: '#16a34a', border: '1px solid rgba(34,197,94,0.2)' }}>
                     ✓ Real links
                   </span>
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--color-text-muted)', marginBottom: 14, lineHeight: 1.5 }}>
+                  Always verify details, deadlines, and eligibility directly on the scholarship provider&apos;s website before applying.
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
                   {suggestions.map((s, i) => {

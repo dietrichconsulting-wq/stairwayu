@@ -84,7 +84,7 @@ export function OnboardingClient({ userId, initialName = '' }: { userId: string;
     school_size_pref: [],
     school_type_pref: [],
     distance_pref: [],
-    schools: ['', '', '', ''], // start with 4 slots visible
+    schools: ['', '', '', ''], // start with 4 slots visible, can add up to 8
   })
 
   function set(key: keyof FormData, value: string) {
@@ -241,7 +241,7 @@ export function OnboardingClient({ userId, initialName = '' }: { userId: string;
           {step === 0 && 'Takes 2 minutes. Powers your entire dashboard and roadmap.'}
           {step === 1 && 'Be honest — this powers your AI strategy and school fit analysis.'}
           {step === 2 && 'These preferences help us match you to the right schools.'}
-          {step === 3 && "Add up to 4 schools on Free. Upgrade to Pro for unlimited."}
+          {step === 3 && "Add up to 8 schools on Free. Upgrade to Pro for unlimited."}
         </p>
       </div>
 
@@ -294,7 +294,19 @@ export function OnboardingClient({ userId, initialName = '' }: { userId: string;
           >
             <div className="card-elevated" style={{ padding: '32px 32px 28px' }}>
               {step === 0 && <StepAbout form={form} set={set} />}
-              {step === 1 && <StepAcademics form={form} set={set} setForm={setForm} />}
+              {step === 1 && <StepAcademics form={form} set={set} setForm={setForm} onSkipAhead={() => {
+                // S2.T5 — Skip Ahead jumps Academics → Target Schools, pre-filling
+                // all preferences with "no preference" defaults so handleFinish still has
+                // valid values. User can revisit preferences on the dashboard.
+                setForm(f => ({
+                  ...f,
+                  desired_climate: ['Any'],
+                  school_size_pref: ['Any'],
+                  school_type_pref: ['Either'],
+                  distance_pref: ['Anywhere'],
+                }))
+                setStep(3)
+              }} />}
               {step === 2 && <StepPreferences form={form} togglePref={togglePref} onSkip={() => {
                 setForm(f => ({
                   ...f,
@@ -389,35 +401,100 @@ function StepAbout({ form, set }: { form: FormData; set: (k: keyof FormData, v: 
 }
 
 // ─── Step 2: Academics ────────────────────────────────────────────────────────
-function StepAcademics({ form, set, setForm }: { form: FormData; set: (k: keyof FormData, v: string) => void; setForm: React.Dispatch<React.SetStateAction<FormData>> }) {
+// S2.T5 — Intended major is the only required field and leads the step.
+// GPA, test scores, activities, and career interests collapse under a
+// "Sharpen your results · Optional" disclosure so a first-time user can move
+// forward in under 30 seconds. Skip Ahead jumps straight to Target Schools.
+function StepAcademics({ form, set, setForm, onSkipAhead }: {
+  form: FormData
+  set: (k: keyof FormData, v: string) => void
+  setForm: React.Dispatch<React.SetStateAction<FormData>>
+  onSkipAhead: () => void
+}) {
+  const canSkip = form.proposed_major.trim().length > 0
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-        <Field label="Unweighted GPA (4.0 scale)" value={form.gpa} onChange={v => set('gpa', v)} placeholder="3.9" type="number" step="0.01" min="0" max="4.0" />
-        <Field label="Weighted GPA (5.0 scale)" value={form.gpa_weighted} onChange={v => set('gpa_weighted', v)} placeholder="4.3" type="number" step="0.01" min="0" max="5.0" />
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-        <Field label="SAT Score" value={form.sat} onChange={v => set('sat', v)} placeholder="1400" type="number" min="400" max="1600" />
-        <Field label="ACT Score" value={form.act_score} onChange={v => set('act_score', v)} placeholder="32" type="number" min="1" max="36" />
-      </div>
+      {/* Hero field — the only thing we require */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <label style={labelStyle}>Intended Major <span style={{ color: 'var(--color-primary)', marginLeft: 2 }}>*</span></label>
+        <label style={labelStyle}>Intended Major <Required /></label>
         <MajorSelect value={form.proposed_major} onChange={v => set('proposed_major', v)} />
+        <p style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 4, lineHeight: 1.4 }}>
+          This is all we need to start recommending schools. Stats and activities can be added anytime.
+        </p>
       </div>
-      <ECPicker
-        entries={form.ec_entries}
-        onChange={ec_entries => setForm(f => ({ ...f, ec_entries }))}
-      />
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <label style={labelStyle}>Career Interests</label>
-        <textarea
-          value={form.career_interests}
-          onChange={e => set('career_interests', e.target.value)}
-          placeholder="e.g. Software engineering at a startup, medicine, environmental law..."
-          rows={2}
-          style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit' }}
-        />
-      </div>
+
+      {/* Everything below is optional — collapsed by default to reduce friction */}
+      <details style={{
+        borderRadius: 12,
+        border: '1.5px dashed var(--color-border)',
+        background: 'var(--color-column)',
+      }}>
+        <summary style={{
+          cursor: 'pointer',
+          padding: '14px 18px',
+          fontSize: 13,
+          fontWeight: 700,
+          letterSpacing: '0.03em',
+          color: 'var(--color-text)',
+          listStyle: 'none',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 8,
+        }}>
+          <span>Sharpen your results · Optional</span>
+          <span style={{ fontSize: 11, color: 'var(--color-text-muted)', fontWeight: 600 }}>
+            GPA · SAT/ACT · Activities
+          </span>
+        </summary>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20, padding: '4px 18px 18px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <Field label="Unweighted GPA (4.0 scale)" value={form.gpa} onChange={v => set('gpa', v)} placeholder="3.9" type="number" step="0.01" min="0" max="4.0" />
+            <Field label="Weighted GPA (5.0 scale)" value={form.gpa_weighted} onChange={v => set('gpa_weighted', v)} placeholder="4.3" type="number" step="0.01" min="0" max="5.0" />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <Field label="SAT Score" value={form.sat} onChange={v => set('sat', v)} placeholder="1400" type="number" min="400" max="1600" />
+            <Field label="ACT Score" value={form.act_score} onChange={v => set('act_score', v)} placeholder="32" type="number" min="1" max="36" />
+          </div>
+          <ECPicker
+            entries={form.ec_entries}
+            onChange={ec_entries => setForm(f => ({ ...f, ec_entries }))}
+          />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <label style={labelStyle}>Career Interests</label>
+            <textarea
+              value={form.career_interests}
+              onChange={e => set('career_interests', e.target.value)}
+              placeholder="e.g. Software engineering at a startup, medicine, environmental law..."
+              rows={2}
+              style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit' }}
+            />
+          </div>
+        </div>
+      </details>
+
+      {/* Skip Ahead — gated on having a major picked */}
+      <button
+        type="button"
+        onClick={onSkipAhead}
+        disabled={!canSkip}
+        style={{
+          alignSelf: 'center',
+          background: 'transparent',
+          border: 'none',
+          padding: '6px 10px',
+          fontSize: 13,
+          fontWeight: 600,
+          color: canSkip ? 'var(--color-text-muted)' : 'var(--color-border)',
+          cursor: canSkip ? 'pointer' : 'not-allowed',
+          textDecoration: 'underline',
+          textDecorationStyle: 'dotted',
+          textUnderlineOffset: 3,
+        }}
+        title={canSkip ? 'Skip preferences and jump to target schools' : 'Pick an intended major first'}
+      >
+        Skip ahead — I&apos;ll set preferences later
+      </button>
     </div>
   )
 }
@@ -534,7 +611,7 @@ function StepSchools({ schools, setSchools }: { schools: string[]; setSchools: (
           </div>
         </div>
       ))}
-      {schools.length < 4 ? (
+      {schools.length < 8 ? (
         <button
           type="button"
           onClick={addSlot}
@@ -549,7 +626,7 @@ function StepSchools({ schools, setSchools }: { schools: string[]; setSchools: (
         </button>
       ) : (
         <div style={{ fontSize: 12, color: 'var(--color-text-muted)', padding: '8px 0', lineHeight: 1.5 }}>
-          Free plan tracks up to 4 schools. You can upgrade to Pro later for unlimited.
+          Free plan tracks up to 8 schools. You can upgrade to Pro later for unlimited.
         </div>
       )}
     </div>

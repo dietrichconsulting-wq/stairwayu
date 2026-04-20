@@ -54,7 +54,7 @@ export const TOUR_STEPS: TourStep[] = [
     target: 'nav-essays',
     title: 'Essays & Scholarships',
     description:
-      'Uncover your best essay angles and get expert-level critique — you write every word, AI coaches you to make it shine. Each brainstorm or critique uses one AI call.',
+      'Two tools: Brainstorm generates essay topic ideas for each school. Critique scores your draft and tells you what to fix. You write every word — AI helps you think. Each use costs one AI call.',
     placement: 'right',
   },
   {

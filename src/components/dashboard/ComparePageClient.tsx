@@ -101,7 +101,7 @@ export function ComparePageClient({ profile, colleges }: ComparePageClientProps)
 
   const METRICS: { key: keyof ComparedSchool; label: string; subtitle?: string; tooltip?: string; format: (v: unknown) => string }[] = [
     { key: 'admitRate', label: 'Admit Rate', subtitle: 'overall · U.S. Dept of Education', tooltip: 'Overall admission rate for all applicants. Source: U.S. Department of Education.', format: v => v != null ? `${v}%` : '—' },
-    { key: 'yourChance', label: 'Your Chance', subtitle: 'chance = admitRate + (satFactor × scale) + (gpaFactor × scale), rounded to nearest 5%', tooltip: 'Admission probability estimated using the school\'s published admit rate, your SAT position within their 25th–75th percentile range, your GPA tier, and a selectivity scaling factor. Rounded to nearest 5%. This is an estimate, not a guarantee of admission.', format: v => v != null ? `~${v}%` : '—' },
+    { key: 'yourChance', label: 'Your Chance', subtitle: 'estimate only · does not weigh essays, recs, or demonstrated interest', tooltip: 'Estimate based on your scores, GPA, and school stats. Doesn\'t weigh essays, recommendations, or demonstrated interest. See /methodology for the full formula.', format: v => v != null ? `~${v}%` : '—' },
     { key: 'avgSAT', label: 'Avg SAT', subtitle: 'admitted students · U.S. Dept of Education', tooltip: 'Average composite SAT score of admitted students. Source: U.S. Department of Education.', format: v => v != null ? String(v) : '—' },
     { key: 'netCost', label: homeState ? `Tuition est. net (${homeState} resident)` : 'Tuition (est. net)', subtitle: 'after avg aid · U.S. Dept of Education', tooltip: 'Estimated annual cost after typical financial aid. Source: U.S. Department of Education.', format: v => v != null ? `$${((v as number) / 1000).toFixed(0)}k` : '—' },
     { key: 'gradRate', label: 'Grad Rate', subtitle: '4-year · U.S. Dept of Education', tooltip: 'Percentage of full-time students who graduate within 4 years. Source: U.S. Department of Education.', format: v => v != null ? `${v}%` : '—' },
@@ -136,7 +136,7 @@ export function ComparePageClient({ profile, colleges }: ComparePageClientProps)
           <ul style={{ listStyle: 'none', margin: 0, padding: 0, fontSize: 11, lineHeight: 1.55, color: 'var(--color-text-muted)' }}>
             <li style={{ marginBottom: 3 }}><strong style={{ color: 'var(--color-text-secondary)' }}>Admit Rate, SAT, Tuition, Net Cost, Grad Rate, Retention, Earnings</strong> — U.S. Department of Education (live data)</li>
             <li style={{ marginBottom: 3 }}><strong style={{ color: 'var(--color-text-secondary)' }}>Location &amp; Type</strong> — U.S. Department of Education (IPEDS)</li>
-            <li><strong style={{ color: 'var(--color-text-secondary)' }}>Your Chance</strong> — chance = admitRate + (satFactor × scale) + (gpaFactor × scale), rounded to 5%. <em style={{ color: '#F59E0B' }}>Not a guarantee.</em></li>
+            <li><strong style={{ color: 'var(--color-text-secondary)' }}>Your Chance</strong> — estimate based on your scores, GPA, and school stats. Doesn&apos;t weigh essays, recs, or demonstrated interest. <a href="/methodology" style={{ color: 'var(--color-text-secondary)', textDecoration: 'underline' }}>How we calculate</a>.</li>
           </ul>
         </div>
       </div>

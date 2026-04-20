@@ -7,9 +7,9 @@ const SITE = 'https://stairwayu.com'
 const SIGNUP = '/signup?ref=parents'
 
 export const metadata: Metadata = {
-  title: 'College Planning for Parents — Real Odds, Real Costs',
+  title: 'College Planning for Parents — Clear Estimates, Real Costs',
   description:
-    'See your child\'s real admission chances at every college, understand what it will actually cost, and track every deadline — one dashboard powered by federal data. Free to start.',
+    'See your child\'s estimated admission chances at every college, understand what it will actually cost, and track every deadline — one dashboard powered by federal data. Free to start.',
   alternates: { canonical: `${SITE}/parents` },
   keywords: [
     'college planning for parents',
@@ -24,8 +24,8 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     url: `${SITE}/parents`,
-    title: 'College Planning for Parents — Real Odds, Real Costs',
-    description: 'See your child\'s real chances and what college will actually cost. Free dashboard powered by federal data.',
+    title: 'College Planning for Parents — Clear Estimates, Real Costs',
+    description: 'See your child\'s estimated chances and what college will actually cost. Free dashboard powered by federal data.',
     siteName: 'Stairway U',
   },
 }
@@ -34,7 +34,7 @@ const PAIN_POINTS = [
   {
     icon: '🎯',
     title: 'Will they get in?',
-    desc: 'Real admission odds for every school on their list — based on your child\'s GPA and test scores vs. the school\'s published 25th–75th percentile range. Federal data, not guesses.',
+    desc: 'Estimated admission chances for every school on their list — based on your child\'s GPA and test scores vs. the school\'s published 25th–75th percentile range. Powered by federal data.',
   },
   {
     icon: '💰',
@@ -49,12 +49,12 @@ const PAIN_POINTS = [
   {
     icon: '✍️',
     title: 'Are the essays done?',
-    desc: 'AI-powered essay coaching helps your student find their angle, refine their drafts, and hit every prompt. You can see which essays are in progress and which are submitted.',
+    desc: 'AI-powered brainstorming helps your student discover essay topic ideas for each school, and a critique tool scores their draft with specific feedback on what to fix. They do the writing — AI helps them think.',
   },
   {
     icon: '🎓',
     title: 'What about scholarships?',
-    desc: 'AI-matched scholarship finder surfaces 10 personalized opportunities with direct links. Half don\'t even require an essay. Track applications in one place.',
+    desc: 'Scholarship finder matches your student to verified opportunities from a curated database — real organizations, real links, real deadlines. Track applications in one place.',
   },
   {
     icon: '📊',
@@ -147,7 +147,7 @@ export default function ParentsPage() {
               Will they get in?<br />What will it cost&nbsp;us?
             </h1>
             <p className="mb-8 max-w-[440px] text-[clamp(15px,1.8vw,19px)] leading-relaxed text-white/75">
-              Search any college, enter your child&apos;s GPA and scores, and see their real odds — instantly, free, powered by U.S. Department of Education&nbsp;data.
+              Search any college, enter your child&apos;s GPA and scores, and see their estimated chances — instantly, free, powered by U.S. Department of Education&nbsp;data.
             </p>
             <div className="flex flex-wrap items-center gap-4">
               <Link href={SIGNUP} className="rounded-md bg-white px-8 py-3.5 text-[14px] font-extrabold text-slate-900 no-underline">
@@ -200,13 +200,13 @@ export default function ParentsPage() {
                 See everything.<br />Without hovering.
               </h2>
               <p className="mb-8 text-base leading-relaxed text-slate-500">
-                Your student does the work — you get visibility. Your parent account shows the school list, costs, odds, essay progress, and deadlines in a read-only dashboard built for peace of&nbsp;mind.
+                Your student does the work — you get visibility. Your parent account shows the school list, costs, academic profile comparisons, and deadlines in a read-only dashboard built for peace of&nbsp;mind.
               </p>
               <ul className="m-0 list-none space-y-4 p-0">
                 {[
                   'See which schools made the list and why',
                   'Compare costs side-by-side (net price, not sticker price)',
-                  'Track essay and application progress',
+                  'Track college list and deadlines',
                   'Weekly email digest so you stay in the loop',
                 ].map(item => (
                   <li key={item} className="flex items-start gap-3 text-[15px] text-slate-700">
@@ -351,6 +351,7 @@ export default function ParentsPage() {
           <img src="/stairwayu-wordmark.png" alt="Stairway U" className="h-9 w-auto" />
           <div className="flex gap-7">
             {[
+              { label: 'About', href: '/about' },
               { label: 'Browse Colleges', href: '/colleges' },
               { label: 'For Parents', href: '/parents' },
               { label: 'Sign In', href: '/login' },
@@ -365,6 +366,23 @@ export default function ParentsPage() {
             ))}
           </div>
           <div className="text-xs text-white/20">© 2026 Stairway U</div>
+        </div>
+        <div className="mx-auto mt-6 max-w-[1100px] border-t border-white/5 pt-5 text-[11px] leading-relaxed text-white/30">
+          Admissions, cost, and outcomes data from the{' '}
+          <a
+            href="https://collegescorecard.ed.gov/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-white/60"
+          >
+            U.S. Department of Education College Scorecard
+          </a>
+          . Stairway U is not affiliated with or endorsed by the U.S. Department of Education.
+          Admission-chance estimates are statistical projections, not predictions or guarantees.{' '}
+          <Link href="/methodology" className="underline hover:text-white/60">
+            See our methodology
+          </Link>
+          .
         </div>
       </footer>
     </main>

@@ -3,7 +3,7 @@ import { createServiceClient } from '@/lib/supabase/server'
 /** Daily AI call caps by account tier. Pro users are unlimited. */
 export const FREE_DAILY_AI_LIMIT = 3
 export const PILOT_DAILY_AI_LIMIT = 20
-export const FREE_COLLEGE_LIMIT = 4
+export const FREE_COLLEGE_LIMIT = 8
 
 export type UsageInfo = {
   used: number

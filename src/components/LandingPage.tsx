@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
 import { HeroCalculator } from '@/components/HeroCalculator'
+import { ShieldCheck, Database, Sparkles, Lock } from 'lucide-react'
 
 /**
  * Maps the current month to a phase-aware urgency message.
@@ -64,40 +65,38 @@ function GoogleSignInButton({ className }: { className?: string }) {
   )
 }
 
+// S2.T2 — feature tile artwork is now served from /public/screenshots/*.svg
+// (branded placeholders; see public/screenshots/README.md for swap instructions).
 const FEATURES = [
   {
     label: 'Admission Snapshot',
     desc: 'See where you stand — and what it takes to improve.',
-    img: 'https://images.unsplash.com/photo-1571260899304-425eee4c7efc?w=800&q=80',
+    img: '/screenshots/admission-snapshot.svg',
     light: false,
   },
   {
-    label: 'AI Scholarship Finder',
-    desc: '10 personalized matches. Direct links. No essay required on half of them.',
-    img: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=800&q=80',
+    label: 'Scholarship Finder',
+    desc: '10 personalized matches from a curated, verified database. Direct links. No essay required on half of them.',
+    img: '/screenshots/scholarship-finder.svg',
     light: true,
   },
   {
     label: 'Financial Planner',
     desc: '529 projections, tuition inflation, loan estimates — all in one dashboard.',
-    img: 'https://images.unsplash.com/photo-1554224154-26032ffc0d07?w=800&q=80',
+    img: '/screenshots/financial-planner.svg',
     light: false,
   },
   {
     label: 'Essay Studio',
-    desc: 'You write the essay — AI coaches you to find your best story angle and polish every draft.',
-    img: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800&q=80',
+    desc: 'Two tools: Brainstorm generates essay topic ideas tailored to each school. Critique scores your draft and tells you exactly what to fix.',
+    img: '/screenshots/essay-studio.svg',
     light: true,
   },
 ]
 
-const STATS = [
-  { value: '3,000+', label: 'Colleges from the College Scorecard' },
-  { value: '74%', label: 'Discover schools they hadn\u2019t considered' },
-  { value: '100%', label: 'Federal data — nothing scraped or guessed' },
-  { value: '$0', label: 'To start — free forever tier' },
-  { value: 'Any device', label: 'Phone, tablet, or laptop — no app download needed' },
-]
+// Partner-logo + testimonial scaffolding was removed in Sprint 2 (S2.T1). Restore from git
+// history when real logos / quotes are available; the markup lived inside the
+// `{SHOW_PARTNER_LOGOS && …}` and `{SHOW_TESTIMONIALS && …}` gates.
 
 function PricingCards() {
   const [plan, setPlan] = useState<'monthly' | 'annual'>('annual')
@@ -110,7 +109,7 @@ function PricingCards() {
         <div className="mb-8 text-[13px] text-white/40">No credit card required</div>
 
         {[
-          { label: 'Up to 4 colleges', included: true },
+          { label: 'Up to 8 colleges', included: true },
           { label: '3 AI-powered insights daily', included: true },
           { label: 'Admission chancing', included: true },
           { label: 'Journey milestones', included: true },
@@ -235,7 +234,7 @@ export function LandingPage() {
         return (
           <div className="fixed inset-x-0 top-[60px] z-[90] bg-gradient-to-r from-teal-600 to-cyan-600 px-4 py-2.5 text-center">
             <span className="text-[13px] font-bold tracking-wide text-white">
-              {hook.emoji} {hook.message}
+              <span aria-hidden="true">{hook.emoji}</span> {hook.message}
             </span>
             <Link href="/signup" className="ml-3 inline-block rounded bg-white/20 px-3 py-0.5 text-[11px] font-extrabold uppercase tracking-[0.05em] text-white no-underline backdrop-blur-sm">
               Start Free →
@@ -246,15 +245,9 @@ export function LandingPage() {
 
       {/* ── HERO ── */}
       <section className="relative min-h-screen overflow-hidden">
-        <Image
-          src="https://images.unsplash.com/photo-1523580846011-d3a5bc25702b?w=1920&q=85"
-          alt="High school seniors at college campus"
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover object-[center_30%]"
-        />
-        <div className="landing-hero-overlay absolute inset-0" />
+        {/* S2.T2: CSS-only background (no external image) — see globals.css */}
+        <div className="landing-hero-gradient absolute inset-0" aria-hidden="true" />
+        <div className="landing-hero-overlay absolute inset-0" aria-hidden="true" />
 
         <div className="relative z-10 mx-auto flex min-h-screen max-w-[1200px] flex-col items-center justify-center gap-10 px-[6%] pb-16 pt-[130px] md:flex-row md:items-center md:justify-between md:pt-[100px]">
           {/* Left: copy */}
@@ -265,8 +258,14 @@ export function LandingPage() {
             <h1 className="mb-6 text-[clamp(40px,6vw,72px)] font-black leading-[1.02] tracking-tight text-white">
               Your profile.<br />Your best-fit schools.
             </h1>
-            <p className="mb-8 max-w-[440px] text-[clamp(15px,1.8vw,19px)] leading-relaxed text-white/75">
-              Search any college, enter your GPA and scores, and see how your academic profile compares to admitted students — instantly, free, powered by U.S. Department of Education data.
+            <p className="mb-3 max-w-[440px] text-[clamp(16px,1.9vw,20px)] font-semibold leading-snug text-white">
+              The one dashboard for college applications &mdash; backed by federal data, not sponsored rankings.
+            </p>
+            <p className="mb-3 max-w-[440px] text-[clamp(14px,1.6vw,17px)] leading-relaxed text-white/70">
+              Search any college, enter your GPA and scores, see how you compare to admitted students &mdash; instantly, free.
+            </p>
+            <p className="mb-8 text-[12px] font-semibold uppercase tracking-[0.12em] text-white/55">
+              For students, parents &amp; counselors
             </p>
             <div className="flex flex-wrap items-center gap-4">
               <Link href="/signup" className="rounded-md bg-white px-8 py-3.5 text-[14px] font-extrabold text-slate-900 no-underline">
@@ -290,6 +289,63 @@ export function LandingPage() {
         </div>
       </section>
 
+
+      {/* ── DATA SOURCES / TRUST STRIP ── */}
+      <section
+        aria-label="Data sources and privacy"
+        className="border-y border-slate-200 bg-white px-[6%] py-6"
+      >
+        <div className="mx-auto max-w-[1100px]">
+          <div className="mb-4 text-center text-[11px] font-extrabold uppercase tracking-[0.15em] text-slate-400">
+            Built on verified data
+          </div>
+          <ul className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                Icon: ShieldCheck,
+                title: 'Official federal data',
+                desc: 'Admissions, cost, and outcomes from the U.S. Dept of Education College Scorecard.',
+              },
+              {
+                Icon: Database,
+                title: '3,000+ U.S. colleges',
+                desc: 'Refreshed each year when the Scorecard publishes new data.',
+              },
+              {
+                Icon: Sparkles,
+                title: 'AI essay coaching',
+                desc: 'Brainstorm and critique powered by Google Gemini — your drafts stay yours.',
+              },
+              {
+                Icon: Lock,
+                title: 'Private by default',
+                desc: 'No ads, no selling your data. Cancel or delete your account any time.',
+              },
+            ].map(({ Icon, title, desc }) => (
+              <li key={title} className="flex items-start gap-3">
+                <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-teal-50 text-teal-600">
+                  <Icon className="h-4 w-4" aria-hidden="true" />
+                </div>
+                <div>
+                  <div className="text-[13px] font-bold text-slate-900">{title}</div>
+                  <div className="mt-0.5 text-[12px] leading-relaxed text-slate-500">{desc}</div>
+                </div>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-4 text-center text-[11px] text-slate-400">
+            Admission chances are estimates based on published school stats &mdash;
+            {' '}
+            <Link href="/methodology" className="font-semibold text-slate-500 underline decoration-slate-300 underline-offset-2 hover:text-slate-700">
+              read the methodology
+            </Link>
+            .
+          </div>
+          <div className="mt-2 text-center text-[11px] text-slate-400">
+            Funded by student subscriptions. Colleges don&apos;t pay for placement, and we don&apos;t sell your data.
+          </div>
+        </div>
+      </section>
 
 
       {/* ── REPLACE 5 TABS ── */}
@@ -348,21 +404,9 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ── STATS BAR ── */}
-      <section className="bg-slate-900 px-[6%] py-7">
-        <div className="mx-auto mb-6 text-center text-sm font-semibold tracking-wide text-white/50">
-          Join 1,200 students already planning their path
-        </div>
-        <div className="mx-auto grid max-w-[1000px] auto-cols-fr grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-6 text-center">
-          {STATS.map(s => (
-            <div key={s.label}>
-              <div className="text-[28px] font-black tracking-tight text-white">{s.value}</div>
-              <div className="mt-1 text-xs tracking-[0.05em] text-white/45">{s.label}</div>
-            </div>
-          ))}
-        </div>
-      </section>
+      {/* Stats bar removed in Sprint 2 — values now live in the Data Sources strip above. */}
 
+      {/* Partner logo bar removed in Sprint 2 — restore from git (pre-S2.T1 commit) when real partner logos are available. */}
 
       {/* ── FEATURE GRID — Nike product tiles ── */}
       <section className="bg-slate-100 p-1">
@@ -394,44 +438,13 @@ export function LandingPage() {
       </section>
 
 
-      {/* ── USE IT ANYWHERE ── */}
-      <section className="bg-slate-800 px-[6%] py-16">
-        <div className="mx-auto max-w-[720px] text-center">
-          <h2 className="mb-4 text-[clamp(24px,3.5vw,40px)] font-black leading-tight tracking-tight text-white">
-            Use it anywhere&nbsp;&mdash; phone, tablet,&nbsp;laptop
-          </h2>
-          <p className="mx-auto mb-8 max-w-[480px] text-[clamp(14px,1.6vw,17px)] leading-relaxed text-white/60">
-            Stairway U works on any device. Add it to your home screen for an app-like experience&nbsp;&mdash; no download required.
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            {['Works on any phone', 'Add to home screen', 'Syncs across devices'].map(t => (
-              <span key={t} className="rounded-full border border-white/15 bg-white/5 px-5 py-2.5 text-[13px] font-semibold text-white/80">
-                {t}
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Device messaging absorbed into the Data Sources strip (hero micro-line covers it). */}
 
+      {/* For Parents + For Counselors sections removed in Sprint 2.
+          Parent / counselor messaging is absorbed into the hero micro-line
+          ("For students, parents & counselors") and the footer retains dedicated links. */}
 
-      {/* ── FOR COUNSELORS ── */}
-      <section className="bg-white px-[6%] py-20">
-        <div className="mx-auto max-w-[800px] text-center">
-          <div className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.15em] text-teal-600">
-            For Counselors
-          </div>
-          <h2 className="mb-5 text-[clamp(24px,3.5vw,44px)] font-black leading-[1.05] tracking-tight text-slate-900">
-            Guidance counselors: see every student&apos;s list in&nbsp;one&nbsp;place.
-          </h2>
-          <p className="mx-auto mb-8 max-w-[540px] text-base leading-relaxed text-slate-500">
-            Free counselor accounts let you track college lists, admission profiles, and progress for every student who links with you. No spreadsheets,&nbsp;no&nbsp;chasing.
-          </p>
-          <Link href="/counselors" className="inline-block rounded-md bg-slate-900 px-8 py-3.5 text-[13px] font-extrabold uppercase tracking-[0.05em] text-white no-underline">
-            Learn More for Counselors
-          </Link>
-        </div>
-      </section>
-
+      {/* Testimonials section removed in Sprint 2 — restore from git when real quotes are collected. */}
 
       {/* ── PRICING ── */}
       <section id="pricing" className="bg-slate-900 px-[6%] py-24">
@@ -441,7 +454,7 @@ export function LandingPage() {
               Pricing
             </div>
             <h2 className="text-[clamp(28px,4vw,52px)] font-black leading-[1.05] tracking-tight text-white">
-              Everything for sophomore &amp; junior&nbsp;year&nbsp;&mdash;&nbsp;free&nbsp;forever.<br />Ready to apply? Pro gives you the full&nbsp;toolkit.
+              Free for research.<br />Pro for application&nbsp;season.
             </h2>
           </div>
           <div className="mx-auto max-w-[820px]">
@@ -471,13 +484,30 @@ export function LandingPage() {
         <div className="mx-auto flex max-w-[1100px] flex-wrap items-center justify-between gap-4">
           <img src="/stairwayu-wordmark.png" alt="Stairway U" className="h-9 w-auto" />
           <div className="flex gap-7">
-            {[{ label: 'Browse Colleges', href: '/colleges' }, { label: 'Ranking', href: '/methodology' }, { label: 'For Counselors', href: '/counselors' }, { label: 'Sign In', href: '/login' }, { label: 'Sign Up', href: '/signup' }, { label: 'Pricing', href: '/#pricing' }, { label: 'Terms', href: '/terms' }, { label: 'Privacy', href: '/privacy' }].map(l => (
+            {[{ label: 'About', href: '/about' }, { label: 'Browse Colleges', href: '/colleges' }, { label: 'Ranking', href: '/methodology' }, { label: 'For Parents', href: '/parents' }, { label: 'For Counselors', href: '/counselors' }, { label: 'Sign In', href: '/login' }, { label: 'Sign Up', href: '/signup' }, { label: 'Pricing', href: '/#pricing' }, { label: 'Terms', href: '/terms' }, { label: 'Privacy', href: '/privacy' }].map(l => (
               <Link key={l.href} href={l.href} className="text-[13px] font-medium tracking-[0.03em] text-white/35 no-underline">
                 {l.label}
               </Link>
             ))}
           </div>
           <div className="text-xs text-white/20">© 2026 Stairway U</div>
+        </div>
+        <div className="mx-auto mt-6 max-w-[1100px] border-t border-white/5 pt-5 text-[11px] leading-relaxed text-white/30">
+          Admissions, cost, and outcomes data from the{' '}
+          <a
+            href="https://collegescorecard.ed.gov/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-white/60"
+          >
+            U.S. Department of Education College Scorecard
+          </a>
+          . Stairway U is not affiliated with or endorsed by the U.S. Department of Education.
+          Admission-chance estimates are statistical projections, not predictions or guarantees.{' '}
+          <Link href="/methodology" className="underline hover:text-white/60">
+            See our methodology
+          </Link>
+          .
         </div>
       </footer>
 

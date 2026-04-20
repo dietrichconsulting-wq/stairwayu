@@ -5,22 +5,37 @@ export const dynamic = 'force-dynamic'
 import { useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
+import {
+  GraduationCap,
+  Sparkles,
+  BarChart3,
+  Map as MapIcon,
+  Infinity as InfinityIcon,
+  Zap,
+  Scale,
+  PenTool,
+  Trophy,
+  Radar,
+  type LucideIcon,
+} from 'lucide-react'
 
-const FREE_FEATURES = [
-  { icon: '🎓', label: 'Up to 4 colleges', desc: 'Track your top schools on the dashboard' },
-  { icon: '🤖', label: '3 AI calls per day', desc: 'Strategy, essays, and scholarships' },
-  { icon: '📊', label: 'Admission chancing', desc: 'See your score for each school' },
-  { icon: '🗺️', label: 'Journey milestones', desc: 'Visual progress tracker' },
+type Feature = { Icon: LucideIcon; label: string; desc: string }
+
+const FREE_FEATURES: Feature[] = [
+  { Icon: GraduationCap, label: 'Up to 8 colleges', desc: 'Track your top schools on the dashboard' },
+  { Icon: Sparkles, label: '3 AI calls per day', desc: 'Strategy, essays, and scholarships' },
+  { Icon: BarChart3, label: 'Admission chancing', desc: 'See your score for each school' },
+  { Icon: MapIcon, label: 'Journey milestones', desc: 'Visual progress tracker' },
 ]
 
-const PRO_FEATURES = [
-  { icon: '♾️', label: 'Unlimited colleges', desc: 'No cap on schools you can track' },
-  { icon: '🤖', label: 'Unlimited AI calls', desc: 'Strategy, essays, scholarships — no daily limit' },
-  { icon: '⚡', label: 'College Strategy Generator', desc: 'AI-powered reach/target/safety list with real data' },
-  { icon: '⚖️', label: 'College Comparison', desc: 'Side-by-side with live admissions stats' },
-  { icon: '✍️', label: 'Full Essay Coaching', desc: 'Unlimited brainstorm + critique cycles' },
-  { icon: '🏆', label: 'Unlimited scholarships', desc: 'Track as many as you need' },
-  { icon: '📡', label: 'Deadline Radar', desc: 'Smart deadline tracking across all apps' },
+const PRO_FEATURES: Feature[] = [
+  { Icon: InfinityIcon, label: 'Unlimited colleges', desc: 'No cap on schools you can track' },
+  { Icon: Sparkles, label: 'Unlimited AI calls', desc: 'Strategy, essays, scholarships — no daily limit' },
+  { Icon: Zap, label: 'College Strategy Generator', desc: 'AI-powered reach/target/safety list with real data' },
+  { Icon: Scale, label: 'College Comparison', desc: 'Side-by-side with live admissions stats' },
+  { Icon: PenTool, label: 'Full Essay Coaching', desc: 'Unlimited brainstorm + critique cycles' },
+  { Icon: Trophy, label: 'Unlimited scholarships', desc: 'Track as many as you need' },
+  { Icon: Radar, label: 'Deadline Radar', desc: 'Smart deadline tracking across all apps' },
 ]
 
 export default function UpgradePage() {
@@ -81,10 +96,12 @@ export default function UpgradePage() {
     <div style={{ minHeight: '100vh', background: 'var(--color-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '32px 24px' }}>
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ maxWidth: 480, width: '100%' }}>
         <div className="card-elevated" style={{ padding: '40px 36px', textAlign: 'center' }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>✨</div>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+            <Sparkles style={{ width: 32, height: 32, color: 'var(--color-primary)' }} aria-hidden="true" />
+          </div>
           <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-primary)', marginBottom: 6 }}>Stairway U</h1>
           <p style={{ fontSize: 14, color: 'var(--color-text-muted)', marginBottom: 8 }}>
-            Everything you need to get into your dream school
+            Everything you need to build a smart college list
           </p>
           <p style={{ fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 24, lineHeight: 1.6, opacity: 0.7 }}>
             Free gets you started. Pro removes every limit.
@@ -96,7 +113,10 @@ export default function UpgradePage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {FREE_FEATURES.map(f => (
                 <div key={f.label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ fontSize: 16, flexShrink: 0 }}>{f.icon}</span>
+                  <f.Icon
+                    aria-hidden="true"
+                    style={{ width: 16, height: 16, flexShrink: 0, color: 'var(--color-text-muted)' }}
+                  />
                   <div>
                     <span style={{ fontSize: 12, fontWeight: 700 }}>{f.label}</span>
                     <span style={{ fontSize: 11, color: 'var(--color-text-muted)', marginLeft: 6 }}>{f.desc}</span>
@@ -161,7 +181,10 @@ export default function UpgradePage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 28, textAlign: 'left' }}>
             {PRO_FEATURES.map(f => (
               <div key={f.label} style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                <span style={{ fontSize: 20, flexShrink: 0 }}>{f.icon}</span>
+                <f.Icon
+                  aria-hidden="true"
+                  style={{ width: 18, height: 18, flexShrink: 0, marginTop: 2, color: 'var(--color-primary)' }}
+                />
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 700 }}>{f.label}</div>
                   <div style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>{f.desc}</div>

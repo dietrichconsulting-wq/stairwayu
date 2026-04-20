@@ -89,10 +89,10 @@ export function AdmissionSnapshot({ profile, colleges, loading, onAddSchool }: A
 
   // Arrow rules:
   //  - 1–3 schools → point at "+ Add school" with "Try adding more schools"
-  //  - 4 schools  → point at "Full strategy →" with "Try creating an application strategy"
-  //  - 0 or 5+    → no arrow
-  const showAddArrow = colleges.length >= 1 && colleges.length <= 3 && !addHintDismissed && !adding
-  const showStrategyArrow = colleges.length === 4 && !strategyHintDismissed
+  //  - 8 schools  → point at "Full strategy →" with "Try creating an application strategy"
+  //  - 0 or 9+    → no arrow
+  const showAddArrow = colleges.length >= 1 && colleges.length <= 7 && !addHintDismissed && !adding
+  const showStrategyArrow = colleges.length === 8 && !strategyHintDismissed
 
   const validECs = profile?.ec_entries?.filter(e => e.name?.trim()) ?? []
   const ecKey = validECs.length > 0 ? JSON.stringify(validECs) : ''
