@@ -4,10 +4,9 @@ import { createClient } from '@/lib/supabase/server'
 import { fmtPct } from '@/lib/colleges'
 import { CollegeHeader } from '@/components/colleges/CollegeHeader'
 import { ProUpsell } from '@/components/colleges/ProUpsell'
+import { SITE_URL as SITE } from '@/lib/siteConfig'
 
 export const revalidate = 3600
-
-const SITE = 'https://stairwayu.com'
 
 export const metadata: Metadata = {
   title: 'Browse Colleges — Acceptance Rates, SAT Scores & Cost',

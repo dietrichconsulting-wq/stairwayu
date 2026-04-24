@@ -12,6 +12,8 @@ import type { UserCollege, ExtracurricularEntry } from '@/lib/types/database'
 import { ECPicker } from '@/components/ECPicker'
 import { EC_TIER_LABELS, EC_TIER_POINTS } from '@/lib/services/admissionChance'
 import type { ECTier } from '@/lib/types/database'
+import { SITE_URL } from '@/lib/siteConfig'
+import * as Sentry from '@sentry/nextjs'
 
 const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY']
 
@@ -90,7 +92,8 @@ export function ProfilePageClient({ userId }: { userId: string }) {
       // Ensure we have an active auth session before querying RLS-protected tables
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) {
-        console.warn('Referral: no active session, retrying in 1s…')
+        // No active session yet — the auth provider is probably still
+        // hydrating. Retry once silently before giving up.
         setTimeout(() => fetchReferralCode(), 1000)
         return
       }
@@ -105,7 +108,7 @@ export function ProfilePageClient({ userId }: { userId: string }) {
         .eq('referrer_id', userId)
         .maybeSingle()
 
-      if (selectErr) console.error('Referral select error:', selectErr)
+      if (selectErr) Sentry.captureException(selectErr, { tags: { area: 'referral', op: 'select' } })
 
       let code: string | null = existing?.referral_code ?? null
 
@@ -126,13 +129,16 @@ export function ProfilePageClient({ userId }: { userId: string }) {
             .from('referrals')
             .insert({ referrer_id: userId, referral_code: candidate })
           if (!error) { code = candidate; break }
-          console.error(`Referral insert attempt ${attempt + 1} failed:`, error)
+          // Final attempt will be captured below; earlier collisions are expected noise.
+          if (attempt === 4) {
+            Sentry.captureException(error, { tags: { area: 'referral', op: 'insert', attempt: String(attempt + 1) } })
+          }
         }
       }
 
       if (code) {
         setReferralCode(code)
-        setReferralLink(`https://www.stairwayu.com/signup?ref=${code}`)
+        setReferralLink(`${SITE_URL}/signup?ref=${code}`)
 
         const { count } = await supabase
           .from('referral_completions')
@@ -141,7 +147,7 @@ export function ProfilePageClient({ userId }: { userId: string }) {
         setReferralCount(count ?? 0)
       }
     } catch (err) {
-      console.error('Referral fetch error:', err)
+      Sentry.captureException(err, { tags: { area: 'referral', op: 'fetch' } })
     }
     setReferralLoading(false)
   }, [userId])

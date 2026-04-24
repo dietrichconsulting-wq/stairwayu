@@ -4,10 +4,9 @@ import { notFound } from 'next/navigation'
 import { createServiceClient } from '@/lib/supabase/server'
 import { fmtMoney, fmtPct } from '@/lib/colleges'
 import { PledgeForm } from '@/components/colleges/PledgeForm'
+import { SITE_URL as SITE } from '@/lib/siteConfig'
 
 export const revalidate = 0 // always fresh — view_count matters
-
-const SITE = 'https://stairwayu.com'
 
 interface ShareLink {
   id: string

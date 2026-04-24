@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { SITE_URL } from '@/lib/siteConfig'
 
 export const metadata: Metadata = {
   title: 'For Counselors · Stairway U',
@@ -7,7 +8,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Stairway U for Counselors',
     description: 'Track every student\'s college journey from one dashboard. Always free for counselors.',
-    url: 'https://stairwayu.com/counselors',
+    url: `${SITE_URL}/counselors`,
   },
 }
 
@@ -102,13 +103,28 @@ export default function CounselorsPage() {
       <footer style={{ padding: '32px clamp(16px,6vw,80px)', borderTop: '1px solid rgba(255,255,255,0.06)', textAlign: 'center' }}>
         <div style={{ display: 'flex', justifyContent: 'center', gap: 24, flexWrap: 'wrap', fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>
           <Link href="/" style={{ color: 'inherit', textDecoration: 'none' }}>Home</Link>
+          <Link href="/about" style={{ color: 'inherit', textDecoration: 'none' }}>About</Link>
           <Link href="/counselors" style={{ color: 'inherit', textDecoration: 'none' }}>For Counselors</Link>
           <Link href="/parents" style={{ color: 'inherit', textDecoration: 'none' }}>For Parents</Link>
           <Link href="/terms" style={{ color: 'inherit', textDecoration: 'none' }}>Terms</Link>
           <Link href="/privacy" style={{ color: 'inherit', textDecoration: 'none' }}>Privacy</Link>
         </div>
-        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', marginTop: 16 }}>
-          Stairway U Inc. Data from the U.S. Department of Education College Scorecard.
+        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 16, lineHeight: 1.55, maxWidth: 760, marginLeft: 'auto', marginRight: 'auto' }}>
+          Admissions, cost, and outcomes data from the{' '}
+          <a
+            href="https://collegescorecard.ed.gov/"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: 'inherit', textDecoration: 'underline' }}
+          >
+            U.S. Department of Education College Scorecard
+          </a>
+          . Stairway U is not affiliated with or endorsed by the U.S. Department of Education.
+          Admission-chance estimates are statistical projections, not predictions or guarantees.{' '}
+          <Link href="/methodology" style={{ color: 'inherit', textDecoration: 'underline' }}>
+            See our methodology
+          </Link>
+          .
         </div>
       </footer>
     </div>

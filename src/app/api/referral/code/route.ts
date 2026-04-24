@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-
-const BASE_URL = 'https://www.stairwayu.com'
+import { SITE_URL as BASE_URL } from '@/lib/siteConfig'
 const CHARS = 'abcdefghijklmnopqrstuvwxyz0123456789'
 
 function randomChars(n: number) {

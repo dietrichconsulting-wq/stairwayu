@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-
-const SITE = 'https://stairwayu.com'
+import { SITE_URL as SITE } from '@/lib/siteConfig'
 
 export const metadata: Metadata = {
   title: 'Gift College Savings — How to Contribute to a 529 Plan',
@@ -163,7 +162,7 @@ export default function GiftPage() {
         <div className="rounded-2xl bg-gradient-to-br from-blue-500/15 via-purple-500/10 to-teal-400/10 border border-white/10 p-8 text-center">
           <h2 className="text-2xl font-bold">Planning for college yourself?</h2>
           <p className="mt-2 text-white/60">
-            See your real odds, find scholarships, and build a financial plan — free.
+            See your estimated chances, find scholarships, and build a financial plan — free.
           </p>
           <Link
             href="/signup"

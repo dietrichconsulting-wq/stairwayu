@@ -4,6 +4,7 @@ import './globals.css'
 import { Providers } from './providers'
 import { ServiceWorkerRegistrar } from '@/components/ServiceWorkerRegistrar'
 import { cn } from "@/lib/utils";
+import { SITE_URL } from '@/lib/siteConfig'
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -17,7 +18,6 @@ export const viewport: Viewport = {
   themeColor: '#121318',
 }
 
-const SITE_URL = 'https://stairwayu.com'
 const SITE_TITLE = 'Stairway U: College Chances, Scholarships & Essay Coach'
 const SITE_DESC =
   'See how your academic profile compares at every college, get AI-matched scholarships, essay coaching, and a financial planner — one dashboard powered by U.S. Dept of Education data. Works on any device. $9.99/mo, 7-day free trial.'

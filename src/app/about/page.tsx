@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { SITE_URL } from '@/lib/siteConfig'
 
 export const metadata: Metadata = {
   title: 'About Stairway U',
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
     title: 'About Stairway U',
     description:
       'Built by a parent for families who want clarity in the college search. One dashboard, official data, no hype.',
-    url: 'https://stairwayu.com/about',
+    url: `${SITE_URL}/about`,
   },
 }
 

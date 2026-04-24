@@ -13,11 +13,10 @@ import { getAllPrograms } from '@/lib/services/collegeScorecard'
 import { CollegeHeader } from '@/components/colleges/CollegeHeader'
 import { ProUpsell } from '@/components/colleges/ProUpsell'
 import { ProgramTable } from '@/components/colleges/ProgramTable'
+import { SITE_URL as SITE } from '@/lib/siteConfig'
 
 export const revalidate = 86400 // 1 day ISR
 export const dynamicParams = true
-
-const SITE = 'https://stairwayu.com'
 
 export async function generateStaticParams() {
   const slugs = await getTopCollegeSlugs(500)
@@ -268,7 +267,7 @@ export default async function CollegePage({ params }: PageProps) {
       {/* Free chancing CTA */}
       <section className="mx-auto max-w-5xl px-6 mt-16">
         <div className="rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/10 p-8 text-center">
-          <h2 className="text-2xl font-bold">Get your real odds at {c.name}</h2>
+          <h2 className="text-2xl font-bold">Estimate your chances at {c.name}</h2>
           <p className="mt-2 text-white/70">
             Free chancing calculator — enter your GPA and test scores to see how you stack up.
           </p>

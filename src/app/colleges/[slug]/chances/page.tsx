@@ -9,7 +9,7 @@ import { ProUpsell } from '@/components/colleges/ProUpsell'
 export const revalidate = 86400
 export const dynamicParams = true
 
-const SITE = 'https://stairwayu.com'
+import { SITE_URL as SITE } from '@/lib/siteConfig'
 
 export async function generateStaticParams() {
   const slugs = await getTopCollegeSlugs(500)

@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { HeroCalculator } from '@/components/HeroCalculator'
+import { SITE_URL as SITE } from '@/lib/siteConfig'
 
-const SITE = 'https://stairwayu.com'
 const SIGNUP = '/signup?ref=parents'
 
 export const metadata: Metadata = {

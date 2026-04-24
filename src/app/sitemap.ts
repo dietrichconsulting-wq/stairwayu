@@ -1,9 +1,8 @@
 import type { MetadataRoute } from 'next'
 import { createClient } from '@/lib/supabase/server'
+import { SITE_URL as SITE } from '@/lib/siteConfig'
 
 export const revalidate = 3600 // re-query DB at most once per hour
-
-const SITE = 'https://stairwayu.com'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticEntries: MetadataRoute.Sitemap = [

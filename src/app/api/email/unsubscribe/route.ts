@@ -58,8 +58,8 @@ function successPage(): string {
 <div class="card">
   <div style="font-size: 40px; margin-bottom: 16px;">✅</div>
   <h1>You've been unsubscribed.</h1>
-  <p>You'll no longer receive weekly email updates from Stairway U.<br>You can re-enable them anytime in your <a href="https://www.stairwayu.com/profile">profile settings</a>.</p>
-  <a href="https://www.stairwayu.com/dashboard">Back to Dashboard</a>
+  <p>You'll no longer receive weekly email updates from Stairway U.<br>You can re-enable them anytime in your <a href="https://stairwayu.com/profile">profile settings</a>.</p>
+  <a href="https://stairwayu.com/dashboard">Back to Dashboard</a>
 </div>
 </body>
 </html>`
@@ -85,7 +85,7 @@ function errorPage(message: string): string {
   <div style="font-size: 40px; margin-bottom: 16px;">❌</div>
   <h1>Something went wrong.</h1>
   <p>${message}<br>If you need help, please contact us at <a href="mailto:support@stairwayu.com">support@stairwayu.com</a>.</p>
-  <a href="https://www.stairwayu.com">stairwayu.com</a>
+  <a href="https://stairwayu.com">stairwayu.com</a>
 </div>
 </body>
 </html>`
