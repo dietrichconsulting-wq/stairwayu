@@ -2,6 +2,9 @@
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
+import { getEarlyAdmitData, EARLY_PLAN_LABELS, type EarlyPlan } from '@/lib/data/earlyAdmitRates'
+
+type ApplicationPlan = 'RD' | 'EA' | 'ED' | 'REA'
 
 interface Props {
   schoolName: string
@@ -10,6 +13,7 @@ interface Props {
   sat25: number | null
   sat75: number | null
   actMidpoint: number | null
+  ipedsId?: string | number | null
 }
 
 // ACT → SAT concordance (College Board)
@@ -75,10 +79,21 @@ function estimate(
   return { chance, band, notes }
 }
 
-export function ChancesCalculator({ schoolName, schoolSlug, admissionRate, sat25, sat75, actMidpoint }: Props) {
+export function ChancesCalculator({ schoolName, schoolSlug, admissionRate, sat25, sat75, actMidpoint, ipedsId }: Props) {
   const [gpa, setGpa] = useState('')
   const [sat, setSat] = useState('')
   const [act, setAct] = useState('')
+  const [plan, setPlan] = useState<ApplicationPlan>('RD')
+
+  const earlyData = useMemo(() => getEarlyAdmitData(ipedsId ?? null), [ipedsId])
+  // The plan offered by this school ('ED', 'EA', 'REA', 'SCEA') — SCEA is treated like REA in the UI.
+  const offeredEarlyPlan: EarlyPlan | null = earlyData?.plan ?? null
+  // Key used to match the plan-selector button to the school's real early plan.
+  const offeredButtonKey: ApplicationPlan | null =
+    offeredEarlyPlan === 'ED' ? 'ED'
+    : offeredEarlyPlan === 'EA' ? 'EA'
+    : offeredEarlyPlan === 'REA' || offeredEarlyPlan === 'SCEA' ? 'REA'
+    : null
 
   const parsedGpa = gpa ? clamp(parseFloat(gpa), 0, 5) : null
   let parsedSat: number | null = sat ? clamp(parseInt(sat, 10), 400, 1600) : null
@@ -139,6 +154,83 @@ export function ChancesCalculator({ schoolName, schoolSlug, admissionRate, sat25
         </Field>
       </div>
 
+      {/* Application-plan selector — context only; does not alter the chance estimate. */}
+      <div className="mt-6">
+        <div className="text-xs uppercase tracking-wide text-white/50 mb-2">
+          Plan to apply
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <PlanButton label="Regular" value="RD" active={plan === 'RD'} onClick={() => setPlan('RD')} />
+          <PlanButton
+            label="Early Action"
+            value="EA"
+            active={plan === 'EA'}
+            disabled={offeredButtonKey != null && offeredButtonKey !== 'EA'}
+            onClick={() => setPlan('EA')}
+          />
+          <PlanButton
+            label="Early Decision"
+            value="ED"
+            active={plan === 'ED'}
+            disabled={offeredButtonKey != null && offeredButtonKey !== 'ED'}
+            onClick={() => setPlan('ED')}
+          />
+          <PlanButton
+            label="Restrictive EA"
+            value="REA"
+            active={plan === 'REA'}
+            disabled={offeredButtonKey != null && offeredButtonKey !== 'REA'}
+            onClick={() => setPlan('REA')}
+          />
+        </div>
+        {offeredEarlyPlan && (
+          <p className="mt-2 text-[11px] text-white/40">
+            {schoolName} offers <b className="text-white/60">{EARLY_PLAN_LABELS[offeredEarlyPlan].long}</b>.{' '}
+            {EARLY_PLAN_LABELS[offeredEarlyPlan].blurb}
+          </p>
+        )}
+        {!offeredEarlyPlan && ipedsId != null && (
+          <p className="mt-2 text-[11px] text-white/40">
+            Early-round admit rate not available for {schoolName} yet — shown for reference only.
+          </p>
+        )}
+      </div>
+
+      {/* Side-by-side early vs regular rates (only when we have published CDS data). */}
+      {earlyData && (
+        <div className="mt-5 rounded-xl border border-white/10 bg-black/20 p-4">
+          <div className="text-xs uppercase tracking-wide text-white/50 mb-3">
+            Round-by-round admit rates
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <RateTile
+              label={EARLY_PLAN_LABELS[earlyData.plan].short}
+              rate={earlyData.earlyRate}
+              highlight={plan !== 'RD'}
+            />
+            <RateTile
+              label="Regular Decision"
+              rate={earlyData.regularRate}
+              highlight={plan === 'RD'}
+            />
+          </div>
+          <p className="mt-3 text-[11px] text-white/40 leading-relaxed">
+            {(() => {
+              const ratio = earlyData.regularRate > 0 ? earlyData.earlyRate / earlyData.regularRate : 0
+              if (ratio >= 1.5) {
+                return `${EARLY_PLAN_LABELS[earlyData.plan].short} applicants are admitted at roughly ${ratio.toFixed(1)}× the Regular Decision rate. `
+              }
+              if (ratio <= 0.9) {
+                return `The ${EARLY_PLAN_LABELS[earlyData.plan].short} rate is not meaningfully higher than RD here. `
+              }
+              return ''
+            })()}
+            Source: {schoolName}&apos;s Common Data Set, {earlyData.cycle}. Early pools include more recruited athletes and legacies —
+            a higher rate doesn&apos;t mean the bar is lower.
+          </p>
+        </div>
+      )}
+
       {ready ? (
         <div className="mt-6 rounded-xl border border-white/10 bg-black/30 p-5">
           <div className="flex items-baseline justify-between flex-wrap gap-3">
@@ -164,10 +256,27 @@ export function ChancesCalculator({ schoolName, schoolSlug, admissionRate, sat25
             </ul>
           )}
 
-          <p className="mt-4 text-[11px] text-white/40">
-            Estimate uses {schoolName}&apos;s published acceptance rate ({admissionRate ?? '—'}%)
-            {sat25 && sat75 ? ` and SAT range ${sat25}–${sat75}` : ''}. Based on published academic data only. Essays, recommendations, and other factors also affect admission decisions.
+          <p className="mt-4 text-[11px] text-white/50">
+            Estimate based on your scores, GPA, and school stats. Doesn&apos;t weigh essays,
+            recommendations, or demonstrated interest.{' '}
+            <Link href="/methodology" className="underline hover:text-white/80">
+              How we calculate
+            </Link>
           </p>
+
+          <details className="mt-3 text-[11px] text-white/40">
+            <summary className="cursor-pointer hover:text-white/60 select-none">
+              What this number means (and doesn&apos;t)
+            </summary>
+            <p className="mt-2 pl-3 border-l border-white/10">
+              This is a statistical estimate, not a prediction. It can&apos;t see your essay,
+              recommendations, or demonstrated interest — and it doesn&apos;t know an individual
+              school&apos;s priorities in a given year. Use it alongside your counselor&apos;s
+              judgment. Based on {schoolName}&apos;s published acceptance rate
+              {admissionRate != null ? ` (${admissionRate}%)` : ''}
+              {sat25 && sat75 ? ` and SAT range ${sat25}–${sat75}` : ''}.
+            </p>
+          </details>
 
           <div className="mt-5 flex flex-wrap gap-3">
             <Link
@@ -198,5 +307,52 @@ function Field({ label, hint, children }: { label: string; hint: string; childre
       {children}
       <div className="text-[10px] text-white/30 mt-1">{hint}</div>
     </label>
+  )
+}
+
+function PlanButton({
+  label,
+  value,
+  active,
+  disabled,
+  onClick,
+}: {
+  label: string
+  value: string
+  active: boolean
+  disabled?: boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={disabled ? undefined : onClick}
+      aria-pressed={active}
+      aria-disabled={disabled || undefined}
+      data-value={value}
+      className={[
+        'rounded-full px-4 py-1.5 text-xs font-semibold transition border',
+        active
+          ? 'border-blue-400 bg-blue-500/20 text-white'
+          : 'border-white/10 bg-white/[0.03] text-white/70 hover:bg-white/[0.06] hover:text-white',
+        disabled ? 'opacity-30 cursor-not-allowed hover:bg-white/[0.03] hover:text-white/70' : '',
+      ].join(' ')}
+    >
+      {label}
+    </button>
+  )
+}
+
+function RateTile({ label, rate, highlight }: { label: string; rate: number; highlight?: boolean }) {
+  return (
+    <div
+      className={[
+        'rounded-lg border p-3',
+        highlight ? 'border-blue-400/40 bg-blue-500/10' : 'border-white/10 bg-white/[0.02]',
+      ].join(' ')}
+    >
+      <div className="text-[11px] uppercase tracking-wide text-white/50">{label}</div>
+      <div className="mt-1 text-2xl font-bold text-white">{rate}%</div>
+    </div>
   )
 }

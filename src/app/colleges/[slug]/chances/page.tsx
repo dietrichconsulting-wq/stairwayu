@@ -30,13 +30,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   return {
     title: `${c.name} Admission Chances Calculator`,
-    description: `Calculate your real chances at ${c.name}. Acceptance rate ${admit}, average SAT ${sat}. Free chancing tool powered by U.S. Dept of Education data.`,
+    description: `Estimate your admission chances at ${c.name}. Acceptance rate ${admit}, average SAT ${sat}. Free chancing tool powered by U.S. Dept of Education data.`,
     alternates: { canonical: `${SITE}/colleges/${c.slug}/chances` },
     openGraph: {
       type: 'article',
       url: `${SITE}/colleges/${c.slug}/chances`,
       title: `${c.name} Admission Chances Calculator`,
-      description: `Acceptance rate ${admit}, average SAT ${sat}. Calculate your real odds.`,
+      description: `Acceptance rate ${admit}, average SAT ${sat}. Estimate your admission chances.`,
       siteName: 'Stairway U',
     },
   }
@@ -121,7 +121,7 @@ export default async function ChancesPage({ params }: PageProps) {
           {c.name} Admission Chances
         </h1>
         <p className="mt-3 text-lg text-white/60">
-          Real odds based on U.S. Department of Education data — not guesses.
+          Estimate based on official U.S. Department of Education data.
         </p>
       </header>
 
@@ -142,6 +142,7 @@ export default async function ChancesPage({ params }: PageProps) {
           sat25={c.sat_25}
           sat75={c.sat_75}
           actMidpoint={c.act_midpoint}
+          ipedsId={c.ipeds_id}
         />
       </section>
 
