@@ -31,9 +31,14 @@ export async function POST(req: Request) {
   const body = await req.text()
   const sig = req.headers.get('stripe-signature')!
 
+  // Defensive: trim whitespace from the env var. Vercel's env var UI has
+  // historically allowed trailing newlines/spaces to slip in on paste,
+  // which makes HMAC signature verification silently fail.
+  const webhookSecret = (process.env.STRIPE_WEBHOOK_SECRET ?? '').trim()
+
   let event: Stripe.Event
   try {
-    event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!)
+    event = stripe.webhooks.constructEvent(body, sig, webhookSecret)
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Webhook error'
     return NextResponse.json({ error: message }, { status: 400 })
