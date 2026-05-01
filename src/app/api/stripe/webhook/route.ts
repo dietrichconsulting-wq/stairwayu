@@ -5,6 +5,27 @@ import { getStripe } from '@/lib/stripe/client'
 import { createServiceClient } from '@/lib/supabase/server'
 // Credits system removed — freemium model uses daily AI limits instead
 
+// Stripe API version 2026-02-25.clover moved current_period_end off the
+// top-level Subscription object onto subscription.items[0]. Older API
+// versions still have it at the top. Read both, fall back to items[0].
+function getPeriodEnd(sub: Stripe.Subscription): number | null {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const top = (sub as any).current_period_end as number | undefined
+  if (typeof top === 'number') return top
+  const itemEnd = sub.items?.data?.[0]?.current_period_end as number | undefined
+  return typeof itemEnd === 'number' ? itemEnd : null
+}
+
+function getTrialEnd(sub: Stripe.Subscription): number | null {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const v = (sub as any).trial_end as number | undefined
+  return typeof v === 'number' ? v : null
+}
+
+function unixToISO(ts: number | null): string | null {
+  return ts ? new Date(ts * 1000).toISOString() : null
+}
+
 export async function POST(req: Request) {
   const stripe = getStripe()
   const body = await req.text()
@@ -45,10 +66,8 @@ export async function POST(req: Request) {
             tier: 'pro',
             status: sub.status,
             billing_interval: interval === 'year' ? 'year' : 'month',
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            current_period_end: new Date((sub as any).current_period_end * 1000).toISOString(),
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            trial_end: (sub as any).trial_end ? new Date((sub as any).trial_end * 1000).toISOString() : null,
+            current_period_end: unixToISO(getPeriodEnd(sub)),
+            trial_end: unixToISO(getTrialEnd(sub)),
           })
           .eq('stripe_customer_id', session.customer as string)
 
@@ -60,15 +79,6 @@ export async function POST(req: Request) {
       const sub = event.data.object as Stripe.Subscription
       const tier = sub.status === 'active' || sub.status === 'trialing' ? 'pro' : 'free'
       const interval = sub.items.data[0]?.price?.recurring?.interval
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const newPeriodEnd = new Date((sub as any).current_period_end * 1000).toISOString()
-
-      // Check if period rolled over (renewal) — grant monthly credits
-      const { data: existingSub } = await supabase
-        .from('subscriptions')
-        .select('user_id, current_period_end')
-        .eq('stripe_subscription_id', sub.id)
-        .single()
 
       await supabase
         .from('subscriptions')
@@ -76,10 +86,9 @@ export async function POST(req: Request) {
           tier,
           status: sub.status,
           billing_interval: interval === 'year' ? 'year' : 'month',
-          current_period_end: newPeriodEnd,
+          current_period_end: unixToISO(getPeriodEnd(sub)),
           cancel_at_period_end: sub.cancel_at_period_end,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          trial_end: (sub as any).trial_end ? new Date((sub as any).trial_end * 1000).toISOString() : null,
+          trial_end: unixToISO(getTrialEnd(sub)),
         })
         .eq('stripe_subscription_id', sub.id)
 
@@ -127,8 +136,7 @@ export async function POST(req: Request) {
         extra: {
           customerId: sub.customer as string,
           subscriptionId: sub.id,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          trialEnd: (sub as any).trial_end,
+          trialEnd: getTrialEnd(sub),
         },
       })
       break
