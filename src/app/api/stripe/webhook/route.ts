@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
+import * as Sentry from '@sentry/nextjs'
 import { getStripe } from '@/lib/stripe/client'
 import { createServiceClient } from '@/lib/supabase/server'
 // Credits system removed — freemium model uses daily AI limits instead
@@ -91,6 +92,45 @@ export async function POST(req: Request) {
         .from('subscriptions')
         .update({ tier: 'free', status: 'canceled', stripe_subscription_id: null })
         .eq('stripe_subscription_id', sub.id)
+      break
+    }
+
+    case 'invoice.payment_failed': {
+      // Stripe smart-retry will continue for up to ~3 weeks before giving up.
+      // We don't change tier here — `customer.subscription.updated` fires when
+      // status transitions to past_due/unpaid/canceled and the existing handler
+      // catches it. This case exists to surface failures in Sentry so we can
+      // spot dunning patterns and (later) trigger in-app banners or email.
+      const invoice = event.data.object as Stripe.Invoice
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const subscriptionId = (invoice as any).subscription as string | null
+      Sentry.captureMessage('Stripe invoice payment failed', {
+        level: 'warning',
+        extra: {
+          customerId: invoice.customer as string,
+          subscriptionId,
+          amountDue: invoice.amount_due,
+          attemptCount: invoice.attempt_count,
+          nextPaymentAttempt: invoice.next_payment_attempt,
+          billingReason: invoice.billing_reason,
+        },
+      })
+      break
+    }
+
+    case 'customer.subscription.trial_will_end': {
+      // Fires 3 days before trial converts. Visibility-only for now —
+      // wire to email/in-app notification in a follow-up.
+      const sub = event.data.object as Stripe.Subscription
+      Sentry.captureMessage('Stripe trial ending in 3 days', {
+        level: 'info',
+        extra: {
+          customerId: sub.customer as string,
+          subscriptionId: sub.id,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          trialEnd: (sub as any).trial_end,
+        },
+      })
       break
     }
   }
