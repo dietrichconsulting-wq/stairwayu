@@ -36,11 +36,16 @@ export async function POST(req: Request) {
   // which makes HMAC signature verification silently fail.
   const webhookSecret = (process.env.STRIPE_WEBHOOK_SECRET ?? '').trim()
 
+  // TEMP DEBUG — remove once webhook is verified working in prod.
+  // Logs only the first 10 chars + length, never the full secret.
+  console.log('[webhook] secret_prefix=', webhookSecret.slice(0, 10), 'len=', webhookSecret.length, 'sig_present=', !!sig, 'body_len=', body.length)
+
   let event: Stripe.Event
   try {
     event = stripe.webhooks.constructEvent(body, sig, webhookSecret)
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Webhook error'
+    console.error('[webhook] signature_check_failed:', message)
     return NextResponse.json({ error: message }, { status: 400 })
   }
 
@@ -133,8 +138,6 @@ export async function POST(req: Request) {
     }
 
     case 'customer.subscription.trial_will_end': {
-      // Fires 3 days before trial converts. Visibility-only for now —
-      // wire to email/in-app notification in a follow-up.
       const sub = event.data.object as Stripe.Subscription
       Sentry.captureMessage('Stripe trial ending in 3 days', {
         level: 'info',
