@@ -153,7 +153,6 @@ export function FinancialPlanner({ savedColleges = [], homeState = null }: Finan
     if (costBreakdown?.coa != null) {
       set('currentTuition', String(Math.round(costBreakdown.coa)))
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [costBreakdown?.coa])
 
   // What-if sliders

@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import * as Sentry from '@sentry/nextjs'
+import Link from 'next/link'
 
 export default function GlobalError({
   error,
@@ -87,7 +88,7 @@ export default function GlobalError({
             >
               Try again
             </button>
-            <a
+            <Link
               href="/"
               style={{
                 padding: '10px 20px',
@@ -101,7 +102,7 @@ export default function GlobalError({
               }}
             >
               Back to home
-            </a>
+            </Link>
           </div>
         </main>
       </body>

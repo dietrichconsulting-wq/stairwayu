@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next'
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 import { SITE_URL as SITE } from '@/lib/siteConfig'
 
 export const revalidate = 3600 // re-query DB at most once per hour
@@ -15,7 +15,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   let collegeEntries: MetadataRoute.Sitemap = []
   try {
-    const sb = await createClient()
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    if (!supabaseUrl || !supabaseKey) return staticEntries
+
+    const sb = createClient(supabaseUrl, supabaseKey, {
+      auth: { persistSession: false },
+    })
     const { data } = await sb
       .from('colleges')
       .select('slug, updated_at, popularity')

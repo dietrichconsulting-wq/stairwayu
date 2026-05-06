@@ -69,7 +69,7 @@ export function MajorExplorer({ currentMajor, onSelectMajor }: MajorExplorerProp
     })
   })
   
-  let allCareersList = Array.from(allCareersMap.values())
+  const allCareersList = Array.from(allCareersMap.values())
   allCareersList.sort((a, b) => parseSalary(b.salary) - parseSalary(a.salary))
 
   return (

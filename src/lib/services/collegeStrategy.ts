@@ -158,9 +158,9 @@ Respond ONLY with valid JSON, no markdown:
   // ── Validate tier counts (pre-assigned + AI combined), retry if short ──
   const countByTier = (arr, t) => arr.filter(s => s.tier === t).length;
   const allSchools = [...preAssigned, ...aiNewSchools];
-  let reachCount = countByTier(allSchools, 'reach');
-  let targetCount = countByTier(allSchools, 'target');
-  let safetyCount = countByTier(allSchools, 'safety');
+  const reachCount = countByTier(allSchools, 'reach');
+  const targetCount = countByTier(allSchools, 'target');
+  const safetyCount = countByTier(allSchools, 'safety');
 
   if (reachCount < 3 || targetCount < 3 || safetyCount < 3) {
     const fixPrompt = `The current college list has ${reachCount} reach, ${targetCount} target, ${safetyCount} safety schools. Each tier MUST have at least 3. Suggest MORE new schools for any tier below 3. Do not include these schools (already in list): ${allSchools.map(s => s.name).join(', ')}. Return ONLY the new additions.\n\nRespond ONLY with valid JSON, no markdown:\n{"schools": [{ "name": "...", "tier": "reach|target|safety", "programStrength": "...", "whyFit": "..." }]}`;
