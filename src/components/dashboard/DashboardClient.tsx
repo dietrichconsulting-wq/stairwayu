@@ -241,14 +241,6 @@ export function DashboardClient({ userId }: DashboardClientProps) {
   const { total: readinessTotal, isLoading: scoreLoading } = useReadinessScore(userId)
   const { streak, isLoading: streakLoading } = useStreak(userId)
 
-  function getSubtitle(score: number) {
-    if (score <= 15) return "Let's get started — your future self will thank you."
-    if (score <= 35) return "You're picking up speed — colleges are gonna notice."
-    if (score <= 60) return "You're ahead of most applicants right now. Keep going."
-    if (score <= 85) return "You're crushing it — almost everything is dialed in."
-    return "You're basically ready to hit submit. Let's go. 🎯"
-  }
-
   // ── Welcome tour (kept available via ? button, no auto-trigger) ──
   const [showTour, setShowTour] = useState(false)
 
@@ -329,15 +321,9 @@ export function DashboardClient({ userId }: DashboardClientProps) {
     }
   }, [readinessTotal, scoreLoading])
 
-  // ── View mode (Student / Mom) — persists in localStorage, theme syncs automatically ──
   const [viewMode, setViewMode] = useViewMode()
-  const [hintDismissed, setHintDismissed] = useState(true) // default hidden until mount check
-  useEffect(() => {
-    try { setHintDismissed(localStorage.getItem('stairwayu_view_mode_hint_seen') === '1') } catch {}
-  }, [])
   const handleSetViewMode = useCallback((next: 'student' | 'mom') => {
     setViewMode(next)
-    setHintDismissed(true)
     try { localStorage.setItem('stairwayu_view_mode_hint_seen', '1') } catch {}
   }, [setViewMode])
 
@@ -355,6 +341,38 @@ export function DashboardClient({ userId }: DashboardClientProps) {
     { label: 'Compare Costs', href: '/compare', icon: '⚖️', tip: 'Compare tuition and net price side-by-side for your saved schools.' },
   ]
   const QUICK_ACTIONS = viewMode === 'mom' ? QUICK_ACTIONS_MOM : QUICK_ACTIONS_STUDENT
+  const openTasks = tasks.filter(t => !t.completed_at)
+  const firstName = profile?.display_name?.split(' ')[0] || (viewMode === 'mom' ? 'your student' : 'you')
+  const hasAcademicProfile = !!(profile?.gpa || profile?.sat || profile?.act_score)
+  const nextAction = colleges.length === 0
+    ? {
+        label: 'Add your first college',
+        href: '/colleges',
+        eyebrow: 'Start here',
+        body: 'Save at least one school so Stairway U can calculate admission odds and compare your fit.',
+      }
+    : !hasAcademicProfile
+      ? {
+          label: 'Add GPA or test score',
+          href: '/profile',
+          eyebrow: 'Improve your snapshot',
+          body: 'Your admission estimate gets sharper once your GPA, SAT, or ACT is in your profile.',
+        }
+      : openTasks.length > 0
+        ? {
+            label: openTasks[0].title,
+            href: '/journey',
+            eyebrow: 'Next best step',
+            body: openTasks[0].description || 'Complete the next task in your college journey to keep momentum.',
+          }
+        : {
+            label: viewMode === 'mom' ? 'Review college costs' : 'Find scholarships',
+            href: viewMode === 'mom' ? '/finance' : '/scholarships',
+            eyebrow: 'Keep building',
+            body: viewMode === 'mom'
+              ? 'Move from admissions fit to affordability and see what each option may really cost.'
+              : 'Use your profile to find scholarships that match your background, interests, and goals.',
+          }
 
   // Share with Family + Pledges
   const [shareUrl, setShareUrl] = useState<string | null>(null)
@@ -404,13 +422,15 @@ export function DashboardClient({ userId }: DashboardClientProps) {
 
   return (
     <div style={{ maxWidth: 900, width: '100%' }}>
-      {/* ── Page Header with View Mode Toggle (small pill) ── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text)', margin: 0 }}>
-          {profileLoading ? '…' : viewMode === 'mom'
-            ? `${profile?.display_name?.split(' ')[0] || 'Your student'}'s College Plan 🎓`
-            : `Welcome back, ${profile?.display_name?.split(' ')[0] || 'Student'} 👋`}
-        </h1>
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>
+            Dashboard
+          </div>
+          <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text)', margin: 0 }}>
+            {profileLoading ? 'Loading...' : `What should ${firstName} do next?`}
+          </h1>
+        </div>
 
         {/* Small view mode toggle + help button */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -440,7 +460,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
                 flexShrink: 0,
               }}
             >
-              <span style={{ fontSize: 16, lineHeight: 1 }}>🔥</span>
+              <span style={{ fontSize: 11, lineHeight: 1, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Streak</span>
               {streak}-day streak
             </motion.div>
             </Tooltip>
@@ -460,8 +480,8 @@ export function DashboardClient({ userId }: DashboardClientProps) {
             }}
           >
             {([
-              { key: 'student', label: '🎓', icon: '🎓' },
-              { key: 'mom', label: '👪', icon: '👪' },
+              { key: 'student', label: 'Student', icon: 'S' },
+              { key: 'mom', label: 'Parent', icon: 'P' },
             ] as const).map(opt => {
               const active = viewMode === opt.key
               return (
@@ -505,18 +525,6 @@ export function DashboardClient({ userId }: DashboardClientProps) {
         </div>
       </div>
 
-      {/* Subtitle */}
-      <p style={{ fontSize: 14, color: 'var(--color-text-muted)', marginBottom: 20 }}>
-        {scoreLoading
-          ? 'Loading your progress…'
-          : viewMode === 'mom'
-            ? 'Chances of admission and how to pay for it — all in one place.'
-            : getSubtitle(readinessTotal)}
-      </p>
-
-      {/* ── Editable Stat Cards ── */}
-      <StatCardRow profile={profile} updateProfile={updateProfile} profileLoading={profileLoading} />
-
       {/* ── Hero: Admission Chances (always first) ── */}
       <AdmissionSnapshot
         profile={profile}
@@ -525,7 +533,58 @@ export function DashboardClient({ userId }: DashboardClientProps) {
         onAddSchool={name => addCollege.mutate({ name })}
       />
 
-      {/* ── Quick Actions (always visible) ── */}
+      <section
+        aria-label="Prioritized next action"
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          justifyContent: 'space-between',
+          gap: 16,
+          alignItems: 'center',
+          padding: '18px 20px',
+          marginBottom: 20,
+          borderRadius: 16,
+          border: '1.5px solid color-mix(in srgb, var(--color-primary) 30%, var(--color-border))',
+          background: 'linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 12%, var(--color-card)), var(--color-card))',
+        }}
+      >
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>
+            {nextAction.eyebrow}
+          </div>
+          <h2 style={{ fontSize: 20, fontWeight: 850, color: 'var(--color-text)', margin: '0 0 5px' }}>
+            {nextAction.label}
+          </h2>
+          <p style={{ fontSize: 13, lineHeight: 1.5, color: 'var(--color-text-muted)', margin: 0 }}>
+            {nextAction.body}
+          </p>
+        </div>
+        <Link
+          href={nextAction.href}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '11px 16px',
+            borderRadius: 12,
+            background: 'var(--color-primary)',
+            color: '#fff',
+            textDecoration: 'none',
+            fontSize: 13,
+            fontWeight: 800,
+            whiteSpace: 'nowrap',
+          }}
+        >
+          Do this next
+        </Link>
+      </section>
+
+      <div style={{ marginBottom: 12 }}>
+        <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+          Secondary tools
+        </div>
+      </div>
+
       <div data-tour="quick-actions" style={{
         display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap',
       }}>
@@ -608,6 +667,13 @@ export function DashboardClient({ userId }: DashboardClientProps) {
         {showMoreSection && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} style={{ overflow: 'hidden', marginBottom: 20 }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>
+                  Profile inputs
+                </div>
+                <StatCardRow profile={profile} updateProfile={updateProfile} profileLoading={profileLoading} />
+              </div>
+
               {/* Quick Stats */}
               <div>
                 <ProfileStats profile={profile} loading={profileLoading} tasks={tasks} userId={userId} />

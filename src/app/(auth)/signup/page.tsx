@@ -2,10 +2,16 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import {
+  AuthAlert,
+  AuthShell,
+  authInputClassName,
+  authLabelClassName,
+  authPrimaryButtonClassName,
+} from '@/components/AuthShell'
+import { createClient } from '@/lib/supabase/client'
 
 export default function SignupPage() {
   const [email, setEmail] = useState('')
@@ -16,7 +22,6 @@ export default function SignupPage() {
   const [success, setSuccess] = useState(false)
   const [refCode, setRefCode] = useState<string | null>(null)
   const [userType, setUserType] = useState<'student' | 'counselor'>('student')
-  const router = useRouter()
   const supabase = createClient()
 
   useEffect(() => {
@@ -56,109 +61,85 @@ export default function SignupPage() {
 
   if (success) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg)' }}>
-        <div className="card-elevated" style={{ maxWidth: 400, width: '100%', padding: '40px 36px', textAlign: 'center' }}>
-          <div style={{ fontSize: 40, marginBottom: 16 }}>📬</div>
-          <h2 style={{ fontWeight: 800, fontSize: 20, marginBottom: 8 }}>Check your email</h2>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: 14 }}>
-            We sent a confirmation link to <strong>{email}</strong>. Click it to activate your account.
-          </p>
-          <Link href="/login" style={{ display: 'block', marginTop: 24, color: 'var(--color-primary)', fontWeight: 600, fontSize: 14 }}>
+      <AuthShell
+        eyebrow="Almost there"
+        title="Check your email"
+        subtitle={`We sent a confirmation link to ${email}. Click it to activate your account.`}
+      >
+        <div className="text-center">
+          <div className="mx-auto mb-5 flex size-14 items-center justify-center rounded-2xl bg-teal-400/10 text-xs font-extrabold uppercase tracking-[0.12em] text-teal-200">
+            Sent
+          </div>
+          <Link href="/login" className={authPrimaryButtonClassName}>
             Back to sign in
           </Link>
         </div>
-      </div>
+      </AuthShell>
     )
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg)', padding: '24px' }}>
-      <div className="card-elevated" style={{ width: '100%', maxWidth: 400, padding: '40px 36px' }}>
+    <AuthShell
+      eyebrow={userType === 'counselor' ? 'Counselor access' : 'Start free'}
+      title={userType === 'counselor' ? 'Create counselor account' : 'Create your account'}
+      subtitle={
+        userType === 'counselor'
+          ? 'Track student journeys, deadlines, and college progress from one polished dashboard.'
+          : 'Save your college chances, build your list, and unlock the rest of your Stairway U dashboard.'
+      }
+    >
+      <div className="mb-5 space-y-3">
         {refCode && (
-          <div style={{
-            background: 'rgba(99,102,241,0.12)',
-            border: '1.5px solid rgba(99,102,241,0.3)',
-            borderRadius: 10,
-            padding: '10px 14px',
-            marginBottom: 20,
-            fontSize: 13,
-            color: 'var(--color-text)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-          }}>
-            <span style={{ fontSize: 16 }}>🎉</span>
-            <span>You were invited by a friend! Welcome to Stairway U.</span>
-          </div>
+          <AuthAlert tone="info">
+            You were invited by a friend. Welcome to Stairway U.
+          </AuthAlert>
         )}
-
         {userType === 'counselor' && (
-          <div style={{
-            background: 'rgba(20,184,166,0.12)',
-            border: '1.5px solid rgba(20,184,166,0.3)',
-            borderRadius: 10,
-            padding: '10px 14px',
-            marginBottom: 20,
-            fontSize: 13,
-            color: 'var(--color-text)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-          }}>
-            <span style={{ fontSize: 16 }}>🎓</span>
-            <span>Counselor accounts are always free.</span>
-          </div>
+          <AuthAlert tone="success">
+            Counselor accounts are always free.
+          </AuthAlert>
         )}
-
-        <div style={{ marginBottom: 32, textAlign: 'center' }}>
-          <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-primary)', marginBottom: 6 }}>
-            {userType === 'counselor' ? 'Create Counselor Account' : 'Create Account'}
-          </div>
-          <div style={{ fontSize: 14, color: 'var(--color-text-muted)' }}>
-            {userType === 'counselor' ? 'Track your students\' college journeys' : 'Start your college journey'}
-          </div>
-        </div>
-
-        <form onSubmit={handleSignup} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {[
-            { label: 'Name', type: 'text', value: name, set: setName, placeholder: 'Your name' },
-            { label: 'Email', type: 'email', value: email, set: setEmail, placeholder: 'you@school.edu' },
-            { label: 'Password', type: 'password', value: password, set: setPassword, placeholder: '8+ characters' },
-          ].map(({ label, type, value, set, placeholder }) => (
-            <div key={label} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                {label}
-              </label>
-              <input
-                type={type}
-                value={value}
-                onChange={e => set(e.target.value)}
-                required
-                placeholder={placeholder}
-                style={{ padding: '10px 12px', borderRadius: 8, border: '1.5px solid var(--color-border)', background: 'var(--color-column)', color: 'var(--color-text)', fontSize: 14, outline: 'none', width: '100%' }}
-              />
-            </div>
-          ))}
-
-          {error && <div style={{ color: 'var(--color-danger)', fontSize: 13 }}>{error}</div>}
-
-          <button type="submit" disabled={loading} style={{ background: 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: 10, padding: '12px', fontWeight: 700, fontSize: 14, cursor: 'pointer', width: '100%' }}>
-            {loading ? 'Creating account…' : 'Create Account'}
-          </button>
-        </form>
-
-        <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--color-text-muted)', marginTop: 24 }}>
-          Already have an account?{' '}
-          <Link href="/login" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>Sign in</Link>
-        </p>
-
-        <p style={{ textAlign: 'center', fontSize: 11, color: 'var(--color-text-muted)', marginTop: 12, opacity: 0.6 }}>
-          By signing up you agree to our{' '}
-          <Link href="/terms" style={{ color: 'var(--color-text-muted)', textDecoration: 'underline' }}>Terms</Link>
-          {' and '}
-          <Link href="/privacy" style={{ color: 'var(--color-text-muted)', textDecoration: 'underline' }}>Privacy Policy</Link>.
-        </p>
       </div>
-    </div>
+
+      <form onSubmit={handleSignup} className="flex flex-col gap-4">
+        {[
+          { label: 'Name', type: 'text', value: name, set: setName, placeholder: 'Your name' },
+          { label: 'Email', type: 'email', value: email, set: setEmail, placeholder: 'you@school.edu' },
+          { label: 'Password', type: 'password', value: password, set: setPassword, placeholder: '8+ characters' },
+        ].map(({ label, type, value, set, placeholder }) => (
+          <div key={label}>
+            <label className={authLabelClassName}>{label}</label>
+            <input
+              type={type}
+              value={value}
+              onChange={e => set(e.target.value)}
+              required
+              placeholder={placeholder}
+              className={authInputClassName}
+            />
+          </div>
+        ))}
+
+        {error && <AuthAlert>{error}</AuthAlert>}
+
+        <button type="submit" disabled={loading} className={authPrimaryButtonClassName}>
+          {loading ? 'Creating account...' : 'Create account'}
+        </button>
+      </form>
+
+      <p className="mt-6 text-center text-sm text-white/50">
+        Already have an account?{' '}
+        <Link href="/login" className="font-bold text-white no-underline hover:text-teal-200">
+          Sign in
+        </Link>
+      </p>
+
+      <p className="mt-4 text-center text-[11px] leading-relaxed text-white/35">
+        By signing up you agree to our{' '}
+        <Link href="/terms" className="text-white/45 underline decoration-white/20 underline-offset-2 hover:text-white/70">Terms</Link>
+        {' and '}
+        <Link href="/privacy" className="text-white/45 underline decoration-white/20 underline-offset-2 hover:text-white/70">Privacy Policy</Link>.
+      </p>
+    </AuthShell>
   )
 }

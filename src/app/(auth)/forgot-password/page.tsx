@@ -1,9 +1,16 @@
 'use client'
 
-import { useState, Suspense } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { Suspense, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
+import {
+  AuthAlert,
+  AuthShell,
+  authInputClassName,
+  authLabelClassName,
+  authPrimaryButtonClassName,
+} from '@/components/AuthShell'
+import { createClient } from '@/lib/supabase/client'
 
 export default function ForgotPasswordPage() {
   return (
@@ -37,79 +44,53 @@ function ForgotPasswordContent() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg)', padding: '24px' }}>
-      <div className="card-elevated" style={{ width: '100%', maxWidth: 400, padding: '40px 36px' }}>
-        <div style={{ marginBottom: 32, textAlign: 'center' }}>
-          <div style={{ marginBottom: 4 }}>
-            <img src="/stairwayu-wordmark.png" alt="Stairway U" style={{ height: 44, width: 'auto', borderRadius: 6 }} />
+    <AuthShell
+      eyebrow="Account recovery"
+      title={sent ? 'Check your email' : 'Reset your password'}
+      subtitle={
+        sent
+          ? `We sent a password reset link to ${email}.`
+          : 'Enter your account email and we will send a secure reset link.'
+      }
+    >
+      {sent ? (
+        <div className="text-center">
+          <div className="mx-auto mb-5 flex size-14 items-center justify-center rounded-2xl bg-teal-400/10 text-xs font-extrabold uppercase tracking-[0.12em] text-teal-200">
+            Sent
           </div>
-          <div style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>Reset your password</div>
+          <Link href="/login" className={authPrimaryButtonClassName}>
+            Back to sign in
+          </Link>
         </div>
-
-        {sent ? (
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 40, marginBottom: 16 }}>📬</div>
-            <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>Check your email</div>
-            <div style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 24 }}>
-              We sent a password reset link to <strong>{email}</strong>
+      ) : (
+        <>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <div>
+              <label className={authLabelClassName}>Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+                className={authInputClassName}
+                placeholder="you@school.edu"
+              />
             </div>
-            <Link href="/login" style={{ fontSize: 13, color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}>
-              ← Back to sign in
+
+            {error && <AuthAlert>{error}</AuthAlert>}
+
+            <button type="submit" disabled={loading} className={authPrimaryButtonClassName}>
+              {loading ? 'Sending...' : 'Send reset link'}
+            </button>
+          </form>
+
+          <p className="mt-6 text-center text-sm text-white/50">
+            <Link href="/login" className="font-bold text-white no-underline hover:text-teal-200">
+              Back to sign in
             </Link>
-          </div>
-        ) : (
-          <>
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  Email
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  required
-                  style={inputStyle}
-                  placeholder="you@school.edu"
-                />
-              </div>
-
-              {error && <div style={{ color: 'var(--color-danger)', fontSize: 13 }}>{error}</div>}
-
-              <button type="submit" disabled={loading} style={primaryBtnStyle}>
-                {loading ? 'Sending…' : 'Send Reset Link'}
-              </button>
-            </form>
-
-            <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--color-text-muted)', marginTop: 24 }}>
-              <Link href="/login" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>← Back to sign in</Link>
-            </p>
-          </>
-        )}
-      </div>
-    </div>
+          </p>
+        </>
+      )}
+    </AuthShell>
   )
-}
-
-const inputStyle: React.CSSProperties = {
-  padding: '10px 12px',
-  borderRadius: 8,
-  border: '1.5px solid var(--color-border)',
-  background: 'var(--color-column)',
-  color: 'var(--color-text)',
-  fontSize: 14,
-  outline: 'none',
-  width: '100%',
-}
-
-const primaryBtnStyle: React.CSSProperties = {
-  background: 'var(--color-primary)',
-  color: '#fff',
-  border: 'none',
-  borderRadius: 10,
-  padding: '12px',
-  fontWeight: 700,
-  fontSize: 14,
-  cursor: 'pointer',
-  width: '100%',
 }

@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
-import { createBrowserClient } from '@supabase/ssr'
 import { HeroCalculator } from '@/components/HeroCalculator'
 import { ShieldCheck, Database, Sparkles, Lock } from 'lucide-react'
 
@@ -26,43 +25,6 @@ function getSeasonalHook(): { emoji: string; message: string; phase: string } {
   if (month <= 10)
     return { emoji: '⏰', message: 'Early deadlines are weeks away. Most students start too late — don\u2019t be most students.', phase: 'Apply' }
   return { emoji: '🚀', message: 'Early decisions are out. Regular deadline is next — finish strong.', phase: 'Apply' }
-}
-
-function GoogleSignInButton({ className }: { className?: string }) {
-  const [error, setError] = useState('')
-
-  const handleGoogleLogin = async () => {
-    setError('')
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    )
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}/api/auth/callback` },
-    })
-    if (error) {
-      setError(error.message)
-    }
-  }
-
-  return (
-    <>
-    {error && <div className="text-red-500 text-sm mb-2">{error}</div>}
-    <button
-      onClick={handleGoogleLogin}
-      className={`flex items-center gap-2.5 rounded-md bg-white px-6 py-4 text-[15px] font-bold text-slate-700 no-underline border-none cursor-pointer ${className ?? ''}`}
-    >
-      <svg width="18" height="18" viewBox="0 0 24 24">
-        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-      </svg>
-      Sign in with Google
-    </button>
-    </>
-  )
 }
 
 // S2.T2 — feature tile artwork is now served from /public/screenshots/*.svg
@@ -219,11 +181,8 @@ export function LandingPage() {
           <img src="/stairwayu-wordmark.png" alt="Stairway U" className="h-10 w-auto" />
         </div>
         <div className="flex items-center gap-2">
-          <Link href="/login" className="rounded-md px-4 py-2 text-[13px] font-semibold text-white/80 no-underline">
-            Sign In
-          </Link>
-          <Link href="/signup" className="rounded-md bg-white px-5 py-2.5 text-[13px] font-bold text-slate-900 no-underline">
-            Get Started
+          <Link href="/login" className="rounded-md px-4 py-2 text-[13px] font-semibold text-white/80 no-underline hover:text-white">
+            Sign in
           </Link>
         </div>
       </nav>
@@ -236,9 +195,6 @@ export function LandingPage() {
             <span className="text-[13px] font-bold tracking-wide text-white">
               <span aria-hidden="true">{hook.emoji}</span> {hook.message}
             </span>
-            <Link href="/signup" className="ml-3 inline-block rounded bg-white/20 px-3 py-0.5 text-[11px] font-extrabold uppercase tracking-[0.05em] text-white no-underline backdrop-blur-sm">
-              Start Free →
-            </Link>
           </div>
         )
       })()}
@@ -249,43 +205,37 @@ export function LandingPage() {
         <div className="landing-hero-gradient absolute inset-0" aria-hidden="true" />
         <div className="landing-hero-overlay absolute inset-0" aria-hidden="true" />
 
-        <div className="relative z-10 mx-auto flex min-h-screen max-w-[1200px] flex-col items-center justify-center gap-10 px-[6%] pb-16 pt-[130px] md:flex-row md:items-center md:justify-between md:pt-[100px]">
-          {/* Left: copy */}
-          <div className="max-w-[520px] shrink-0">
-            <div className="mb-4 text-xs font-extrabold uppercase tracking-[0.2em] text-white/60">
-              Your Stairway to College
+        <div className="relative z-10 mx-auto flex min-h-screen max-w-[980px] flex-col items-center justify-center px-[6%] pb-16 pt-[132px] text-center md:pt-[118px]">
+          <div className="mb-6 max-w-[760px]">
+            <div className="mb-3 text-xs font-extrabold uppercase tracking-[0.2em] text-teal-200/80">
+              Free Admission Calculator
             </div>
-            <h1 className="mb-6 text-[clamp(40px,6vw,72px)] font-black leading-[1.02] tracking-tight text-white">
-              Your profile.<br />Your best-fit schools.
+            <h1 className="mb-4 text-[clamp(38px,6vw,68px)] font-black leading-[1.02] tracking-tight text-white">
+              Calculate your college chances in seconds.
             </h1>
-            <p className="mb-3 max-w-[440px] text-[clamp(16px,1.9vw,20px)] font-semibold leading-snug text-white">
-              The one dashboard for college applications &mdash; backed by federal data, not sponsored rankings.
+            <p className="mx-auto max-w-[620px] text-[clamp(15px,1.8vw,19px)] font-semibold leading-snug text-white/75">
+              Pick a college, add your GPA or test score, and get an estimate from federal admissions data.
             </p>
-            <p className="mb-3 max-w-[440px] text-[clamp(14px,1.6vw,17px)] leading-relaxed text-white/70">
-              Search any college, enter your GPA and scores, see how you compare to admitted students &mdash; instantly, free.
-            </p>
-            <p className="mb-8 text-[12px] font-semibold uppercase tracking-[0.12em] text-white/55">
-              For students, parents &amp; counselors
-            </p>
-            <div className="flex flex-wrap items-center gap-4">
-              <Link href="/signup" className="rounded-md bg-white px-8 py-3.5 text-[14px] font-extrabold text-slate-900 no-underline">
-                Start for Free
-              </Link>
-              <GoogleSignInButton className="!py-3.5 !px-6 !text-[14px]" />
-              <Link href="/login" className="text-[13px] font-semibold text-white/60 no-underline hover:text-white">
-                Sign In
-              </Link>
-            </div>
           </div>
 
-          {/* Right: live calculator */}
-          <div className="w-full max-w-[540px] shrink-0">
+          <div className="mb-6 grid w-full max-w-[760px] grid-cols-1 gap-2 sm:grid-cols-3">
+            {['1. Pick a college', '2. Add GPA or score', '3. See your estimate'].map(step => (
+              <div key={step} className="rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs font-extrabold uppercase tracking-[0.08em] text-white/80 backdrop-blur-md">
+                {step}
+              </div>
+            ))}
+          </div>
+
+          <div id="calculator" className="w-full max-w-[640px] scroll-mt-[130px]">
             <HeroCalculator />
           </div>
-        </div>
 
-        <div className="absolute right-12 bottom-8 z-10 text-xs uppercase tracking-[0.1em] text-white/40">
-          Scroll ↓
+          <div className="mt-5 text-[12px] font-semibold uppercase tracking-[0.12em] text-white/45">
+            No credit card required &middot; Federal data only &middot; Already have an account?{' '}
+            <Link href="/login" className="text-white/70 no-underline hover:text-white">
+              Sign in
+            </Link>
+          </div>
         </div>
       </section>
 

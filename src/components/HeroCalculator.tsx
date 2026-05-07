@@ -120,14 +120,17 @@ export function HeroCalculator({ parentMode = false }: CalcProps) {
   const ready = school && (parsedGpa != null || parsedSat != null)
 
   return (
-    <div className="w-full max-w-[540px]">
-      <div className="rounded-2xl border border-white/10 bg-slate-900/80 p-6 backdrop-blur-xl shadow-2xl">
+    <div className="w-full">
+      <div className="rounded-[28px] border border-white/15 bg-slate-900/85 p-6 text-left shadow-[0_28px_90px_rgba(8,13,31,0.5)] backdrop-blur-xl sm:p-8">
         <div className="mb-1 text-xs font-extrabold uppercase tracking-[0.15em] text-teal-300">
-          Free Admission Calculator
+          Try it live
         </div>
-        <h2 className="mb-5 text-xl font-bold text-white">
+        <h2 className="mb-2 text-[clamp(22px,3vw,30px)] font-black tracking-tight text-white">
           What are {nameLabel} real odds?
         </h2>
+        <p className="mb-6 text-sm font-medium leading-relaxed text-white/50">
+          Start with the school, then add GPA, SAT, or ACT. The estimate updates as soon as there is enough data.
+        </p>
 
         {/* Student name (parent mode) */}
         {parentMode && (
@@ -146,7 +149,7 @@ export function HeroCalculator({ parentMode = false }: CalcProps) {
         )}
 
         {/* School search */}
-        <div ref={wrapRef} className="relative mb-4">
+        <div ref={wrapRef} className="relative mb-5">
           <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-white/50">
             School
           </label>
@@ -168,7 +171,7 @@ export function HeroCalculator({ parentMode = false }: CalcProps) {
                 onChange={(e) => { search(e.target.value); setShowDropdown(true) }}
                 onFocus={() => results.length > 0 && setShowDropdown(true)}
                 placeholder="Search — e.g. UT Austin, Stanford"
-                className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white outline-none placeholder:text-white/30 focus:border-teal-400"
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-white/30 focus:border-teal-400"
               />
               {showDropdown && results.length > 0 && (
                 <div className="absolute z-20 mt-1 w-full rounded-lg border border-white/10 bg-slate-800 shadow-xl overflow-hidden">
@@ -192,14 +195,14 @@ export function HeroCalculator({ parentMode = false }: CalcProps) {
         </div>
 
         {/* GPA + Scores */}
-        <div className="grid grid-cols-3 gap-3 mb-4">
+        <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
           <label className="block">
             <span className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-white/50">GPA</span>
             <input
               type="number" step="0.01" min="0" max="5" value={gpa}
               onChange={(e) => setGpa(e.target.value)}
               placeholder="3.7"
-              className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white outline-none placeholder:text-white/30 focus:border-teal-400"
+              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-white/30 focus:border-teal-400"
             />
           </label>
           <label className="block">
@@ -208,7 +211,7 @@ export function HeroCalculator({ parentMode = false }: CalcProps) {
               type="number" min="400" max="1600" value={sat}
               onChange={(e) => setSat(e.target.value)}
               placeholder="1350"
-              className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white outline-none placeholder:text-white/30 focus:border-teal-400"
+              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-white/30 focus:border-teal-400"
             />
           </label>
           <label className="block">
@@ -217,14 +220,14 @@ export function HeroCalculator({ parentMode = false }: CalcProps) {
               type="number" min="1" max="36" value={act}
               onChange={(e) => setAct(e.target.value)}
               placeholder="30"
-              className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white outline-none placeholder:text-white/30 focus:border-teal-400"
+              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-white/30 focus:border-teal-400"
             />
           </label>
         </div>
 
         {/* Result */}
         {ready && result ? (
-          <div className="rounded-xl border border-white/10 bg-black/40 p-4 mb-4">
+          <div className="mb-5 rounded-2xl border border-white/10 bg-black/40 p-5">
             <div className="flex items-baseline justify-between">
               <div>
                 <div className="text-[10px] uppercase tracking-wider text-white/40">
@@ -261,7 +264,7 @@ export function HeroCalculator({ parentMode = false }: CalcProps) {
 
         <Link
           href={school ? `/colleges/${school.slug}/chances` : parentMode ? '/signup?ref=parents' : '/signup'}
-          className="block w-full rounded-lg bg-white py-3 text-center text-[13px] font-extrabold uppercase tracking-[0.03em] text-slate-900 no-underline hover:bg-white/90"
+          className="block w-full rounded-xl bg-white py-3.5 text-center text-[13px] font-extrabold uppercase tracking-[0.03em] text-slate-900 no-underline hover:bg-white/90"
         >
           {ready
             ? (studentName.trim() ? `See ${studentName.trim()}'s Full Report →` : 'See Full Report →')
