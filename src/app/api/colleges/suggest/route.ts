@@ -2,18 +2,53 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { mapRichResult, RICH_FIELDS } from '@/lib/services/collegeScorecard'
 import { calculateChance } from '@/lib/services/admissionChance'
+import { getCipCodes } from '@/lib/majorCipMap'
+import { scoreProgramStrength, stairwayRanking } from '@/lib/services/programStrength'
 
 const BASE_URL = 'https://api.data.gov/ed/collegescorecard/v1/schools.json'
 const API_KEY = process.env.COLLEGE_SCORECARD_API_KEY
 
-export async function GET(req: Request) {
+function fitScore(
+  chance: number,
+  avgSAT: number | null,
+  studentSAT: number | null,
+  programStrengthScore: number | null,
+  hasMajor: boolean,
+) {
+  // Prefer realistic-but-interesting schools, not only the easiest admits.
+  const chanceFit = Math.max(0, 100 - Math.abs(chance - 45) * 1.45)
+  const satFit = studentSAT && avgSAT
+    ? Math.max(0, 100 - Math.abs(avgSAT - studentSAT) / 2.5)
+    : 55
+  const programFit = programStrengthScore ?? 50
+
+  return hasMajor
+    ? chanceFit * 0.42 + satFit * 0.18 + programFit * 0.40
+    : chanceFit * 0.68 + satFit * 0.32
+}
+
+function bestMatchingProgram(raw: Record<string, unknown>, cipCodes: string[]) {
+  const programs = (raw['latest.programs.cip_4_digit'] as Array<Record<string, unknown>>) || []
+  const matching = programs.filter((p) => {
+    const credential = p.credential as Record<string, unknown> | undefined
+    return cipCodes.includes(p.code as string) && credential?.level === 3
+  })
+
+  if (matching.length === 0) return null
+
+  return matching.reduce((a, b) => {
+    const aCounts = a.counts as Record<string, unknown> | undefined
+    const bCounts = b.counts as Record<string, unknown> | undefined
+    return ((bCounts?.ipeds_awards1 as number) || 0) > ((aCounts?.ipeds_awards1 as number) || 0) ? b : a
+  })
+}
+
+export async function GET() {
   try {
-    // ── Authentication ──
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    // ── Fetch user profile ──
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('*')
@@ -24,7 +59,6 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
     }
 
-    // ── Fetch user's existing colleges to exclude ──
     const { data: userColleges = [], error: collegesError } = await supabase
       .from('user_colleges')
       .select('college_name, college_id')
@@ -37,18 +71,22 @@ export async function GET(req: Request) {
     const excludedIds = new Set(
       userColleges
         .map((uc: { college_id: string | null; college_name: string }) => uc.college_id)
-        .filter((id: string | null): id is string => id != null && id.trim() !== '')
+        .filter((id: string | null): id is string => id != null && id.trim() !== ''),
     )
     const excludedNames = new Set(
       userColleges
         .map((uc: { college_id: string | null; college_name: string }) => uc.college_name?.toLowerCase())
-        .filter(Boolean) as string[]
+        .filter(Boolean) as string[],
     )
 
-    // ── Build SAT/GPA range for query ──
-    const satMin = profile.sat ? Math.max(400, profile.sat - 100) : undefined
-    const satMax = profile.sat ? Math.min(1600, profile.sat + 100) : undefined
+    const satMin = profile.sat ? Math.max(400, profile.sat - 180) : undefined
+    const satMax = profile.sat ? Math.min(1600, profile.sat + 180) : undefined
     const hasBasicStats = profile.sat || (profile.gpa && profile.gpa >= 2.5)
+    const intendedMajor = typeof profile.proposed_major === 'string' && profile.proposed_major !== 'Undecided'
+      ? profile.proposed_major.trim()
+      : ''
+    const cipCodes = intendedMajor ? getCipCodes(intendedMajor) : []
+    const hasMajor = cipCodes.length > 0
 
     if (!hasBasicStats) {
       return NextResponse.json({
@@ -61,22 +99,27 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'API key not configured' }, { status: 500 })
     }
 
-    // ── Query College Scorecard API ──
     const params = new URLSearchParams({
       api_key: API_KEY,
-      fields: RICH_FIELDS,
-      per_page: '50', // Fetch more to account for exclusions
-      'school.degrees_awarded.predominant__range': '3..4', // bachelor's+
-      'latest.student.size__range': '500..', // filter tiny schools
+      fields: hasMajor ? `${RICH_FIELDS},latest.programs.cip_4_digit` : RICH_FIELDS,
+      per_page: '100',
+      page: '0',
+      'school.degrees_awarded.predominant__range': '3..4',
+      'latest.student.size__range': '500..',
       sort: 'latest.admissions.sat_scores.average.overall:desc',
     })
 
-    // SAT range filter
+    // Use a wider SAT pool; chance + SAT proximity are ranked after fetch.
     if (satMin && satMax) {
       params.set('latest.admissions.sat_scores.average.overall__range', `${satMin}..${satMax}`)
     }
 
-    let scoreResults = []
+    if (hasMajor) {
+      params.set('latest.programs.cip_4_digit.code', cipCodes.join(','))
+      params.set('latest.programs.cip_4_digit.credential.level', '3')
+    }
+
+    let rawResults: Record<string, unknown>[] = []
     try {
       const res = await fetch(`${BASE_URL}?${params}`, {
         signal: AbortSignal.timeout(10000),
@@ -85,29 +128,70 @@ export async function GET(req: Request) {
         const text = await res.text()
         return NextResponse.json(
           { error: 'Scorecard API error', details: text },
-          { status: 502 }
+          { status: 502 },
         )
       }
 
       const data = await res.json()
-      scoreResults = (data.results || []).map(mapRichResult).filter(Boolean)
-    } catch (err) {
+      rawResults = data.results || []
+
+      // Program queries often exceed one Scorecard page; fetch enough to make
+      // program-strength scoring meaningful without slowing the dashboard badly.
+      if (hasMajor) {
+        const total = data.metadata?.total ?? rawResults.length
+        const pages = Math.min(Math.ceil(total / 100), 8)
+        if (pages > 1) {
+          const fetches = []
+          for (let p = 1; p < pages; p++) {
+            const pageParams = new URLSearchParams(params)
+            pageParams.set('page', String(p))
+            fetches.push(
+              fetch(`${BASE_URL}?${pageParams}`, { signal: AbortSignal.timeout(10000) })
+                .then(r => r.ok ? r.json() : null),
+            )
+          }
+          const pageResults = await Promise.all(fetches)
+          for (const pageData of pageResults) {
+            if (pageData?.results) rawResults = rawResults.concat(pageData.results)
+          }
+        }
+      }
+    } catch {
       return NextResponse.json(
         { error: 'Failed to fetch from College Scorecard' },
-        { status: 502 }
+        { status: 502 },
       )
     }
 
-    // ── Filter out user's existing colleges and map to suggestions ──
-    const candidates = scoreResults
+    const scoreResults = rawResults.map((raw) => {
+      const base = mapRichResult(raw)
+      if (!base) return null
+
+      if (!hasMajor) return base
+
+      const best = bestMatchingProgram(raw, cipCodes)
+      if (!best) return base
+
+      const counts = best.counts as Record<string, unknown> | undefined
+      const earnings = best.earnings as Record<string, Record<string, unknown>> | undefined
+      return {
+        ...base,
+        programCompletions: (counts?.ipeds_awards1 as number) || 0,
+        programEarnings1yr: (earnings?.['1_yr']?.overall_median_earnings as number) || null,
+        programCipTitle: (best.title as string) || null,
+      }
+    }).filter((school): school is any => Boolean(school))
+
+    const scoredResults = scoreProgramStrength(scoreResults, hasMajor)
+
+    const candidates = scoredResults
       .filter((school: any) => {
         const isExcludedById = excludedIds.has(school.id)
         const isExcludedByName = excludedNames.has(school.name.toLowerCase())
         return !isExcludedById && !isExcludedByName
       })
-      .slice(0, 12) // Take top 12 candidates to calculate chances
+      .slice(0, 80)
 
-    // ── Calculate admission chances for each school ──
     const suggestions = candidates
       .map((school: any) => {
         const chanceResult = calculateChance(
@@ -116,11 +200,12 @@ export async function GET(req: Request) {
           school,
           profile.act_score,
           profile.gpa_weighted,
-          profile.ec_entries
+          profile.ec_entries,
         )
 
         if (!chanceResult) return null
 
+        const programStrengthScore = school.programStrengthScore ?? null
         return {
           schoolName: school.name,
           schoolId: school.id,
@@ -135,20 +220,29 @@ export async function GET(req: Request) {
           tuitionInState: school.tuitionInState || null,
           tuitionOutOfState: school.tuitionOutOfState || null,
           schoolState: school.state || null,
+          programStrengthScore,
+          programStrengthGrade: stairwayRanking(programStrengthScore),
+          programCompletions: school.programCompletions ?? null,
+          programCipTitle: school.programCipTitle ?? null,
+          suggestedMajor: intendedMajor || null,
+          suggestionScore: fitScore(
+            chanceResult.chance,
+            school.avgSAT ?? null,
+            profile.sat ?? null,
+            programStrengthScore,
+            hasMajor,
+          ),
         }
       })
       .filter(Boolean)
-      .sort((a: any, b: any) => b.chance - a.chance) // Sort by chance (best first)
+      .sort((a: any, b: any) => b.suggestionScore - a.suggestionScore)
 
-    // ── Bucket by category (safety/target/reach) ──
-    const results = suggestions.slice(0, 8) // Return top 8
-
-    return NextResponse.json({ results })
+    return NextResponse.json({ results: suggestions.slice(0, 8) })
   } catch (err) {
     console.error('Suggest API error:', err)
     return NextResponse.json(
       { error: 'Failed to generate suggestions' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

@@ -33,6 +33,11 @@ interface SchoolResult {
   tuitionInState: number | null
   tuitionOutOfState: number | null
   schoolState: string | null
+  programStrengthScore?: number | null
+  programStrengthGrade?: string | null
+  programCompletions?: number | null
+  programCipTitle?: string | null
+  suggestedMajor?: string | null
 }
 
 interface AdmissionSnapshotProps {
@@ -693,7 +698,7 @@ export function AdmissionSnapshot({ profile, colleges, loading, onAddSchool }: A
                 style={{ overflow: 'hidden' }}
               >
                 <p style={{ fontSize: 11, color: 'var(--color-text-muted)', margin: '6px 0 12px' }}>
-                  Based on your GPA and test scores — click + to add one to your list
+                  Based on your GPA, test scores{profile?.proposed_major ? `, and ${profile.proposed_major} program strength` : ''} — click + to add one to your list
                 </p>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(240px, 100%), 1fr))', gap: 14 }}>
@@ -780,6 +785,41 @@ export function AdmissionSnapshot({ profile, colleges, loading, onAddSchool }: A
                             <div style={{ fontSize: 10, color: 'var(--color-text-muted)', marginTop: 4 }}>{r.admissionRate}% overall admit rate</div>
                           )}
                         </div>
+
+                        {r.suggestedMajor && r.programStrengthGrade && (
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: 10,
+                            padding: '8px 10px',
+                            borderRadius: 9,
+                            background: 'color-mix(in srgb, var(--color-primary) 8%, transparent)',
+                            border: '1px solid color-mix(in srgb, var(--color-primary) 18%, transparent)',
+                          }}>
+                            <div style={{ minWidth: 0 }}>
+                              <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                Major fit
+                              </div>
+                              <div style={{ fontSize: 11, color: 'var(--color-text)', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {r.programCipTitle || r.suggestedMajor}
+                              </div>
+                            </div>
+                            <Tooltip text={`Stairway Ranking for ${r.suggestedMajor}: ${r.programStrengthScore?.toFixed(0) ?? '—'}/100, relative to similar schools in this result set.`} position="left">
+                              <span style={{
+                                flexShrink: 0,
+                                padding: '4px 8px',
+                                borderRadius: 999,
+                                background: 'var(--color-primary)',
+                                color: '#fff',
+                                fontSize: 11,
+                                fontWeight: 900,
+                              }}>
+                                {r.programStrengthGrade}
+                              </span>
+                            </Tooltip>
+                          </div>
+                        )}
 
                         {/* Stats footer */}
                         <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 8, display: 'flex', flexWrap: 'wrap', gap: '8px 16px' }}>
