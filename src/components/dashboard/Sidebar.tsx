@@ -152,9 +152,6 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
     router.refresh()
   }
 
-  const isPro = subscription?.tier === 'pro' &&
-    (subscription?.status === 'active' || subscription?.status === 'trialing')
-
   const navContent = (
     <>
       <div className="sidebar__brand" style={{ paddingTop: 8, paddingBottom: 8 }}>
@@ -215,21 +212,6 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
                     )}
                     <span style={{ position: 'relative' }}>{item.icon}</span>
                     <span style={{ position: 'relative', flex: 1 }}>{item.label}</span>
-                    {item.proOnly && !isPro && (
-                      <span style={{
-                        fontSize: 9,
-                        fontWeight: 700,
-                        padding: '1px 5px',
-                        borderRadius: 4,
-                        background: 'color-mix(in srgb, var(--color-primary) 12%, transparent)',
-                        color: 'var(--color-primary)',
-                        letterSpacing: '0.03em',
-                        flexShrink: 0,
-                        position: 'relative',
-                      }}>
-                        PRO
-                      </span>
-                    )}
                   </Link>
                 </Tooltip>
               )
@@ -332,19 +314,26 @@ export function Sidebar({ user, profile, subscription }: SidebarProps) {
           </div>
         </div>
 
-        {/* Upgrade to Pro link (if not pro) */}
+        {/* Upgrade surface */}
         {subscription?.tier !== 'pro' && (
           <Link
             href="/upgrade"
             style={{
               display: 'block',
-              fontSize: 12,
-              color: 'var(--color-primary)',
+              padding: '12px 14px',
+              borderRadius: 12,
+              border: '1px solid color-mix(in srgb, var(--color-primary) 20%, var(--color-border))',
+              background: 'color-mix(in srgb, var(--color-primary) 8%, var(--color-card))',
+              color: 'var(--color-text)',
               textDecoration: 'none',
-              fontWeight: 500,
             }}
           >
-            Upgrade to Pro
+            <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>
+              Unlock Pro
+            </div>
+            <div style={{ fontSize: 12, fontWeight: 700, lineHeight: 1.35 }}>
+              AI strategy, essays, comparisons, and unlimited scholarships.
+            </div>
           </Link>
         )}
       </div>

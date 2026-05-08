@@ -39,6 +39,8 @@ export function ProfilePageClient({ userId }: { userId: string }) {
   // Auto-save all profile fields after a short delay when they change
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const prevFormRef = useRef<string>('')
+  const hydratedUserRef = useRef<string | null>(null)
+  const emailPrefsLoadedRef = useRef<string | null>(null)
   useEffect(() => {
     if (!profile) return
     const serialized = JSON.stringify(form)
@@ -157,8 +159,13 @@ export function ProfilePageClient({ userId }: { userId: string }) {
   }, [fetchReferralCode])
 
   useEffect(() => {
-    if (profile) {
-      setForm({
+    if (!profile) return
+
+    // Only hydrate editable form state once per user. Autosave invalidates and
+    // refetches the profile; rehydrating on every refetch can overwrite the
+    // next keystroke, especially in the extracurricular picker.
+    if (hydratedUserRef.current !== userId) {
+      const nextForm = {
         display_name: profile.display_name ?? '',
         gpa: profile.gpa?.toString() ?? '',
         gpa_weighted: profile.gpa_weighted?.toString() ?? '',
@@ -167,9 +174,15 @@ export function ProfilePageClient({ userId }: { userId: string }) {
         proposed_major: profile.proposed_major ?? '',
         home_state: profile.home_state ?? '',
         ec_entries: profile.ec_entries ?? [],
-      })
+      }
+      hydratedUserRef.current = userId
+      prevFormRef.current = JSON.stringify(nextForm)
+      if (saveTimer.current) clearTimeout(saveTimer.current)
+      setForm(nextForm)
+    }
 
-      // Load email preferences
+    if (emailPrefsLoadedRef.current !== userId) {
+      emailPrefsLoadedRef.current = userId
       const supabase = createClient()
       supabase
         .from('email_preferences')

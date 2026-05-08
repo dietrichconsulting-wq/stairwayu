@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import type { Profile } from '@/lib/types/database'
 import { CollegeSelect } from '@/components/CollegeSelect'
+import { AddSchoolEmptyState } from '@/components/dashboard/AddSchoolEmptyState'
 
 const SESSION_KEY = 'compare_results_v1'
 const SESSION_SCHOOLS_KEY = 'compare_schools_v1'
@@ -219,7 +220,7 @@ export function ComparePageClient({ profile, colleges }: ComparePageClientProps)
               boxShadow: readyToCompare && !loading ? '0 2px 8px rgba(37,99,235,0.3)' : 'none',
             }}
           >
-            {loading ? <><span className="strategy-spinner" /> Comparing…</> : '⚖️ Compare'}
+            {loading ? <><span className="strategy-spinner" /> Comparing...</> : 'Compare schools'}
           </button>
           {!readyToCompare && (
             <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
@@ -228,7 +229,7 @@ export function ComparePageClient({ profile, colleges }: ComparePageClientProps)
           )}
           {readyToCompare && results.length === 0 && !loading && (
             <span style={{ fontSize: 12, color: 'var(--color-primary)', fontWeight: 600 }}>
-              ← Ready! Click to compare {validCount} schools
+              Ready to compare {validCount} schools
             </span>
           )}
         </div>
@@ -236,28 +237,38 @@ export function ComparePageClient({ profile, colleges }: ComparePageClientProps)
 
       {/* Empty state preview — shown before first compare */}
       {results.length === 0 && !loading && (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="card-elevated"
-          style={{ padding: '28px', textAlign: 'center', border: '1.5px dashed var(--color-border)' }}
-        >
-          <div style={{ fontSize: 32, marginBottom: 12 }}>📊</div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', marginBottom: 8 }}>
-            Your comparison table will appear here
-          </div>
-          <div style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 20, maxWidth: 440, margin: '0 auto 20px' }}>
-            You&apos;ll see admit rate, your personal chance, avg SAT, net cost, graduation rate, retention rate, and earnings — side by side.
-          </div>
-          {/* Mini preview of metrics */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 8, flexWrap: 'wrap' }}>
-            {['Admit Rate', 'Your Chance', 'Avg SAT', 'Net Cost', 'Grad Rate', 'Retention', 'Earnings 10yr'].map(m => (
-              <span key={m} style={{ fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 20, background: 'var(--color-border)', color: 'var(--color-text-muted)' }}>
-                {m}
-              </span>
-            ))}
-          </div>
-        </motion.div>
+        validCount < 2 ? (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+            <AddSchoolEmptyState
+              title="Add schools to compare"
+              description="Save at least two schools, then compare admissions, cost, graduation outcomes, and your estimated chance side by side."
+              helper="Start with your first real target school. You can add reaches, matches, and safeties from the same place."
+              cta={colleges.length === 0 ? 'Add first school' : 'Add another school'}
+            />
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="card-elevated"
+            style={{ padding: '28px', textAlign: 'center', border: '1.5px dashed var(--color-border)' }}
+          >
+            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text)', marginBottom: 8 }}>
+              Your comparison table will appear here
+            </div>
+            <div style={{ fontSize: 13, color: 'var(--color-text-muted)', marginBottom: 20, maxWidth: 440, margin: '0 auto 20px' }}>
+              You&apos;ll see admit rate, your personal chance, avg SAT, net cost, graduation rate, retention rate, and earnings side by side.
+            </div>
+            {/* Mini preview of metrics */}
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 8, flexWrap: 'wrap' }}>
+              {['Admit Rate', 'Your Chance', 'Avg SAT', 'Net Cost', 'Grad Rate', 'Retention', 'Earnings 10yr'].map(m => (
+                <span key={m} style={{ fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 20, background: 'var(--color-border)', color: 'var(--color-text-muted)' }}>
+                  {m}
+                </span>
+              ))}
+            </div>
+          </motion.div>
+        )
       )}
 
       {results.length > 0 && (

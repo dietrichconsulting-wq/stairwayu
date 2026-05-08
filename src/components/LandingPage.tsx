@@ -431,16 +431,62 @@ export function LandingPage() {
 
       {/* ── FOOTER ── */}
       <footer className="bg-slate-950 px-[6%] py-10">
-        <div className="mx-auto flex max-w-[1100px] flex-wrap items-center justify-between gap-4">
-          <img src="/stairwayu-wordmark.png" alt="Stairway U" className="h-9 w-auto" />
-          <div className="flex gap-7">
-            {[{ label: 'About', href: '/about' }, { label: 'Browse Colleges', href: '/colleges' }, { label: 'Ranking', href: '/methodology' }, { label: 'For Parents', href: '/parents' }, { label: 'For Counselors', href: '/counselors' }, { label: 'Sign In', href: '/login' }, { label: 'Sign Up', href: '/signup' }, { label: 'Pricing', href: '/#pricing' }, { label: 'Terms', href: '/terms' }, { label: 'Privacy', href: '/privacy' }].map(l => (
-              <Link key={l.href} href={l.href} className="text-[13px] font-medium tracking-[0.03em] text-white/35 no-underline">
-                {l.label}
-              </Link>
+        <div className="mx-auto grid max-w-[1100px] grid-cols-1 gap-10 md:grid-cols-[1.25fr_2fr]">
+          <div>
+            <img src="/stairwayu-wordmark.png" alt="Stairway U" className="h-9 w-auto" />
+            <p className="mt-4 max-w-[280px] text-[13px] leading-relaxed text-white/35">
+              College planning tools built on federal data, clear estimates, and student-first privacy.
+            </p>
+            <div className="mt-5 text-xs text-white/20">© 2026 Stairway U</div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
+            {[
+              {
+                title: 'Product',
+                links: [
+                  { label: 'Browse Colleges', href: '/colleges' },
+                  { label: 'Pricing', href: '/#pricing' },
+                  { label: 'Methodology', href: '/methodology' },
+                  { label: 'About', href: '/about' },
+                ],
+              },
+              {
+                title: 'Audiences',
+                links: [
+                  { label: 'For Parents', href: '/parents' },
+                  { label: 'For Counselors', href: '/counselors' },
+                ],
+              },
+              {
+                title: 'Account',
+                links: [
+                  { label: 'Sign In', href: '/login' },
+                  { label: 'Sign Up', href: '/signup' },
+                ],
+              },
+              {
+                title: 'Legal',
+                links: [
+                  { label: 'Terms', href: '/terms' },
+                  { label: 'Privacy', href: '/privacy' },
+                ],
+              },
+            ].map(group => (
+              <div key={group.title}>
+                <div className="mb-3 text-[11px] font-extrabold uppercase tracking-[0.14em] text-white/55">
+                  {group.title}
+                </div>
+                <div className="flex flex-col gap-2.5">
+                  {group.links.map(l => (
+                    <Link key={l.href} href={l.href} className="text-[13px] font-medium tracking-[0.03em] text-white/35 no-underline hover:text-white/65">
+                      {l.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
-          <div className="text-xs text-white/20">© 2026 Stairway U</div>
         </div>
         <div className="mx-auto mt-6 max-w-[1100px] border-t border-white/5 pt-5 text-[11px] leading-relaxed text-white/30">
           Admissions, cost, and outcomes data from the{' '}

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRecordXp } from '@/hooks/useXp'
+import { AddSchoolEmptyState } from '@/components/dashboard/AddSchoolEmptyState'
 
 const ESSAY_TYPES = [
   'Common App Personal Statement',
@@ -61,6 +62,26 @@ export function EssayStudio({ profile, colleges, userId }: EssayStudioProps) {
   const [tab, setTab] = useState<Tab>('brainstorm')
 
   const schools = colleges
+
+  if (schools.length === 0) {
+    return (
+      <div style={{ maxWidth: 1200 }}>
+        <h1 style={{ fontSize: 26, fontWeight: 800, marginBottom: 4 }}>Essay Studio</h1>
+        <p style={{ fontSize: 14, color: 'var(--color-text-muted)', marginBottom: 8 }}>
+          Two tools to help you write better essays: you do the writing, AI helps you think and revise.
+        </p>
+        <p style={{ fontSize: 12, color: 'var(--color-text-muted)', marginBottom: 24, lineHeight: 1.6 }}>
+          Brainstorm and critique work best once the app knows which school you are writing for.
+        </p>
+        <AddSchoolEmptyState
+          title="Add a school to unlock essay guidance"
+          description="Essay ideas and critique are strongest when they can respond to a specific college, supplement type, and fit angle."
+          helper="Add one school first, then come back to brainstorm topics or critique a draft against that school."
+          cta="Add school"
+        />
+      </div>
+    )
+  }
 
   return (
     <div style={{ maxWidth: 1200 }}>

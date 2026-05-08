@@ -41,7 +41,7 @@ const DISTANCES = [
   { value: 'Anywhere', label: '✈️ Anywhere', desc: 'Willing to go anywhere in the US' },
 ]
 
-const STEPS = ['About You', 'Academics', 'Preferences', 'Target Schools']
+const STEPS = ['First School', 'Academics', 'About You', 'Preferences']
 
 type FormData = {
   display_name: string
@@ -84,7 +84,7 @@ export function OnboardingClient({ userId, initialName = '' }: { userId: string;
     school_size_pref: [],
     school_type_pref: [],
     distance_pref: [],
-    schools: ['', '', '', ''], // start with 4 slots visible, can add up to 8
+    schools: [''],
   })
 
   function set(key: keyof FormData, value: string) {
@@ -109,9 +109,7 @@ export function OnboardingClient({ userId, initialName = '' }: { userId: string;
   }
 
   function canAdvance() {
-    if (step === 0) return form.display_name.trim().length > 0 && form.home_state.length > 0
-    if (step === 1) return form.proposed_major.trim().length > 0
-    if (step === 2) return form.desired_climate.length > 0 && form.school_size_pref.length > 0 && form.school_type_pref.length > 0 && form.distance_pref.length > 0 // arrays — at least one selected each
+    if (step === 0) return form.schools.some(s => s.trim().length > 0)
     return true
   }
 
@@ -212,7 +210,7 @@ export function OnboardingClient({ userId, initialName = '' }: { userId: string;
             </div>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 6 }}>
-                Building your dashboard…
+                Building your college plan...
               </div>
               <motion.div
                 style={{ fontSize: 13, color: 'var(--color-text-muted)' }}
@@ -232,16 +230,16 @@ export function OnboardingClient({ userId, initialName = '' }: { userId: string;
           Stairway U
         </div>
         <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 8 }}>
-          {step === 0 && "Let's build your college gameplan. 🎓"}
-          {step === 1 && 'Now the fun part — your stats 📊'}
-          {step === 2 && 'What\'s your ideal campus? 🏫'}
-          {step === 3 && 'Dream schools — let\'s go 🎯'}
+          {step === 0 && 'Start with one school.'}
+          {step === 1 && 'Sharpen your admission estimate.'}
+          {step === 2 && 'Tell us who this plan is for.'}
+          {step === 3 && 'Add preferences if you know them.'}
         </h1>
         <p style={{ color: 'var(--color-text-muted)', fontSize: 15 }}>
-          {step === 0 && 'Takes 2 minutes. Powers your entire dashboard and roadmap.'}
-          {step === 1 && 'Be honest — this powers your AI strategy and school fit analysis.'}
-          {step === 2 && 'These preferences help us match you to the right schools.'}
-          {step === 3 && "Add up to 8 schools on Free. Upgrade to Pro for unlimited."}
+          {step === 0 && 'Pick a college to anchor your plan. We will build the dashboard around it.'}
+          {step === 1 && 'GPA, SAT, ACT, major, and activities are optional now. You can add them later.'}
+          {step === 2 && 'Name and home state help personalize costs, deadlines, and language.'}
+          {step === 3 && 'Skip this if you are still exploring. Your first school is enough to begin.'}
         </p>
       </div>
 
@@ -293,11 +291,10 @@ export function OnboardingClient({ userId, initialName = '' }: { userId: string;
             transition={{ duration: 0.2 }}
           >
             <div className="card-elevated" style={{ padding: '32px 32px 28px' }}>
-              {step === 0 && <StepAbout form={form} set={set} />}
-              {step === 1 && <StepAcademics form={form} set={set} setForm={setForm} onSkipAhead={() => {
-                // S2.T5 — Skip Ahead jumps Academics → Target Schools, pre-filling
-                // all preferences with "no preference" defaults so handleFinish still has
-                // valid values. User can revisit preferences on the dashboard.
+              {step === 0 && <StepSchools schools={form.schools} setSchools={schools => setForm(f => ({ ...f, schools }))} />}
+              {step === 1 && <StepAcademics form={form} set={set} setForm={setForm} onSkipAhead={() => setStep(2)} />}
+              {step === 2 && <StepAbout form={form} set={set} />}
+              {step === 3 && <StepPreferences form={form} togglePref={togglePref} onSkip={() => {
                 setForm(f => ({
                   ...f,
                   desired_climate: ['Any'],
@@ -305,19 +302,7 @@ export function OnboardingClient({ userId, initialName = '' }: { userId: string;
                   school_type_pref: ['Either'],
                   distance_pref: ['Anywhere'],
                 }))
-                setStep(3)
               }} />}
-              {step === 2 && <StepPreferences form={form} togglePref={togglePref} onSkip={() => {
-                setForm(f => ({
-                  ...f,
-                  desired_climate: ['Any'],
-                  school_size_pref: ['Any'],
-                  school_type_pref: ['Either'],
-                  distance_pref: ['Anywhere'],
-                }))
-                setStep(s => s + 1)
-              }} />}
-              {step === 3 && <StepSchools schools={form.schools} setSchools={schools => setForm(f => ({ ...f, schools }))} />}
             </div>
           </motion.div>
         </AnimatePresence>
@@ -354,9 +339,9 @@ export function OnboardingClient({ userId, initialName = '' }: { userId: string;
                 transition: 'background 0.15s',
               }}
             >
-              {step === 0 && "Let's Go →"}
-              {step === 1 && 'Looking Good — Next →'}
-              {step === 2 && 'Almost There →'}
+              {step === 0 && 'Build around this school →'}
+              {step === 1 && 'Continue →'}
+              {step === 2 && 'Almost there →'}
             </button>
           ) : (
             <button
@@ -367,7 +352,7 @@ export function OnboardingClient({ userId, initialName = '' }: { userId: string;
                 borderRadius: 10, padding: '11px 28px', fontWeight: 700, fontSize: 14, cursor: 'pointer',
               }}
             >
-              {saving ? 'Setting up your dashboard…' : '🚀 Launch My Dashboard'}
+              {saving ? 'Setting up your dashboard...' : 'Launch my dashboard'}
             </button>
           )}
         </div>
@@ -380,17 +365,17 @@ export function OnboardingClient({ userId, initialName = '' }: { userId: string;
 function StepAbout({ form, set }: { form: FormData; set: (k: keyof FormData, v: string) => void }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      <Field label="Your Name" value={form.display_name} onChange={v => set('display_name', v)} placeholder="e.g. Alex Johnson" required />
+      <Field label="Your Name" value={form.display_name} onChange={v => set('display_name', v)} placeholder="e.g. Alex Johnson" />
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <label style={labelStyle}>Home State <Required /></label>
+          <label style={labelStyle}>Home State</label>
           <select value={form.home_state} onChange={e => set('home_state', e.target.value)} style={inputStyle}>
             <option value="">Select state</option>
             {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <label style={labelStyle}>Expected Graduation Year <Required /></label>
+          <label style={labelStyle}>Expected Graduation Year</label>
           <select value={form.grad_year} onChange={e => set('grad_year', e.target.value)} style={inputStyle}>
             {GRAD_YEARS.map(y => <option key={y} value={String(y)}>{y}</option>)}
           </select>
@@ -411,15 +396,14 @@ function StepAcademics({ form, set, setForm, onSkipAhead }: {
   setForm: React.Dispatch<React.SetStateAction<FormData>>
   onSkipAhead: () => void
 }) {
-  const canSkip = form.proposed_major.trim().length > 0
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       {/* Hero field — the only thing we require */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <label style={labelStyle}>Intended Major <Required /></label>
+        <label style={labelStyle}>Intended Major</label>
         <MajorSelect value={form.proposed_major} onChange={v => set('proposed_major', v)} />
         <p style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 4, lineHeight: 1.4 }}>
-          This is all we need to start recommending schools. Stats and activities can be added anytime.
+          Add this if you know it. It helps personalize recommendations, but your plan can start with just a school.
         </p>
       </div>
 
@@ -477,7 +461,6 @@ function StepAcademics({ form, set, setForm, onSkipAhead }: {
       <button
         type="button"
         onClick={onSkipAhead}
-        disabled={!canSkip}
         style={{
           alignSelf: 'center',
           background: 'transparent',
@@ -485,15 +468,15 @@ function StepAcademics({ form, set, setForm, onSkipAhead }: {
           padding: '6px 10px',
           fontSize: 13,
           fontWeight: 600,
-          color: canSkip ? 'var(--color-text-muted)' : 'var(--color-border)',
-          cursor: canSkip ? 'pointer' : 'not-allowed',
+          color: 'var(--color-text-muted)',
+          cursor: 'pointer',
           textDecoration: 'underline',
           textDecorationStyle: 'dotted',
           textUnderlineOffset: 3,
         }}
-        title={canSkip ? 'Skip preferences and jump to target schools' : 'Pick an intended major first'}
+        title="Skip optional academic details for now"
       >
-        Skip ahead — I&apos;ll set preferences later
+        Skip optional details for now
       </button>
     </div>
   )
@@ -524,7 +507,7 @@ function StepPreferences({ form, togglePref, onSkip }: { form: FormData; toggleP
         }}
       >
         <span>⏭</span>
-        <span>Skip — I'm open to anything</span>
+        <span>Use no-preference defaults</span>
       </button>
       <p style={{ fontSize: 13, color: 'var(--color-text-muted)', margin: '-12px 0 -8px', textAlign: 'center' }}>
         — or select all that apply below —
@@ -645,7 +628,7 @@ function OptionGroup({
 }) {
   return (
     <div>
-      <div style={{ ...labelStyle, marginBottom: 10 }}>{label} <Required /></div>
+      <div style={{ ...labelStyle, marginBottom: 10 }}>{label}</div>
       <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols ?? options.length}, 1fr)`, gap: 8 }}>
         {options.map(opt => {
           const active = selected.includes(opt.value)

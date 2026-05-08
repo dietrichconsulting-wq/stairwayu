@@ -17,9 +17,32 @@ import { WelcomeTour } from './WelcomeTour'
 import { DailyChallenges } from './DailyChallenges'
 import { Tooltip } from '@/components/ui/Tooltip'
 import { scoreECs, EC_TIER_POINTS } from '@/lib/services/admissionChance'
+import {
+  ArrowRight,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  ClipboardList,
+  DollarSign,
+  Edit3,
+  HelpCircle,
+  PenLine,
+  Scale,
+  Share2,
+  Trophy,
+  Users,
+  type LucideIcon,
+} from 'lucide-react'
 
 interface DashboardClientProps {
   userId: string
+}
+
+interface QuickAction {
+  label: string
+  href: string
+  Icon: LucideIcon
+  tip: string
 }
 
 // ── Editable Stat Card Row Component ──
@@ -181,7 +204,7 @@ function StatCardRow({ profile, updateProfile, profileLoading }: {
             }}
           >
             {displayValue}{unit}
-            {editable && <span style={{ fontSize: 14, opacity: 0.5 }}>✎</span>}
+            {editable && <Edit3 size={14} style={{ opacity: 0.5 }} aria-hidden="true" />}
           </div>
         )}
         <div style={subtitleStyle}>{subtitle}</div>
@@ -330,15 +353,15 @@ export function DashboardClient({ userId }: DashboardClientProps) {
   // ── Collapsible "More" section ──
   const [showMoreSection, setShowMoreSection] = useState(false)
 
-  const QUICK_ACTIONS_STUDENT = [
-    { label: 'Compare Schools', href: '/compare', icon: '⚖️', tip: 'Compare tuition, admit rates, and stats side-by-side for your saved schools.' },
-    { label: 'Start Essay', href: '/essays', icon: '✍️', tip: 'Discover your best essay angle and get feedback that keeps your authentic voice.' },
-    { label: 'Find Scholarships', href: '/scholarships', icon: '🏆', tip: 'Discover scholarships matched to your profile and major.' },
+  const QUICK_ACTIONS_STUDENT: QuickAction[] = [
+    { label: 'Compare Schools', href: '/compare', Icon: Scale, tip: 'Compare tuition, admit rates, and stats side-by-side for your saved schools.' },
+    { label: 'Start Essay', href: '/essays', Icon: PenLine, tip: 'Discover your best essay angle and get feedback that keeps your authentic voice.' },
+    { label: 'Find Scholarships', href: '/scholarships', Icon: Trophy, tip: 'Discover scholarships matched to your profile and major.' },
   ]
-  const QUICK_ACTIONS_MOM = [
-    { label: 'College Cost', href: '/finance', icon: '💵', tip: 'Plan how to pay for college — aid, loans, and family contribution.' },
-    { label: 'Find Scholarships', href: '/scholarships', icon: '🏆', tip: 'Discover scholarships matched to your student\'s profile and major.' },
-    { label: 'Compare Costs', href: '/compare', icon: '⚖️', tip: 'Compare tuition and net price side-by-side for your saved schools.' },
+  const QUICK_ACTIONS_MOM: QuickAction[] = [
+    { label: 'College Cost', href: '/finance', Icon: DollarSign, tip: 'Plan how to pay for college — aid, loans, and family contribution.' },
+    { label: 'Find Scholarships', href: '/scholarships', Icon: Trophy, tip: 'Discover scholarships matched to your student\'s profile and major.' },
+    { label: 'Compare Costs', href: '/compare', Icon: Scale, tip: 'Compare tuition and net price side-by-side for your saved schools.' },
   ]
   const QUICK_ACTIONS = viewMode === 'mom' ? QUICK_ACTIONS_MOM : QUICK_ACTIONS_STUDENT
   const openTasks = tasks.filter(t => !t.completed_at)
@@ -485,7 +508,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
             ] as const).map(opt => {
               const active = viewMode === opt.key
               return (
-                <Tooltip key={opt.key} text={opt.key === 'student' ? 'Student View' : 'Mom Mode'} position="bottom">
+                <Tooltip key={opt.key} text={opt.key === 'student' ? 'Student View' : 'Parent View'} position="bottom">
                 <button
                   role="tab"
                   aria-selected={active}
@@ -519,7 +542,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
               transition: 'all 0.15s',
             }}
           >
-            ?
+            <HelpCircle size={16} aria-hidden="true" />
           </button>
           </Tooltip>
         </div>
@@ -576,6 +599,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
           }}
         >
           Do this next
+          <ArrowRight size={15} style={{ marginLeft: 8 }} aria-hidden="true" />
         </Link>
       </section>
 
@@ -588,7 +612,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
       <div data-tour="quick-actions" style={{
         display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap',
       }}>
-        {QUICK_ACTIONS.map(({ label, href, icon, tip }) => (
+        {QUICK_ACTIONS.map(({ label, href, Icon, tip }) => (
       <Tooltip key={href} text={tip} position="bottom">
       <Link
         href={href}
@@ -618,7 +642,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
           e.currentTarget.style.background = 'var(--color-card)'
         }}
       >
-        <span style={{ fontSize: 16 }}>{icon}</span>
+        <Icon size={16} aria-hidden="true" />
         {label}
       </Link>
       </Tooltip>
@@ -660,7 +684,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
         }}
       >
         <span>More Options</span>
-        <span style={{ fontSize: 14 }}>{showMoreSection ? '▲' : '▼'}</span>
+        {showMoreSection ? <ChevronUp size={16} aria-hidden="true" /> : <ChevronDown size={16} aria-hidden="true" />}
       </button>
 
       <AnimatePresence>
@@ -740,9 +764,10 @@ export function DashboardClient({ userId }: DashboardClientProps) {
                             ? '1.5px solid color-mix(in srgb, var(--color-primary) 25%, var(--color-border))'
                             : '1.5px solid var(--color-border)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: 20, flexShrink: 0,
+                          color: 'var(--color-primary)',
+                          flexShrink: 0,
                         }}>
-                          {hasECs ? '🏆' : '📋'}
+                          {hasECs ? <Trophy size={20} aria-hidden="true" /> : <ClipboardList size={20} aria-hidden="true" />}
                         </div>
                         </Tooltip>
                         <div>
@@ -800,7 +825,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
                           textDecoration: 'none', flexShrink: 0, whiteSpace: 'nowrap',
                         }}
                       >
-                        {hasECs ? 'Edit activities →' : '+ Add activities →'}
+                        {hasECs ? 'Edit activities' : 'Add activities'}
                       </Link>
                     </div>
                   </motion.div>
@@ -817,7 +842,7 @@ export function DashboardClient({ userId }: DashboardClientProps) {
                 border: '1.5px solid var(--color-border)',
                 background: 'linear-gradient(135deg, rgba(59,130,246,0.06), rgba(168,85,247,0.06))',
               }}>
-            <span style={{ fontSize: 20 }}>🎓</span>
+            <Users size={20} style={{ color: 'var(--color-primary)', flexShrink: 0 }} aria-hidden="true" />
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text)' }}>
                 Share with Family
@@ -837,6 +862,10 @@ export function DashboardClient({ userId }: DashboardClientProps) {
               onClick={handleShare}
               disabled={shareLoading}
               style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
                 padding: '8px 16px',
                 borderRadius: 8,
                 border: 'none',
@@ -848,7 +877,19 @@ export function DashboardClient({ userId }: DashboardClientProps) {
                 whiteSpace: 'nowrap',
               }}
             >
-              {shareCopied ? '✓ Link Copied!' : shareLoading ? 'Creating…' : 'Copy Share Link'}
+              {shareCopied ? (
+                <>
+                  <Check size={14} aria-hidden="true" />
+                  Link copied
+                </>
+              ) : shareLoading ? (
+                'Creating...'
+              ) : (
+                <>
+                  <Share2 size={14} aria-hidden="true" />
+                  Copy share link
+                </>
+              )}
             </button>
               </div>
 

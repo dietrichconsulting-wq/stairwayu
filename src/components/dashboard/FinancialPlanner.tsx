@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { CollegeSelect } from '@/components/CollegeSelect'
 import type { CollegeResult } from '@/components/CollegeSelect'
 import { findApplicablePrograms } from '@/data/tuitionReciprocity'
+import { AddSchoolEmptyState } from '@/components/dashboard/AddSchoolEmptyState'
 
 interface FinancialPlannerProps {
   savedColleges?: string[]
@@ -242,6 +243,17 @@ export function FinancialPlanner({ savedColleges = [], homeState = null }: Finan
         )}
         <span>· determines whether in-state tuition applies to public schools.</span>
       </div>
+
+      {savedColleges.length === 0 && (
+        <div style={{ marginBottom: 24 }}>
+          <AddSchoolEmptyState
+            title="Add a school to plan costs"
+            description="Save a college first and we can pull its tuition, net price, and residency-sensitive estimates into this planner."
+            helper="You can still search manually below, but a saved school keeps your cost plan connected to the rest of your dashboard."
+            cta="Add school"
+          />
+        </div>
+      )}
 
       <div className="finance-layout" style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: 24, alignItems: 'flex-start' }}>
 
