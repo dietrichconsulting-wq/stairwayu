@@ -1,0 +1,43 @@
+name: Nightly Supabase backup
+
+# Free-tier replacement for Supabase Pro daily backups.
+# Also doubles as activity that prevents free-tier project pausing.
+#
+# Required repo secret:
+#   SUPABASE_DB_URL — the *Session pooler* connection string from
+#   Supabase Dashboard → Connect → Session pooler (port 5432).
+#   Use the pooler URI, not the direct db.<ref>.supabase.co host:
+#   the direct host is IPv6-only and GitHub runners have no IPv6.
+
+on:
+  schedule:
+    - cron: '0 8 * * *' # 08:00 UTC nightly (~3am ET)
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Install PostgreSQL 17 client
+        run: |
+          sudo apt-get install -y postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y postgresql-client-17
+
+      - name: Dump database
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          STAMP=$(date -u +%Y-%m-%d)
+          /usr/lib/postgresql/17/bin/pg_dump "$DB_URL" \
+            --format=custom --no-owner --no-privileges \
+            --file="stairwayu-$STAMP.dump"
+          ls -lh stairwayu-*.dump
+
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-backup-${{ github.run_id }}
+          path: stairwayu-*.dump
+          retention-days: 14

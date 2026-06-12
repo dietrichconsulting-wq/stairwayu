@@ -156,8 +156,9 @@ Functions: `searchColleges()` (lightweight), `getCollege()` (full profile by ID)
 ### Explore Page
 1. Server component fetches user profile + saved colleges from Supabase
 2. `ExplorePlayground.tsx` renders interactive controls: SAT slider, GPA slider, budget input, major dropdown, region checkboxes, Stretch Mode toggle
-3. Client calls `/api/colleges/explore` with filters → Scorecard API query → `mapRichResult()` → `scoreProgramStrength()` → sorted results
+3. Client calls `/api/colleges/explore` with filters → **local-first:** queries the `colleges` table (+ `college_programs` inner join when a major is selected), falling back to the live Scorecard API + `mapRichResult()` if local data is unusable → `scoreProgramStrength()` → sorted results
 4. Client-side: `estimatedCost()` adjusts for in-state/out-of-state, budget filter applied, `calculateChance()` computes admission probability per school
+5. Local data refreshed monthly by `.github/workflows/ingest-colleges.yml` running `scripts/ingest-colleges.mjs` (replaced the Vercel cron; no 5-min ceiling)
 5. Cards show: Total Cost, Admit %, Grads/yr, Major $1yr, Strength score, admission chance ring
 
 ### Strategy Page

@@ -44,9 +44,12 @@ if (WITH_SUMMARIES && !GEMINI_KEY) { console.error('Missing GEMINI_API_KEY (requ
 
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
 
+// NOTE: the public/private field is `school.ownership` (NOT `school.type`),
+// and the API returns its value as a string — always coerce with Number().
 const FIELDS = [
   'id',
-  'school.name', 'school.city', 'school.state', 'school.school_url', 'school.type',
+  'school.name', 'school.city', 'school.state', 'school.school_url', 'school.ownership',
+  'school.locale', 'school.region_id',
   'latest.admissions.admission_rate.overall',
   'latest.admissions.sat_scores.average.overall',
   'latest.admissions.sat_scores.25th_percentile.critical_reading',
@@ -56,10 +59,24 @@ const FIELDS = [
   'latest.admissions.act_scores.midpoint.cumulative',
   'latest.cost.tuition.in_state', 'latest.cost.tuition.out_of_state',
   'latest.cost.avg_net_price.public', 'latest.cost.avg_net_price.private',
+  'latest.cost.net_price.public.by_income_level.0-30000',
+  'latest.cost.net_price.public.by_income_level.30001-48000',
+  'latest.cost.net_price.public.by_income_level.48001-75000',
+  'latest.cost.net_price.public.by_income_level.75001-110000',
+  'latest.cost.net_price.public.by_income_level.110001-plus',
+  'latest.cost.net_price.private.by_income_level.0-30000',
+  'latest.cost.net_price.private.by_income_level.30001-48000',
+  'latest.cost.net_price.private.by_income_level.48001-75000',
+  'latest.cost.net_price.private.by_income_level.75001-110000',
+  'latest.cost.net_price.private.by_income_level.110001-plus',
+  'latest.cost.attendance.academic_year',
   'latest.student.size',
   'latest.student.retention_rate.four_year.full_time',
   'latest.completion.rate_suppressed.4yr',
+  'latest.completion.rate_suppressed.overall',
   'latest.earnings.10_yrs_after_entry.median',
+  'latest.earnings.6_yrs_after_entry.median',
+  'latest.programs.cip_4_digit',
 ].join(',');
 
 function slugify(name, ipedsId) {
@@ -76,12 +93,17 @@ function pct(x) { return x == null ? null : Math.round(x * 100); }
 function int(x) { return x == null ? null : Math.round(x); }
 
 function mapRow(r) {
-  const isPublic = r['school.type'] === 1;
+  const schoolType = Number(r['school.ownership']);
+  const isPublic = schoolType === 1;
   const cr25 = r['latest.admissions.sat_scores.25th_percentile.critical_reading'];
   const cr75 = r['latest.admissions.sat_scores.75th_percentile.critical_reading'];
   const m25  = r['latest.admissions.sat_scores.25th_percentile.math'];
   const m75  = r['latest.admissions.sat_scores.75th_percentile.math'];
   const enrollment = r['latest.student.size'] || null;
+
+  // Net price by income bracket — same keys mapRichResult() emits
+  const prefix = isPublic ? 'public' : 'private';
+  const np = (bracket) => r[`latest.cost.net_price.${prefix}.by_income_level.${bracket}`] ?? null;
 
   return {
     ipeds_id: String(r.id),
@@ -89,8 +111,10 @@ function mapRow(r) {
     city: r['school.city'] || null,
     state: r['school.state'] || null,
     url: r['school.school_url'] || null,
-    control: isPublic ? 'Public' : (r['school.type'] === 2 ? 'Private Nonprofit' : 'Private For-Profit'),
+    control: isPublic ? 'Public' : (schoolType === 2 ? 'Private Nonprofit' : 'Private For-Profit'),
     is_public: isPublic,
+    locale: r['school.locale'] != null ? Number(r['school.locale']) : null,
+    region_id: r['school.region_id'] != null ? Number(r['school.region_id']) : null,
     admission_rate: pct(r['latest.admissions.admission_rate.overall']),
     avg_sat:        int(r['latest.admissions.sat_scores.average.overall']),
     sat_25: (cr25 && m25) ? cr25 + m25 : null,
@@ -101,13 +125,45 @@ function mapRow(r) {
     avg_net_price: isPublic
       ? (r['latest.cost.avg_net_price.public']  || null)
       : (r['latest.cost.avg_net_price.private'] || null),
+    net_price_by_income: {
+      '0-30k':   np('0-30000'),
+      '30-48k':  np('30001-48000'),
+      '48-75k':  np('48001-75000'),
+      '75-110k': np('75001-110000'),
+      '110k+':   np('110001-plus'),
+    },
+    cost_of_attendance: r['latest.cost.attendance.academic_year'] ?? null,
     enrollment,
     retention_rate: pct(r['latest.student.retention_rate.four_year.full_time']),
     grad_rate_4yr:  pct(r['latest.completion.rate_suppressed.4yr']),
+    grad_rate_overall: pct(r['latest.completion.rate_suppressed.overall']),
     median_earnings_10yr: r['latest.earnings.10_yrs_after_entry.median'] || null,
+    median_earnings_6yr:  r['latest.earnings.6_yrs_after_entry.median']  || null,
     // Use enrollment as a popularity proxy until we have real search data.
     popularity: enrollment || 0,
   };
+}
+
+// Bachelor's-level (credential level 3) program rows for `college_programs`.
+// One row per (school, CIP-4); keep the highest-completions entry per code.
+function mapPrograms(r) {
+  const ipedsId = String(r.id);
+  const programs = r['latest.programs.cip_4_digit'] || [];
+  const byCode = new Map();
+  for (const p of programs) {
+    if (Number(p?.credential?.level) !== 3 || !p?.code) continue;
+    const row = {
+      ipeds_id: ipedsId,
+      cip_code: String(p.code),
+      title: p.title || null,
+      completions: p.counts?.ipeds_awards1 ?? null,
+      earnings_1yr: p.earnings?.['1_yr']?.overall_median_earnings ?? null,
+      earnings_4yr: p.earnings?.['4_yr']?.overall_median_earnings ?? null,
+    };
+    const prev = byCode.get(row.cip_code);
+    if (!prev || (row.completions || 0) > (prev.completions || 0)) byCode.set(row.cip_code, row);
+  }
+  return [...byCode.values()];
 }
 
 async function fetchPage(page) {
@@ -179,7 +235,8 @@ async function main() {
   while (page < Math.min(totalPages, LIMIT_PAGES)) {
     const data = await fetchPage(page);
     totalPages = Math.ceil(data.metadata.total / PER_PAGE);
-    const mapped = (data.results || []).map(mapRow).filter((r) => r.name);
+    const validResults = (data.results || []).filter((r) => r['school.name']);
+    const mapped = validResults.map(mapRow);
 
     if (WITH_SUMMARIES) {
       // Throttle Gemini to ~5 req/sec; batches of 5 in parallel.
@@ -191,6 +248,16 @@ async function main() {
     }
 
     await upsertBatch(mapped);
+
+    // Program rows reference colleges via FK, so upsert after the parent batch
+    // and only for schools that made it into `mapped`.
+    const programRows = validResults.flatMap(mapPrograms);
+    if (programRows.length) {
+      const { error: progError } = await sb
+        .from('college_programs')
+        .upsert(programRows, { onConflict: 'ipeds_id,cip_code' });
+      if (progError) throw progError;
+    }
     total += mapped.length;
     console.log(`  page ${page + 1}/${totalPages} → upserted ${mapped.length} (running total ${total})`);
     page += 1;

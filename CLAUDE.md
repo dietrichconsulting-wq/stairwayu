@@ -30,7 +30,7 @@ src/
     tierConfig.ts    # Admission tier labels/colors
   data/          # Static data files
 supabase/
-  migrations/    # 32 migration files (001–032)
+  migrations/    # 38 migration files (001–038)
   functions/     # Edge functions (weekly-nudge)
 ```
 
@@ -134,7 +134,12 @@ export async function GET(req: Request) {
 
 ### Scorecard Data Flow (Explore page)
 1. `ExplorePlayground.tsx` sends request to `/api/colleges/explore`
-2. `route.ts` builds Scorecard API query using `RICH_FIELDS` + optional `latest.programs.cip_4_digit`
-3. Results mapped through `mapRichResult()`, program data extracted inline
-4. `scoreProgramStrength()` adds composite scores
+2. **Local-first:** `route.ts` queries the `colleges` table (+ `college_programs` inner join when a major is selected), refreshed monthly by the ingest job. `mapDbRow()` reshapes rows to the same object `mapRichResult()` produces.
+3. **Fallback:** if local data is unusable (tables empty, migration 038 not applied, or ingest not yet re-run with program data), the route falls back to the live Scorecard API + `mapRichResult()` exactly as before.
+4. `scoreProgramStrength()` adds composite scores; a final in-memory sort (nulls last) applies on every path
 5. Client-side: `estimatedCost()` adjusts for in-state/out-of-state, budget filter applied, admission chances calculated
+
+### College ingestion (monthly)
+- Runs via GitHub Actions (`.github/workflows/ingest-colleges.yml`), not Vercel Cron — no 5-minute ceiling. `/api/cron/ingest-colleges` remains for manual triggers.
+- `scripts/ingest-colleges.mjs` and `src/lib/services/collegeIngest.ts` are parallel implementations — **keep them in sync** (a `school.type` vs `school.ownership` drift between them once corrupted `is_public` for every school).
+- Populates `colleges` (full Explore field set incl. `region_id`, `cost_of_attendance`, `net_price_by_income` jsonb) and `college_programs` (bachelor's-level completions/earnings per CIP-4 code).

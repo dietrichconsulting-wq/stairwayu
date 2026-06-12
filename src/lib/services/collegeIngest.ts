@@ -15,6 +15,7 @@ const PER_PAGE = 100
 const FIELDS = [
   'id',
   'school.name', 'school.city', 'school.state', 'school.school_url', 'school.ownership',
+  'school.locale', 'school.region_id',
   'latest.admissions.admission_rate.overall',
   'latest.admissions.sat_scores.average.overall',
   'latest.admissions.sat_scores.25th_percentile.critical_reading',
@@ -24,10 +25,24 @@ const FIELDS = [
   'latest.admissions.act_scores.midpoint.cumulative',
   'latest.cost.tuition.in_state', 'latest.cost.tuition.out_of_state',
   'latest.cost.avg_net_price.public', 'latest.cost.avg_net_price.private',
+  'latest.cost.net_price.public.by_income_level.0-30000',
+  'latest.cost.net_price.public.by_income_level.30001-48000',
+  'latest.cost.net_price.public.by_income_level.48001-75000',
+  'latest.cost.net_price.public.by_income_level.75001-110000',
+  'latest.cost.net_price.public.by_income_level.110001-plus',
+  'latest.cost.net_price.private.by_income_level.0-30000',
+  'latest.cost.net_price.private.by_income_level.30001-48000',
+  'latest.cost.net_price.private.by_income_level.48001-75000',
+  'latest.cost.net_price.private.by_income_level.75001-110000',
+  'latest.cost.net_price.private.by_income_level.110001-plus',
+  'latest.cost.attendance.academic_year',
   'latest.student.size',
   'latest.student.retention_rate.four_year.full_time',
   'latest.completion.rate_suppressed.4yr',
+  'latest.completion.rate_suppressed.overall',
   'latest.earnings.10_yrs_after_entry.median',
+  'latest.earnings.6_yrs_after_entry.median',
+  'latest.programs.cip_4_digit',
 ].join(',')
 
 function slugify(name: string, ipedsId: string) {
@@ -52,6 +67,10 @@ function mapRow(r: any) {
   const m75  = r['latest.admissions.sat_scores.75th_percentile.math']
   const enrollment = r['latest.student.size'] || null
 
+  // Net price by income bracket — same keys mapRichResult() emits
+  const prefix = isPublic ? 'public' : 'private'
+  const np = (bracket: string) => r[`latest.cost.net_price.${prefix}.by_income_level.${bracket}`] ?? null
+
   return {
     ipeds_id: String(r.id),
     name: r['school.name'],
@@ -60,6 +79,8 @@ function mapRow(r: any) {
     url: r['school.school_url'] || null,
     control: isPublic ? 'Public' : (schoolType === 2 ? 'Private Nonprofit' : 'Private For-Profit'),
     is_public: isPublic,
+    locale: r['school.locale'] != null ? Number(r['school.locale']) : null,
+    region_id: r['school.region_id'] != null ? Number(r['school.region_id']) : null,
     admission_rate: pct(r['latest.admissions.admission_rate.overall']),
     avg_sat: int(r['latest.admissions.sat_scores.average.overall']),
     sat_25: (cr25 && m25) ? cr25 + m25 : null,
@@ -70,12 +91,48 @@ function mapRow(r: any) {
     avg_net_price: isPublic
       ? (r['latest.cost.avg_net_price.public']  || null)
       : (r['latest.cost.avg_net_price.private'] || null),
+    net_price_by_income: {
+      '0-30k':   np('0-30000'),
+      '30-48k':  np('30001-48000'),
+      '48-75k':  np('48001-75000'),
+      '75-110k': np('75001-110000'),
+      '110k+':   np('110001-plus'),
+    },
+    cost_of_attendance: r['latest.cost.attendance.academic_year'] ?? null,
     enrollment,
     retention_rate: pct(r['latest.student.retention_rate.four_year.full_time']),
     grad_rate_4yr:  pct(r['latest.completion.rate_suppressed.4yr']),
+    grad_rate_overall: pct(r['latest.completion.rate_suppressed.overall']),
     median_earnings_10yr: r['latest.earnings.10_yrs_after_entry.median'] || null,
+    median_earnings_6yr:  r['latest.earnings.6_yrs_after_entry.median']  || null,
     popularity: enrollment || 0,
   }
+}
+
+/**
+ * Extract bachelor's-level (credential level 3) program rows for the
+ * `college_programs` table. One row per (school, CIP-4 code); when the API
+ * returns multiple level-3 entries for a code, keep the highest-completions
+ * one (same rule the Explore page used against the live API).
+ */
+function mapPrograms(r: any) {
+  const ipedsId = String(r.id)
+  const programs = (r['latest.programs.cip_4_digit'] as any[]) || []
+  const byCode = new Map<string, any>()
+  for (const p of programs) {
+    if (Number(p?.credential?.level) !== 3 || !p?.code) continue
+    const row = {
+      ipeds_id: ipedsId,
+      cip_code: String(p.code),
+      title: p.title || null,
+      completions: p.counts?.ipeds_awards1 ?? null,
+      earnings_1yr: p.earnings?.['1_yr']?.overall_median_earnings ?? null,
+      earnings_4yr: p.earnings?.['4_yr']?.overall_median_earnings ?? null,
+    }
+    const prev = byCode.get(row.cip_code)
+    if (!prev || (row.completions || 0) > (prev.completions || 0)) byCode.set(row.cip_code, row)
+  }
+  return [...byCode.values()]
 }
 
 async function fetchPage(page: number) {
@@ -137,7 +194,8 @@ export async function ingestColleges(opts: IngestOptions = {}): Promise<IngestRe
     if (Date.now() - started > maxMs) break
     const data = await fetchPage(page)
     totalPages = Math.ceil(data.metadata.total / PER_PAGE)
-    const mapped = (data.results || []).map(mapRow).filter((r) => r.name)
+    const validResults = (data.results || []).filter((r: any) => r['school.name'])
+    const mapped = validResults.map(mapRow)
 
     // Slug resolution: keep existing, otherwise generate + dedupe.
     for (const r of mapped as any[]) {
@@ -156,6 +214,16 @@ export async function ingestColleges(opts: IngestOptions = {}): Promise<IngestRe
 
     const { error } = await sb.from('colleges').upsert(mapped as any[], { onConflict: 'ipeds_id' })
     if (error) throw error
+
+    // Program rows reference colleges via FK, so upsert after the parent batch
+    // and only for schools that made it into `mapped`.
+    const programRows = validResults.flatMap(mapPrograms)
+    if (programRows.length) {
+      const { error: progError } = await sb
+        .from('college_programs')
+        .upsert(programRows, { onConflict: 'ipeds_id,cip_code' })
+      if (progError) throw progError
+    }
     totalUpserted += mapped.length
     page += 1
     if (page >= totalPages) finished = true
